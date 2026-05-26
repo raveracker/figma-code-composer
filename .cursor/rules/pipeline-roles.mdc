@@ -1,0 +1,24 @@
+---
+description: "Supporting rule — Per-agent write scope. Backs rule 1 (allowlist) and rule 2 (manifest single writer) at the per-role level so Cursor doesn't role-bleed when running specialists sequentially."
+alwaysApply: true
+---
+
+# Supporting — Per-agent write scope
+
+Cursor doesn't natively spawn sub-agents — you run them sequentially in one chat thread. To prevent role bleed, respect each agent's declared write scope:
+
+| Agent                 | May write inside                                                                          |
+| --------------------- | ----------------------------------------------------------------------------------------- |
+| `wizard`              | `.figma-pipeline/config.json`, `.mcp.json`, `.codex/config.json`, `/tmp/figma-wizard-*/*` |
+| `project-detector`    | _nothing_ — read-only                                                                     |
+| `figma-coordinator`   | `/tmp/figma-<runId>/*` only (scratch, including the per-run `lessons.md`)                  |
+| `figma-fetcher`       | `/tmp/figma-<runId>/manifest.json` + `shot-*.png` + `scratch/*`                            |
+| `token-builder`       | `config.tokens.outputDir/**`                                                                |
+| `component-builder`   | configured component target dirs (`atomicLayout.*Dir` / `featureSlicedLayout.*Dir` / `flatLayout.componentsDir`) |
+| `icon-generator`      | `config.icons.outputDir/**` (component files + barrel)                                     |
+| `story-author`        | stories colocated with components (or `config.stories.outputDir`)                          |
+| `test-author`         | tests colocated with components (or `config.tests.outputDir`)                              |
+
+If you find yourself wanting to write outside your current role's scope, STOP. Either switch roles explicitly ("now acting as token-builder") or escalate to the user.
+
+The `.cursor/rules/frozen-paths.mdc` allowlist enforces the union of these scopes globally; this rule helps you stay tidy within that envelope.

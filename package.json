@@ -1,0 +1,47 @@
+{
+  "name": "create-figma-pipeline",
+  "version": "0.1.0",
+  "description": "Drop-in, framework-agnostic Figma-to-code multi-agent pipeline scaffold for Claude Code, Cursor, and Codex CLI.",
+  "keywords": [
+    "figma",
+    "design-system",
+    "code-generation",
+    "claude-code",
+    "cursor",
+    "codex",
+    "ai-agents",
+    "mcp",
+    "tokens",
+    "scaffold"
+  ],
+  "license": "MIT",
+  "type": "module",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "bin": {
+    "create-figma-pipeline": "bin/create-figma-pipeline.js"
+  },
+  "files": [
+    "bin/",
+    ".claude/",
+    ".cursor/",
+    ".codex/",
+    ".figma-pipeline/",
+    "CLAUDE.md",
+    "AGENTS.md",
+    "LICENSE",
+    "README.md"
+  ],
+  "scripts": {
+    "test:cli": "node bin/create-figma-pipeline.js --dry-run /tmp/cfp-dry-run-test",
+    "validate:config": "npx --yes --offline ajv-cli@5 validate -s .figma-pipeline/config.schema.json -d .figma-pipeline/config.example.json && npx --yes --offline ajv-cli@5 validate -s .figma-pipeline/config.schema.json -d .figma-pipeline/config.braid.example.json"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-org/figma-to-code-orchestration.git"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

@@ -1,0 +1,92 @@
+{
+  "$schema": "./config.schema.json",
+  "version": "1.0",
+  "project": {
+    "name": "seek-clone",
+    "description": "Job-search storefront on SEEK's Braid Design System."
+  },
+  "framework": {
+    "name": "react",
+    "variant": "next",
+    "version": "18.3.0"
+  },
+  "language": "ts",
+  "cssSystem": {
+    "name": "vanilla-extract",
+    "config": {
+      "note": "Braid uses vanilla-extract internally; component-builder won't emit additional CSS."
+    }
+  },
+  "tokens": {
+    "strategy": "js-tokens",
+    "outputDir": "src/design-tokens",
+    "files": ["braid-map.json"],
+    "namingConvention": "camelCase",
+    "prefix": ""
+  },
+  "components": {
+    "designMethodology": "atomic",
+    "atomicLayout": {
+      "atomsDir": "src/components/atoms",
+      "moleculesDir": "src/components/molecules",
+      "organismsDir": "src/components/organisms",
+      "templatesDir": "src/components/templates"
+    },
+    "namingConvention": "PascalCase",
+    "fileNaming": "match-component"
+  },
+  "icons": {
+    "outputDir": "src/icons",
+    "barrelFile": "index.ts",
+    "fillModel": "mixed"
+  },
+  "stories": {
+    "enabled": true,
+    "framework": "storybook",
+    "outputDir": "co-located",
+    "titleConvention": "Components/{Layer}/{Name}"
+  },
+  "tests": {
+    "enabled": true,
+    "framework": "vitest",
+    "outputDir": "co-located",
+    "testingLibrary": "react-testing-library"
+  },
+  "designSystem": {
+    "name": "braid",
+    "version": "33.0.0",
+    "themeName": "seekAnz",
+    "config": {
+      "providerPath": "src/AppProviders.tsx",
+      "iconReexportStrategy": "prefer-braid-native"
+    }
+  },
+  "figma": {
+    "mcpServerName": "figma",
+    "defaultFileKeys": [],
+    "linkConvention": "design-addon"
+  },
+  "writeScope": {
+    "allowedDirs": [
+      "src/components/**",
+      "src/design-tokens/**",
+      "src/icons/**",
+      "src/AppProviders.tsx"
+    ],
+    "alwaysBlocked": [
+      "node_modules/**",
+      "dist/**",
+      ".turbo/**",
+      "package-lock.json",
+      "yarn.lock",
+      "pnpm-lock.yaml",
+      ".env",
+      ".env.*"
+    ]
+  },
+  "tools": {
+    "claudeCode": true,
+    "cursor": true,
+    "codexCli": true
+  }
+}

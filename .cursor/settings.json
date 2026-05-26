@@ -1,0 +1,41 @@
+{
+  "_comment_about_this_file": [
+    "Cursor project-local settings for the figma-to-code orchestration scaffold.",
+    "Behavioural configuration lives in:",
+    "  - .cursor/rules/*.mdc        (alwaysApply for write allowlist + .env block)",
+    "  - .cursor/prompts/*.md       (one per agent in .claude/agents/)",
+    "  - .cursor/prompts/commands/  (slash-command equivalents)",
+    "  - .cursor/mcp.json           (MCP server config — Figma + Storybook)",
+    "",
+    "Claude Code hooks (SessionStart, UserPromptSubmit, PreToolUse, etc.) do not port to Cursor.",
+    "Cursor enforces the write allowlist via .cursor/rules/frozen-paths.mdc (alwaysApply)."
+  ],
+
+  "cursor.general.alwaysApplyRules": true,
+
+  "cursor.chat.includeContext": {
+    "rules": true,
+    "mcp": true,
+    "openFiles": true
+  },
+
+  "files.associations": {
+    "*.mdc": "markdown"
+  },
+
+  "search.exclude": {
+    "**/node_modules": true,
+    "**/dist": true,
+    "**/.turbo": true,
+    "**/storybook-build": true,
+    "**/package-lock.json": true,
+    "**/yarn.lock": true,
+    "**/pnpm-lock.yaml": true
+  },
+
+  "files.exclude": {
+    "**/.DS_Store": true,
+    "**/.turbo": true,
+    "**/storybook-build": true
+  }
+}

@@ -1,0 +1,87 @@
+{
+  "$schema": "./config.schema.json",
+  "version": "1.0",
+  "project": {
+    "name": "acme-web",
+    "description": "Acme storefront — React 19 + Tailwind v4."
+  },
+  "framework": {
+    "name": "react",
+    "variant": "next",
+    "version": "19.0.0"
+  },
+  "language": "ts",
+  "cssSystem": {
+    "name": "tailwind-v4",
+    "config": {
+      "prefix": "tw:",
+      "configFile": "src/styles/tailwind.css",
+      "extendTailwindMergePath": "src/lib/utils.ts"
+    }
+  },
+  "tokens": {
+    "strategy": "tailwind-css-vars",
+    "outputDir": "src/styles/tokens",
+    "files": ["primitives.css", "semantic.css", "components.css"],
+    "namingConvention": "kebab-case",
+    "prefix": "--app-"
+  },
+  "components": {
+    "designMethodology": "atomic",
+    "atomicLayout": {
+      "atomsDir": "src/components/atoms",
+      "moleculesDir": "src/components/molecules",
+      "organismsDir": "src/components/organisms",
+      "templatesDir": "src/components/templates"
+    },
+    "namingConvention": "PascalCase",
+    "fileNaming": "match-component"
+  },
+  "icons": {
+    "outputDir": "src/components/icons",
+    "barrelFile": "index.ts",
+    "fillModel": "mixed"
+  },
+  "stories": {
+    "enabled": true,
+    "framework": "storybook",
+    "outputDir": "co-located",
+    "titleConvention": "Components/{Layer}/{Name}"
+  },
+  "tests": {
+    "enabled": true,
+    "framework": "vitest",
+    "outputDir": "co-located",
+    "testingLibrary": "react-testing-library"
+  },
+  "designSystem": {
+    "name": "none"
+  },
+  "figma": {
+    "mcpServerName": "figma",
+    "defaultFileKeys": [],
+    "linkConvention": "design-addon"
+  },
+  "writeScope": {
+    "allowedDirs": [
+      "src/components/**",
+      "src/styles/tokens/**",
+      "src/components/icons/**"
+    ],
+    "alwaysBlocked": [
+      "node_modules/**",
+      "dist/**",
+      ".turbo/**",
+      "package-lock.json",
+      "yarn.lock",
+      "pnpm-lock.yaml",
+      ".env",
+      ".env.*"
+    ]
+  },
+  "tools": {
+    "claudeCode": true,
+    "cursor": true,
+    "codexCli": true
+  }
+}

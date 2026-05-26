@@ -1,0 +1,44 @@
+---
+description: "Binding rules 2-5 — Manifest is the single source of truth between agents; variable names preserved; unbound = flag; blocking ambiguities gate the run."
+globs: ["/tmp/figma-*/**", ".figma-pipeline/protocols/figma-manifest.md"]
+alwaysApply: true
+---
+
+# Rules 2 – 5 — The manifest is the contract
+
+## Rule 2 — Single source of truth
+
+`figma-fetcher` is the only writer of `/tmp/figma-<runId>/manifest.json`. Every downstream agent (`token-builder`, `component-builder`, `icon-generator`, `story-author`, `test-author`) treats it as read-only input.
+
+If you are not acting as `figma-fetcher` and you find yourself wanting to edit the manifest → STOP. Either re-spawn the fetcher with a corrective note, or escalate to the user.
+
+## Rule 3 — Variable names are preserved, never resolved
+
+`styledProperties[].figmaVariable` always holds the raw Figma variable path (e.g. `color/surface/brand-primary`). Resolving it to a hex / rem / px value inside the manifest is a contract violation.
+
+The `tokens` dict at the top of the manifest is the only place values appear — consumers map by name from `styledProperties` into `tokens`.
+
+## Rule 4 — Unbound values are flags, not invitations
+
+When a Figma style has no variable binding, the fetcher records:
+
+```jsonc
+{ "property": "paddingX", "figmaVariable": null, "unbound": true, "rawValue": "14px" }
+```
+
+`unbound: true` REQUIRES a non-null `rawValue`. Builders (token-builder, component-builder, icon-generator) MUST stop-and-flag any `unbound` entry — never invent a token, never inline the raw value. Add the entry to your final-report's `flags[]` so the coordinator surfaces it to the user.
+
+## Rule 5 — Blocking ambiguities gate the run
+
+When `manifest.ambiguities[]` contains any entry with `blocking: true`, the coordinator stops and asks the user one focused question before any build agent runs. Build agents that find a blocking ambiguity in their slice MUST refuse to proceed and report — never guess.
+
+## Schema invariants (always)
+
+- `manifestVersion == "1.0"` — pinned. Mismatch is a hard validation failure.
+- Required top-level keys: `runId`, `intent`, `scope`, `source`, `configSnapshot`, `icons`, `components`, `tokens`, `ambiguities`, `injectionObservations`.
+- `configSnapshot` is frozen at fetch time — mid-run edits to `.figma-pipeline/config.json` do not affect an in-flight run.
+- `existsOnDisk: true` → patch the file at `diskPath`. Never blind-overwrite.
+
+## Slicing
+
+Each specialist receives ONLY its slice, never the full manifest. See `.figma-pipeline/protocols/figma-manifest.md` § Slicing.

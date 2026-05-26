@@ -1,0 +1,38 @@
+---
+description: "Binding rule 1 — Write-access allowlist driven by .figma-pipeline/config.json. Write only inside config.writeScope.allowedDirs; everything else is read-only."
+alwaysApply: true
+---
+
+# Rule 1 — Write-access allowlist
+
+Cursor in agent mode may create / edit / delete files **only inside** the directories listed in `.figma-pipeline/config.json` → `writeScope.allowedDirs`. Everything else in the project is read-only.
+
+## Before `/init` runs (bootstrap)
+
+Until `.figma-pipeline/config.json` exists, only these roots are writable:
+
+- `.figma-pipeline/**`
+- `.mcp.json`
+- `.codex/**`
+- `/tmp/**`
+
+## After `/init`
+
+The wizard composes `writeScope.allowedDirs` from the configured paths (token output, component dirs, icon output, story / test output when not co-located). Plus always: `.figma-pipeline/**`, `.mcp.json`, `.codex/**`, `/tmp/**`.
+
+## Always-blocked
+
+Regardless of the allowlist:
+
+- `node_modules/**`, `dist/**`, `build/**`, `.next/**`, `.turbo/**`, `coverage/**`
+- `package-lock.json`, `yarn.lock`, `pnpm-lock.yaml`
+- `.env`, `.env.*` (except `.env.example` — see `env-access.mdc`)
+- `tailwind.config.{js,ts,cjs,mjs}` when `cssSystem.name == "tailwind-v4"` (v4 is CSS-only)
+
+## Escape
+
+The escape hatch `FP_ALLOW_RESTRICTED_WRITE=1` (legacy `HK_ALLOW_RESTRICTED_WRITE=1` still accepted) lives in the shell env, which Cursor cannot read. The user must explicitly tell Cursor to override; otherwise refuse the write and report.
+
+## If you find yourself wanting to write outside the allowlist
+
+Stop. Either (a) ask the user to extend `config.writeScope.allowedDirs` and re-validate, or (b) ask the user to override explicitly. Do not silently bypass.

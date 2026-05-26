@@ -1,0 +1,282 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://figma-to-code-orchestration.dev/config.schema.json",
+  "title": "figma-pipeline config",
+  "description": "Single source of truth for the figma-to-code orchestration pipeline. Written by the /init wizard; read by every agent before acting.",
+  "type": "object",
+  "required": ["version", "project", "framework", "language", "cssSystem", "tokens", "components", "icons", "writeScope"],
+  "properties": {
+    "version": {
+      "type": "string",
+      "const": "1.0",
+      "description": "Config schema version. Hard-pin for forward compatibility."
+    },
+    "project": {
+      "type": "object",
+      "required": ["name"],
+      "properties": {
+        "name": { "type": "string", "minLength": 1 },
+        "description": { "type": "string" }
+      }
+    },
+    "framework": {
+      "type": "object",
+      "required": ["name"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "enum": ["react", "vue", "angular", "svelte", "solid", "lit", "alpine"]
+        },
+        "variant": {
+          "type": "string",
+          "description": "Optional sub-flavor, e.g. 'next', 'vite', 'cra', 'nuxt', 'sveltekit', 'astro'."
+        },
+        "version": {
+          "type": "string",
+          "description": "Major.minor.patch — e.g. '19.0.0' for React, '3.5.0' for Vue."
+        }
+      }
+    },
+    "language": {
+      "type": "string",
+      "enum": ["ts", "js"]
+    },
+    "cssSystem": {
+      "type": "object",
+      "required": ["name"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "enum": [
+            "tailwind-v4",
+            "tailwind-v3",
+            "unocss",
+            "open-props",
+            "css-modules",
+            "css-vars",
+            "sass",
+            "style-dictionary",
+            "plain-css",
+            "vanilla-extract",
+            "panda",
+            "stitches"
+          ]
+        },
+        "config": {
+          "type": "object",
+          "description": "Free-form per-CSS-system options. See .figma-pipeline/protocols/token-strategy.md for keys.",
+          "additionalProperties": true
+        }
+      }
+    },
+    "tokens": {
+      "type": "object",
+      "required": ["strategy", "outputDir"],
+      "properties": {
+        "strategy": {
+          "type": "string",
+          "enum": [
+            "tailwind-css-vars",
+            "css-custom-properties",
+            "scss-variables",
+            "js-tokens",
+            "style-dictionary-json",
+            "unocss-theme"
+          ]
+        },
+        "outputDir": { "type": "string", "description": "Where token CSS/JS/JSON files are emitted." },
+        "files": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Emitted file basenames. Default: ['primitives', 'semantic', 'components']."
+        },
+        "namingConvention": {
+          "type": "string",
+          "enum": ["kebab-case", "camelCase", "dot.path", "slash/path"],
+          "default": "kebab-case"
+        },
+        "prefix": {
+          "type": "string",
+          "description": "Optional prefix for emitted token names (e.g. '--app-')."
+        }
+      }
+    },
+    "components": {
+      "type": "object",
+      "required": ["designMethodology"],
+      "properties": {
+        "designMethodology": {
+          "type": "string",
+          "enum": ["atomic", "feature-sliced", "layered", "hexagonal", "flat", "custom"]
+        },
+        "atomicLayout": {
+          "type": "object",
+          "description": "Required when designMethodology=atomic.",
+          "properties": {
+            "atomsDir": { "type": "string" },
+            "moleculesDir": { "type": "string" },
+            "organismsDir": { "type": "string" },
+            "templatesDir": { "type": "string" }
+          }
+        },
+        "featureSlicedLayout": {
+          "type": "object",
+          "description": "Required when designMethodology=feature-sliced.",
+          "properties": {
+            "sharedDir": { "type": "string" },
+            "entitiesDir": { "type": "string" },
+            "featuresDir": { "type": "string" },
+            "widgetsDir": { "type": "string" },
+            "pagesDir": { "type": "string" }
+          }
+        },
+        "flatLayout": {
+          "type": "object",
+          "description": "Required when designMethodology=flat or custom.",
+          "properties": {
+            "componentsDir": { "type": "string" }
+          }
+        },
+        "namingConvention": {
+          "type": "string",
+          "enum": ["PascalCase", "kebab-case", "camelCase"],
+          "default": "PascalCase"
+        },
+        "fileNaming": {
+          "type": "string",
+          "enum": ["match-component", "match-folder", "index"],
+          "default": "match-component",
+          "description": "match-component: Button/Button.tsx. match-folder: button/button.tsx. index: Button/index.tsx."
+        }
+      }
+    },
+    "icons": {
+      "type": "object",
+      "required": ["outputDir"],
+      "properties": {
+        "outputDir": { "type": "string" },
+        "barrelFile": { "type": "string", "default": "index.ts" },
+        "fillModel": {
+          "type": "string",
+          "enum": ["currentColor", "literal", "mixed"],
+          "default": "mixed",
+          "description": "currentColor for generic UI glyphs; literal for semantic markers. Mixed allows both per-icon."
+        }
+      }
+    },
+    "stories": {
+      "type": "object",
+      "properties": {
+        "enabled": { "type": "boolean", "default": true },
+        "framework": {
+          "type": "string",
+          "enum": ["storybook", "histoire", "ladle"]
+        },
+        "outputDir": {
+          "type": "string",
+          "default": "co-located",
+          "description": "'co-located' = alongside component. Or absolute path."
+        },
+        "titleConvention": {
+          "type": "string",
+          "default": "Components/{Layer}/{Name}",
+          "description": "Template — supports {Layer}, {Name}, {Domain}."
+        }
+      }
+    },
+    "tests": {
+      "type": "object",
+      "properties": {
+        "enabled": { "type": "boolean", "default": true },
+        "framework": {
+          "type": "string",
+          "enum": ["vitest", "jest", "karma", "playwright"]
+        },
+        "outputDir": {
+          "type": "string",
+          "default": "co-located"
+        },
+        "testingLibrary": {
+          "type": "string",
+          "enum": ["react-testing-library", "vue-testing-library", "@testing-library/angular", "@testing-library/svelte", "solid-testing-library", "lit-testing", "none"]
+        }
+      }
+    },
+    "designSystem": {
+      "type": "object",
+      "description": "Higher-level component library that overrides framework + cssSystem emission. When name != \"none\", component-builder emits DS-native components instead of plain HTML primitives + utility classes.",
+      "properties": {
+        "name": {
+          "type": "string",
+          "enum": ["none", "braid", "chakra", "mantine", "mui", "radix", "shadcn", "headlessui"],
+          "default": "none"
+        },
+        "version": {
+          "type": "string",
+          "description": "Major.minor.patch — e.g. '33.0.0' for braid."
+        },
+        "themeName": {
+          "type": "string",
+          "description": "DS-specific theme key (e.g. braid's 'seekAnz', 'apacBlue'). 'custom' if the consumer is wiring their own theme."
+        },
+        "config": {
+          "type": "object",
+          "description": "Free-form per-DS options.",
+          "additionalProperties": true
+        }
+      }
+    },
+    "figma": {
+      "type": "object",
+      "properties": {
+        "mcpServerName": { "type": "string", "default": "figma" },
+        "defaultFileKeys": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "linkConvention": {
+          "type": "string",
+          "enum": ["design-addon", "raw-url", "none"],
+          "default": "design-addon"
+        }
+      }
+    },
+    "writeScope": {
+      "type": "object",
+      "required": ["allowedDirs"],
+      "description": "Derived from the path-bearing keys above by the wizard; read by check-frozen-paths.sh. Manually editable.",
+      "properties": {
+        "allowedDirs": {
+          "type": "array",
+          "items": { "type": "string" },
+          "minItems": 1,
+          "description": "Glob patterns. Agents may write only inside these."
+        },
+        "alwaysBlocked": {
+          "type": "array",
+          "items": { "type": "string" },
+          "default": [
+            "node_modules/**",
+            "dist/**",
+            ".turbo/**",
+            "package-lock.json",
+            "yarn.lock",
+            "pnpm-lock.yaml",
+            ".env",
+            ".env.*"
+          ]
+        }
+      }
+    },
+    "tools": {
+      "type": "object",
+      "description": "Which AI tools this scaffold is wired for. Wizard sets at /init.",
+      "properties": {
+        "claudeCode": { "type": "boolean", "default": true },
+        "cursor": { "type": "boolean", "default": true },
+        "codexCli": { "type": "boolean", "default": true }
+      }
+    }
+  },
+  "additionalProperties": false
+}

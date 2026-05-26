@@ -1,0 +1,19 @@
+{
+  "_comment": "Project-local MCP server config for Cursor. The Claude Code harness uses figma MCP tools (mcp__figma__*) — wire the same Figma MCP server here so Cursor's agent has equivalent tool access. Cursor reads this file on startup. The Figma server requires a personal access token; set FIGMA_API_TOKEN in your shell environment or replace the env block below with a static value (DO NOT commit a real token).",
+  "mcpServers": {
+    "figma": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "figma-developer-mcp",
+        "--stdio"
+      ],
+      "env": {
+        "FIGMA_API_TOKEN": "${env:FIGMA_API_TOKEN}"
+      }
+    },
+    "storybook-sb-mcp": {
+      "url": "http://localhost:6006/mcp"
+    }
+  }
+}

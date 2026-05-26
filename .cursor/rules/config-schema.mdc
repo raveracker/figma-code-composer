@@ -1,0 +1,36 @@
+---
+description: "Supporting rule — Shape contract for .figma-pipeline/config.json. The config is rule 1's allowlist source AND every agent's branching input; the schema below must validate."
+globs: [".figma-pipeline/config.json", ".figma-pipeline/config.schema.json", ".figma-pipeline/config.example.json", ".figma-pipeline/config.braid.example.json"]
+---
+
+# Supporting — `.figma-pipeline/config.json` contract
+
+Backs **binding rule 1** (write allowlist is derived from this file) and feeds the `configSnapshot` that the coordinator passes to every specialist.
+
+This file is the **runtime configuration** every pipeline agent reads. Hand-edits are allowed; the wizard writes it during `/init`.
+
+## Required top-level keys
+
+`version`, `project`, `framework`, `language`, `cssSystem`, `tokens`, `components`, `icons`, `writeScope`.
+
+Optional (commonly present): `designSystem`, `stories`, `tests`, `figma`, `tools`.
+
+## Hard constraints
+
+- `version == "1.0"`. Bumping is a breaking change for every agent.
+- `framework.name ∈ {react, vue, angular, svelte, solid, lit, alpine}`.
+- `cssSystem.name ∈ {tailwind-v4, tailwind-v3, unocss, open-props, css-modules, css-vars, sass, style-dictionary, plain-css, vanilla-extract, panda, stitches}`.
+- `tokens.strategy ∈ {tailwind-css-vars, css-custom-properties, scss-variables, js-tokens, style-dictionary-json, unocss-theme}`.
+- `components.designMethodology ∈ {atomic, feature-sliced, layered, hexagonal, flat, custom}`.
+- `designSystem.name ∈ {none, braid, chakra, mantine, mui, radix, shadcn, headlessui}` when present (default: `none`).
+- `writeScope.allowedDirs` MUST be non-empty.
+
+## Path keys feed the write allowlist
+
+`tokens.outputDir`, `components.atomicLayout.*Dir` (or feature-sliced / flat equivalents), `icons.outputDir`, `stories.outputDir` (when not `co-located`), `tests.outputDir` (when not `co-located`) — each appears under `writeScope.allowedDirs` with a trailing `/**`.
+
+## Edits
+
+Free to hand-edit. After editing, the next `Write` will trigger `check-config-schema.sh` (Claude Code) or this rule in Cursor — Cursor users should re-validate manually with `npx --yes ajv-cli@5 validate -s .figma-pipeline/config.schema.json -d .figma-pipeline/config.json`.
+
+To re-detect framework + CSS system without losing path overrides: run `/init --re-detect`.

@@ -1,0 +1,2 @@
+[2026-05-15T10:01:50Z] figma-fetcher DENY tool=Write file=packages/hk-ui/src/x.tsx session=t (write-scope guard)
+[2026-05-15T10:01:50Z] figma-coordinator DENY tool=Edit file=packages/hk-ui/src/y.tsx session=t (write-scope guard)

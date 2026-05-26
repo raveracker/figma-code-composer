@@ -1,0 +1,6 @@
+# Hard block: keep AI (Cursor) from reading/indexing .env secrets.
+# Policy + bypass: see .cursor/rules/env-access.mdc / CLAUDE.md rule 26.
+# The committed template `.env.example` stays accessible.
+.env
+.env.*
+!.env.example

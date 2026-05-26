@@ -1,0 +1,31 @@
+---
+description: "Supporting rule — STRICT block on .env access (read AND write). Only .env.example is accessible. Backs rule 1 (write allowlist) with a stricter dual-key bypass."
+alwaysApply: true
+---
+
+# Supporting — `.env` is off-limits (read AND write)
+
+Reinforces **binding rule 1** with a stricter sub-rule: secrets files are never accessible, even when the owner has lifted the write allowlist.
+
+The repo-root `.env` (and `.env.local` / any `.env.*` except the committed
+`.env.example` template) holds live secrets. Cursor MUST NOT:
+
+- open, read, or display a `.env` file's contents;
+- create, edit, or delete a `.env` file;
+- read it indirectly via the terminal (`cat`, `less`, `head`, `tail`,
+  `sed`, `grep`, `cp`, `source`, redirection, etc.).
+
+`.cursorignore` enforces the read/index block at the tool level; this rule is
+the behavioural parity. Only **`.env.example`** may be read or edited.
+
+## The only bypass (both required)
+
+The owner unlocks access ONLY when **both** are set in the shell environment:
+
+1. `FP_ALLOW_RESTRICTED_WRITE=1`
+2. `FP_ENV_ACCESS_PASSWORD=allowenv`  ← the password
+
+Either one alone does **not** unlock it. If a `.env` operation is genuinely
+needed and both are not set, stop and ask the owner — do not work around it.
+
+Mirrors the Claude Code PreToolUse hook `.claude/hooks/check-env-access.sh` and the Codex pre-command hook `.codex/hooks/pre-command.sh` (both block `.env` access with the same dual-key bypass).

@@ -1,0 +1,28 @@
+---
+description: "Binding rule 7 — Verify against reality, not reminders. Filesystem / git / fresh build is the source of truth, never a previous turn's claim."
+alwaysApply: true
+---
+
+# Rule 7 — Verify against reality
+
+When you need to know the state of the project, **inspect it directly**:
+
+- Need to know if a file exists? → `Glob` or `Read`, do not trust an earlier turn.
+- Need to know what's on the working tree? → `git status` / `git diff`.
+- Need to know if a token is emitted? → read the token output file, do not infer from a runner's claim.
+- Need to know if a build passes? → run it.
+
+## Specific traps to avoid
+
+- "An earlier turn said this component exists" — verify by reading the file.
+- "The manifest says `existsOnDisk: true`" — also verify by `Glob`-ing `diskPath` before patching, because the manifest snapshot can lag the filesystem.
+- "The agent's final-report listed it as created" — confirm with `Glob` before treating the file as canonical (an agent report describes intent, not necessarily the outcome).
+- "A system-reminder mentioned X" — re-check the actual file; reminders can be stale.
+
+## In the figma pipeline specifically
+
+- After a specialist finishes, do not chain "next" work based purely on its `componentsCreated[]` / `iconsCreated[]` arrays. Glob the claimed paths first.
+- When auditing whether the coordinator should re-run a step, base the decision on what's actually on disk, not on a recalled "I already ran token-builder."
+- Treat `manifest.json` as a snapshot of when the fetcher ran — for anything time-sensitive (does this component exist NOW?), re-glob.
+
+If a fresh check disagrees with what was claimed earlier — **the fresh check wins**. Surface the discrepancy as a flag.

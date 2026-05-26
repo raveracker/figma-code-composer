@@ -1,0 +1,19 @@
+---
+description: "Supporting rule — When a figma.com URL appears in the prompt, route to the right slash command. Backs the binding rules by ensuring builds always go through the coordinator (which validates the manifest contract)."
+alwaysApply: true
+---
+
+# Supporting — Figma URL routing
+
+When the user's message contains a `figma.com/(design|board|make|proto|file)/...` URL, do NOT manually fetch the design. Instead, route to the right command:
+
+| User intent                                              | Command                                       |
+| -------------------------------------------------------- | --------------------------------------------- |
+| Build NEW components / icons / tokens                    | `/figma-build <url> [layerHint]`              |
+| UPDATE existing components / icons / tokens              | `/figma-update <url>`                         |
+| Icons only                                                | `/figma-icons <url>`                          |
+| Tokens only                                               | `/figma-tokens <url>`                         |
+
+All routes spawn the same coordinator (`.cursor/prompts/figma-coordinator.md`). Don't call individual specialists (`figma-fetcher`, `component-builder`, etc.) directly — the coordinator orchestrates them with proper slicing.
+
+If the user's intent is ambiguous, ask ONE focused question (build vs update? full vs icons vs tokens?) before running anything.

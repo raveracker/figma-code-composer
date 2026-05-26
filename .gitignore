@@ -1,0 +1,23 @@
+# Node
+node_modules/
+*.tgz
+
+# OS / editor
+.DS_Store
+.idea/
+.vscode/
+
+# Local-only
+.mcp.json
+.env
+.env.*
+!.env.example
+
+# Runtime / scratch
+/tmp/
+
+# Knowledge graphs — this project explicitly does NOT use graphify
+graphify-out/
+
+# Generated config (created locally by /init)
+.figma-pipeline/config.json
