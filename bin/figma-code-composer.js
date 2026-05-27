@@ -1,15 +1,27 @@
 #!/usr/bin/env node
-// create-figma-pipeline — scaffolder for the figma-to-code orchestration pipeline.
+// figma-code-composer (fcc) — Figma-to-code multi-agent pipeline scaffold + KG CLI.
 //
-// Usage:
-//   npx create-figma-pipeline                            # interactive, current dir
-//   npx create-figma-pipeline ./my-app                   # interactive, target dir
-//   npx create-figma-pipeline --yes                      # non-interactive, all tools
-//   npx create-figma-pipeline --tools claude,cursor       # specific tools
-//   npx create-figma-pipeline --force                    # overwrite existing files
-//   npx create-figma-pipeline --dry-run                  # print plan, do nothing
+// Subcommands:
+//   init [target]              Scaffold the pipeline into a project (default)
+//   doctor                     Validate config, check RTK install, MCP reachability
+//   complexity <manifest>      Print complexity score for a manifest JSON
+//   kg:query                   Retrieve top-K prior components for a manifest slice
+//   kg:stage                   Subagent writes a ledger delta (parallel-safe)
+//   kg:merge                   Coordinator merges staged deltas into the ledger
+//   kg:rebuild                 Rebuild graph.json + embeddings from ledger.jsonl
+//   handover                   Emit handover .md for a run
 //
-// Flags (all optional):
+// Legacy: invoking without a subcommand defaults to `init` for backward compat.
+//
+// Init usage:
+//   npx figma-code-composer                            # interactive, current dir
+//   npx figma-code-composer init ./my-app              # interactive, target dir
+//   npx figma-code-composer init --yes                 # non-interactive, all tools
+//   npx figma-code-composer init --tools claude,cursor # specific tools
+//   npx figma-code-composer init --force               # overwrite existing files
+//   npx figma-code-composer init --dry-run             # print plan, do nothing
+//
+// Init flags (all optional):
 //   --target <dir>     Target directory (default: positional arg or cwd)
 //   --tools <list>     Comma-separated: claude,cursor,codex (default: all)
 //   --force            Overwrite existing files at target
@@ -55,7 +67,57 @@ const COLORS = {
 const NO_COLOR = !output.isTTY || process.env.NO_COLOR;
 const c = (color, str) => (NO_COLOR ? str : `${COLORS[color]}${str}${COLORS.reset}`);
 
-// ─── arg parsing ────────────────────────────────────────────────────────────
+// ─── subcommand dispatcher ──────────────────────────────────────────────────
+const KNOWN_SUBCOMMANDS = new Set([
+  "init",
+  "doctor",
+  "complexity",
+  "kg:query",
+  "kg:stage",
+  "kg:merge",
+  "kg:rebuild",
+  "kg:verify",
+  "kg:repair",
+  "handover",
+]);
+
+const STUB_SUBCOMMANDS = new Set([
+  "doctor",
+  "complexity",
+  "kg:query",
+  "kg:stage",
+  "kg:merge",
+  "kg:rebuild",
+  "kg:verify",
+  "kg:repair",
+  "handover",
+]);
+
+async function dispatch(argv) {
+  if (argv.includes("--help") || argv.includes("-h")) { printHelp(); process.exit(0); }
+  if (argv.includes("--version") || argv.includes("-v")) { printVersion(); process.exit(0); }
+
+  const first = argv[0];
+  if (!first || first.startsWith("--") || first.startsWith("-")) {
+    return runInit(argv);
+  }
+  if (KNOWN_SUBCOMMANDS.has(first)) {
+    const rest = argv.slice(1);
+    if (first === "init") return runInit(rest);
+    if (STUB_SUBCOMMANDS.has(first)) return runStub(first, rest);
+  }
+  // Unknown first arg — treat as legacy positional target for init
+  return runInit(argv);
+}
+
+function runStub(name, args) {
+  console.log(c("yellow", `[fcc ${name}] not yet implemented in this build.`));
+  console.log(c("dim", `See .figma-pipeline/protocols/cli.md for the full spec.`));
+  console.log(c("dim", `Tracking issue: https://github.com/raveracker/figma-code-composer/issues`));
+  process.exit(0);
+}
+
+// ─── arg parsing (init) ─────────────────────────────────────────────────────
 function parseArgs(argv) {
   const args = {
     target: null,
@@ -94,12 +156,25 @@ function parseArgs(argv) {
 // ─── help / version ─────────────────────────────────────────────────────────
 function printHelp() {
   console.log(`
-${c("bold", "create-figma-pipeline")} — drop-in Figma-to-code pipeline scaffold
+${c("bold", "figma-code-composer")} (fcc) — Figma-to-code pipeline scaffold + KG CLI
 
-${c("bold", "Usage:")}
-  npx create-figma-pipeline [target] [options]
+${c("bold", "Subcommands:")}
+  init [target]              Scaffold the pipeline into a project (default)
+  doctor                     Validate config, RTK install, MCP reachability
+  complexity <manifest>      Print complexity score for a manifest JSON
+  kg:query                   Retrieve top-K prior components for a manifest slice
+  kg:stage                   Subagent writes a ledger delta (parallel-safe)
+  kg:merge                   Coordinator merges staged deltas into the ledger
+  kg:rebuild                 Rebuild graph.json + embeddings from ledger.jsonl
+  kg:verify                  Check ledger entries still match the filesystem
+  kg:repair                  User-driven cleanup: prune orphans, rebuild, resolve paths
+  handover                   Emit handover .md for a run
 
-${c("bold", "Options:")}
+${c("bold", "Init usage:")}
+  npx figma-code-composer [target] [options]
+  npx figma-code-composer init [target] [options]
+
+${c("bold", "Init options:")}
   --target <dir>     Target directory (default: positional arg or cwd)
   --tools <list>     Comma-separated: claude,cursor,codex (default: all)
   --skip <list>      Comma-separated extras to skip: claude-md,agents-md
@@ -111,16 +186,19 @@ ${c("bold", "Options:")}
 
 ${c("bold", "Examples:")}
   ${c("dim", "# Interactive, drops scaffold into cwd")}
-  npx create-figma-pipeline
+  npx figma-code-composer
 
   ${c("dim", "# Non-interactive, all tools into ./my-app")}
-  npx create-figma-pipeline ./my-app --yes
+  npx figma-code-composer init ./my-app --yes
 
   ${c("dim", "# Only Claude Code + Cursor")}
-  npx create-figma-pipeline --tools claude,cursor --yes
+  npx figma-code-composer init --tools claude,cursor --yes
 
   ${c("dim", "# Skip CLAUDE.md (keep your existing one)")}
-  npx create-figma-pipeline --skip claude-md --yes
+  npx figma-code-composer init --skip claude-md --yes
+
+  ${c("dim", "# Short alias")}
+  npx fcc init --yes
 
 ${c("bold", "After install:")}
   cd <target> && open in your AI tool of choice
@@ -131,7 +209,7 @@ ${c("bold", "After install:")}
 }
 
 function printVersion() {
-  console.log(`create-figma-pipeline ${PKG.version}`);
+  console.log(`figma-code-composer ${PKG.version}`);
 }
 
 // ─── prompt helpers ─────────────────────────────────────────────────────────
@@ -181,7 +259,6 @@ function chmodShellScripts(dir) {
   return count;
 }
 
-// Also chmod the top-level wrap.sh path explicitly
 function ensureWrapShExecutable(targetDir) {
   const wrap = join(targetDir, ".codex", "wrap.sh");
   if (pathExists(wrap)) {
@@ -211,18 +288,17 @@ function buildPlan(tools, skipExtras) {
   return entries;
 }
 
-// ─── main ───────────────────────────────────────────────────────────────────
-async function main() {
-  const args = parseArgs(process.argv.slice(2));
+// ─── init: scaffolder ───────────────────────────────────────────────────────
+async function runInit(argv) {
+  const args = parseArgs(argv);
 
   if (args.help)    { printHelp(); process.exit(0); }
   if (args.version) { printVersion(); process.exit(0); }
 
   const targetDir = resolve(process.cwd(), args.target || ".");
-  console.log(c("bold", "📐 create-figma-pipeline"));
+  console.log(c("bold", "📐 figma-code-composer"));
   console.log(c("dim", `   Target: ${targetDir}`));
 
-  // Ensure target dir exists
   if (!pathExists(targetDir)) {
     if (args.dryRun) {
       console.log(c("yellow", `   (would create) ${targetDir}`));
@@ -235,7 +311,6 @@ async function main() {
     process.exit(2);
   }
 
-  // Resolve tool selection
   let tools = args.tools;
   let skipExtras = args.skip;
   let force = args.force;
@@ -263,7 +338,6 @@ async function main() {
     tools = ["claude", "cursor", "codex"];
   }
 
-  // Validate tool names
   for (const t of tools) {
     if (!TOOL_PATHS[t]) {
       console.error(c("red", `Unknown tool: ${t} (valid: claude, cursor, codex)`));
@@ -271,7 +345,6 @@ async function main() {
     }
   }
 
-  // Build plan
   const plan = buildPlan(tools, skipExtras);
   console.log("");
   console.log(c("bold", "Scaffold plan:"));
@@ -282,7 +355,6 @@ async function main() {
     console.log(c("dim", `  (skipping: ${skipExtras.join(", ")})`));
   }
 
-  // Conflict check
   const conflicts = listConflicts(targetDir, plan);
   if (conflicts.length > 0 && !force) {
     console.log("");
@@ -312,7 +384,6 @@ async function main() {
     }
   }
 
-  // Execute
   console.log("");
   console.log(args.dryRun ? c("yellow", "Dry run — no files written:") : c("bold", "Copying:"));
   for (const entry of plan) {
@@ -328,7 +399,6 @@ async function main() {
     }
   }
 
-  // Post-copy: chmod shell scripts
   if (!args.dryRun) {
     let chmodCount = 0;
     if (tools.includes("claude")) chmodCount += chmodShellScripts(join(targetDir, ".claude", "hooks"));
@@ -339,7 +409,6 @@ async function main() {
     }
   }
 
-  // Next steps
   console.log("");
   console.log(c("bold", args.dryRun ? "Dry run complete." : "✅ Scaffold installed."));
   console.log("");
@@ -350,10 +419,12 @@ async function main() {
   if (tools.includes("cursor")) console.log(`     ${c("cyan", "Cursor")}       →  type /init in agent chat`);
   if (tools.includes("codex"))  console.log(`     ${c("cyan", "Codex CLI")}    →  ./.codex/wrap.sh init`);
   console.log(`  ${c("dim", "3.")} Read ${c("cyan", "CLAUDE.md")} for binding rules, ${c("cyan", "AGENTS.md")} for contributor guidelines.`);
+  console.log(`  ${c("dim", "4.")} (Optional) install RTK to compress shell-output tokens: ${c("cyan", "brew install rtk && rtk init -g")}`);
   console.log("");
 }
 
-main().catch(err => {
+// ─── entry ──────────────────────────────────────────────────────────────────
+dispatch(process.argv.slice(2)).catch(err => {
   console.error(c("red", `\nError: ${err.message}`));
   if (process.env.DEBUG) console.error(err.stack);
   process.exit(1);

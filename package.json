@@ -1,7 +1,7 @@
 {
-  "name": "create-figma-pipeline",
+  "name": "figma-code-composer",
   "version": "0.1.0",
-  "description": "Drop-in, framework-agnostic Figma-to-code multi-agent pipeline scaffold for Claude Code, Cursor, and Codex CLI.",
+  "description": "Drop-in, framework-agnostic Figma-to-code multi-agent pipeline scaffold for Claude Code, Cursor, and Codex CLI. Includes a knowledge-graph CLI for cross-run component reuse, complexity-driven routing, and handover-based session optimization.",
   "keywords": [
     "figma",
     "design-system",
@@ -12,7 +12,9 @@
     "ai-agents",
     "mcp",
     "tokens",
-    "scaffold"
+    "scaffold",
+    "knowledge-graph",
+    "rag"
   ],
   "license": "MIT",
   "author": {
@@ -25,7 +27,8 @@
     "node": ">=18.0.0"
   },
   "bin": {
-    "create-figma-pipeline": "bin/create-figma-pipeline.js"
+    "figma-code-composer": "bin/figma-code-composer.js",
+    "fcc": "bin/figma-code-composer.js"
   },
   "files": [
     "bin/",
@@ -42,17 +45,17 @@
     "README.md"
   ],
   "scripts": {
-    "test:cli": "node bin/create-figma-pipeline.js --dry-run /tmp/cfp-dry-run-test",
+    "test:cli": "node bin/figma-code-composer.js init --dry-run /tmp/fcc-dry-run-test",
     "validate:config": "npx --yes --offline ajv-cli@5 validate -s .figma-pipeline/config.schema.json -d .figma-pipeline/config.example.json"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/raveracker/figma-to-code-agent.git"
+    "url": "git+https://github.com/raveracker/figma-code-composer.git"
   },
   "bugs": {
-    "url": "https://github.com/raveracker/figma-to-code-agent/issues"
+    "url": "https://github.com/raveracker/figma-code-composer/issues"
   },
-  "homepage": "https://github.com/raveracker/figma-to-code-agent#readme",
+  "homepage": "https://github.com/raveracker/figma-code-composer#readme",
   "publishConfig": {
     "access": "public"
   }

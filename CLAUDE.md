@@ -1,4 +1,4 @@
-# CLAUDE.md — figma-to-code orchestration
+# CLAUDE.md — figma-code-composer
 
 Drop this scaffold into any frontend repo to get a Figma-driven multi-agent pipeline:
 Figma file → typed manifest → design tokens → framework-native components → stories + tests + docs.
