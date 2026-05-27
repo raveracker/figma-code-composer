@@ -2,12 +2,30 @@
 
 > Read by every agent (component-builder, story-author, test-author, token-builder, icon-generator, code-reviewer, project-detector, figma-fetcher, figma-coordinator, wizard) before acting. Defines **which skills to install (write to disk) and which to invoke** based on `configSnapshot`.
 
-The scaffold ships a full skill catalog under `.claude/skills/` and `.agents/skills/`. At `/init` time the wizard resolves the active skill set from the user's stack choices and **prunes (deletes) every other skill directory** — so the consumer's repo carries only the skills it actually needs. This keeps the installed bundle small and prevents skill-spam during agent runs.
+## Canonical location
 
-Two distinct phases:
+All skill content lives under one tool-neutral directory:
 
-1. **Install (wizard, once at `/init`)** — write/keep skill directories matching the resolved set; delete the rest. The set is recomputed and re-applied any time `/init --re-detect` runs.
-2. **Invoke (agents, per turn)** — each agent calls `Skill` for the skills assigned to it (see _Per-agent additions_ below) from the installed set. Skills not on disk are recorded in `flags[]` and the agent proceeds — never blocks.
+```
+.figma-pipeline/skills/<skill-name>/SKILL.md
+```
+
+This is the **only** place skill files exist. The scaffold ships every supported skill here; at `/init` the wizard prunes the directory down to the resolved install set.
+
+Tools surface skills differently:
+
+| Tool       | How the agent reaches a skill                                                                       |
+| ---------- | --------------------------------------------------------------------------------------------------- |
+| Claude Code| `.claude/skills/<name>` is a **symlink** the wizard creates at `/init` pointing at canonical. `Skill` tool loads it natively. |
+| Cursor     | Cursor has no native skill loader. `.cursor/rules/use-skills.mdc` (wizard-generated) tells Cursor agents to `@`-reference `.figma-pipeline/skills/<name>/SKILL.md` when needed. |
+| Codex CLI  | Codex has no native skill loader either. `.codex/skills.md` (wizard-generated) is the index Codex agents `Read` to discover and apply a skill.                       |
+
+The per-tool surfaces (`.claude/skills/`, `.cursor/rules/use-skills.mdc`, `.codex/skills.md`) only exist when the corresponding `tools.*` flag is `true` in `config.json`. If the consumer disables a tool later, the surface is removed on the next `/init`.
+
+## Two distinct phases
+
+1. **Install (wizard, once at `/init`)** — keep skill directories matching the resolved set under `.figma-pipeline/skills/`; delete the rest. Then create per-tool surfaces conditional on `tools.*`. Re-runs cleanly on `/init --re-detect`.
+2. **Invoke (agents, per turn)** — each agent invokes the skills assigned to it (see _Per-agent additions_ below). Skills not on disk are recorded in `flags[]` and the agent proceeds — never blocks.
 
 ---
 
@@ -318,9 +336,14 @@ At `/init` (and on every `--re-detect`):
 
 1. Compute `installSet = resolve_skills(configSnapshot)` (no `agent_name` — superset of every agent's load).
 2. Union every per-agent extra into `installSet` so each downstream agent's mandatory skills are on disk.
-3. List the skill directories under `.claude/skills/` and `.agents/skills/`.
-4. For each directory NOT in `installSet`, delete it. For each name in `installSet` NOT on disk, record it in `config.skillsInstall.missing[]` (the consumer can install it later — agents tolerate missing).
-5. Write the resolved `installSet` to `config.skillsInstall.installed[]` for auditability.
+3. **Prune canonical**: list directories under `.figma-pipeline/skills/`. For each name NOT in `installSet`, `rm -rf` it. For each name in `installSet` NOT on disk, record it in `config.skillsInstall.missing[]`.
+4. **Tool-conditional surfaces** — re-apply each per-tool exposure based on `config.tools.*`:
+   - `tools.claudeCode == true`:
+     - Ensure `.claude/skills/` exists. For every `name` in installSet, ensure `.claude/skills/<name>` is a symlink → `../../.figma-pipeline/skills/<name>`. Remove any `.claude/skills/<name>` that is no longer in installSet OR that is not a symlink the wizard created (leave consumer-owned content untouched if its target is not `../../.figma-pipeline/skills/...`).
+     - `tools.claudeCode == false` → `rm -rf .claude/skills/` (only removes wizard-managed symlinks; any non-symlink children are preserved by checking each entry first).
+   - `tools.cursor == true`: write `.cursor/rules/use-skills.mdc` (overwrite always — wizard-owned). `tools.cursor == false` → delete the file if present.
+   - `tools.codexCli == true`: write `.codex/skills.md` (overwrite always — wizard-owned). `tools.codexCli == false` → delete the file if present.
+5. Write `config.skillsInstall.installed[] = sorted(installSet ∩ on-disk-under-canonical)` and `config.skillsInstall.resolvedAt = <ISO-8601>` for auditability.
 
 ### Agent (invoke phase)
 
@@ -330,4 +353,15 @@ For each resolved skill, the agent invokes it via the `Skill` tool **once** at t
 
 ## Out-of-band
 
-The harness layer tracks installed skills in `skills-lock.json`. The figma-pipeline does NOT depend on that lockfile shape — agents reference skills by name only and tolerate missing ones. The wizard's prune step IS authoritative for which skills sit in the consumer repo after `/init`.
+`skills-lock.json` at the repo root tracks the provenance (source repo + hash) of each installed skill. The figma-pipeline does NOT depend on that lockfile shape — agents reference skills by name only and tolerate missing ones — but it SHOULD stay in sync with `.figma-pipeline/skills/` so a consumer running `npm audit`-style integrity checks gets clean output.
+
+After any change to the installed set (the wizard's `/init` prune, a `--re-detect` re-pass, or a manual install/uninstall), regenerate the lock so its keys match `ls .figma-pipeline/skills/`. A quick filter:
+
+```js
+// node — prune lock to on-disk only
+const fs=require('fs');
+const lock=JSON.parse(fs.readFileSync('skills-lock.json','utf8'));
+const onDisk=new Set(fs.readdirSync('.figma-pipeline/skills'));
+lock.skills=Object.fromEntries(Object.entries(lock.skills).filter(([k])=>onDisk.has(k)));
+fs.writeFileSync('skills-lock.json', JSON.stringify(lock,null,2)+'\n');
+```

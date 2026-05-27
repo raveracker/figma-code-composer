@@ -1,0 +1,29 @@
+---
+description: Tells Cursor agents where the figma-pipeline skill catalog lives and how to consult a skill. Wizard-owned — overwritten on every /init when tools.cursor=true; deleted when tools.cursor=false.
+alwaysApply: true
+---
+
+# Using figma-pipeline skills from Cursor
+
+Cursor does not have a native skill loader. The figma-to-code orchestration pipeline ships a curated skill catalog at:
+
+```
+.figma-pipeline/skills/<skill-name>/SKILL.md
+```
+
+When an agent prompt (in `.cursor/prompts/<agent>.md`) tells you to "load skill X" or "invoke skill X", do the following:
+
+1. Open `.figma-pipeline/skills/<X>/SKILL.md` via `@.figma-pipeline/skills/<X>/SKILL.md` (or read it directly).
+2. Treat its content as authoritative guidance for the rest of the current run.
+3. If the SKILL.md references companion files (e.g. `references/*.md`, `assets/*`), read those too as needed.
+4. If the skill directory is missing, record it in your run's `flags[]` and proceed without it — never block.
+
+## Resolution
+
+Which skills apply to the current run is computed by `.figma-pipeline/protocols/skills.md` § _Resolution algorithm_, based on `.figma-pipeline/config.json` (framework, CSS system, design system OR methodology, stories, unit tests, E2E). The wizard's install phase already pruned `.figma-pipeline/skills/` down to the resolved set, so anything still on disk is meant to be loaded — agents don't need to re-derive applicability.
+
+## Do NOT
+
+- Do not write into `.figma-pipeline/skills/<name>/` — the wizard owns that directory.
+- Do not look in `.claude/skills/` from Cursor; those are Claude-Code-only symlinks. The canonical location is `.figma-pipeline/skills/`.
+- Do not invent skill names that don't exist on disk.

@@ -13,7 +13,8 @@ This is a drop-in scaffold for a Figma-driven multi-agent code-generation pipeli
 | `.figma-pipeline/adapters/frameworks/<name>.md`       | Per-framework templates (React / Vue / Angular / Svelte). |
 | `.figma-pipeline/adapters/css/<system>.md`            | Per-CSS-system recipes (Tailwind v4/v3, UnoCSS, Sass, vanilla-extract, Panda, styled-components, CSS Modules, CSS vars). |
 | `.figma-pipeline/adapters/design-systems/<name>.md`   | Per-DS overrides — Atomic (vanilla atomic design) is first-class; Chakra/Mantine/MUI/Radix/shadcn/HeadlessUI as stubs. |
-| `.claude/agents/` + `commands/` + `hooks/`            | Claude Code surface (11 agents, 5 commands, 9 hooks). Skills are not bundled — they live in your global `~/.claude/skills/` and auto-trigger by keyword. |
+| `.claude/agents/` + `commands/` + `hooks/`            | Claude Code surface (11 agents, 5 commands, 9 hooks). Per-tool skill surface (`.claude/skills/<name>` symlinks → canonical) is wizard-generated at `/init`. |
+| `.figma-pipeline/skills/`                             | Canonical skill catalog (130 skills). Tool-neutral; all three tools (Claude Code, Cursor, Codex) read from here via their respective surfaces. |
 | `.cursor/rules/` + `prompts/`                         | Cursor mirror (8 `.mdc` rules + 11 agent prompts + 5 slash-command prompts + a `rules/README.md` index). |
 | `.codex/agents/` + `commands/` + `hooks/` + `wrap.sh` | Codex CLI mirror with lifecycle simulator.                                    |
 
@@ -106,4 +107,4 @@ Never `git commit` or `git push` from inside an agent unless the user explicitly
 - **Stories** — Storybook (only supported stories framework — Histoire and Ladle removed).
 - **Tests** — two independent tracks: **unit** (Vitest / Jest / Karma) and **E2E** (Playwright, set automatically when E2E is enabled).
 - **Design System ⊕ Methodology** — exactly one axis is active per project; the wizard enforces this at `/init`.
-- **Skills bundle** — the wizard prunes `.claude/skills/` and `.agents/skills/` to the resolved set; audit lives in `config.skillsInstall`.
+- **Skills bundle** — canonical lives at `.figma-pipeline/skills/<name>/SKILL.md`. Wizard prunes canonical to the resolved set and toggles per-tool surfaces (`.claude/skills/<name>` symlinks / `.cursor/rules/use-skills.mdc` / `.codex/skills.md`) based on `tools.*`. Audit in `config.skillsInstall`.

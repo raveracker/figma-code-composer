@@ -64,7 +64,7 @@ The wizard walks you through:
 5. **CSS choice** — Tailwind v4 / v3 / UnoCSS / vanilla CSS-vars / CSS Modules / Sass / vanilla-extract / Panda / styled-components
 6. **Write paths** — where components, tokens, icons, stories, and tests live
 7. **Stories + Tests** — Storybook (yes/no); unit-test framework (Vitest / Jest / Karma); E2E (Playwright, automatic when enabled)
-8. **Skill prune** — wizard deletes every skill directory not in the resolved set; audit lands in `config.skillsInstall`
+8. **Skill prune + per-tool surfaces** — wizard deletes every skill directory not in the resolved set under `.figma-pipeline/skills/` (canonical store), then creates per-tool surfaces conditional on `tools.*`: `.claude/skills/<name>` symlinks (Claude Code), `.cursor/rules/use-skills.mdc` (Cursor), `.codex/skills.md` (Codex). Audit in `config.skillsInstall`.
 
 Output: `.figma-pipeline/config.json` + a configured `.mcp.json` for Figma.
 

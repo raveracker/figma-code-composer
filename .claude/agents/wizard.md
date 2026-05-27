@@ -28,12 +28,14 @@ You may write/edit only:
 - `.codex/config.json` (when `tools.codexCli == true`)
 - `/tmp/figma-wizard-<runId>/*` (scratch)
 
-Plus a **one-shot install/strip pass** (Step 7.5) that prunes skill directories under:
+Plus a **one-shot install/strip pass** (Step 7.5) that touches:
 
-- `.claude/skills/<skill-name>/` — delete directories not in the resolved install set
-- `.agents/skills/<skill-name>/` — same
+- `.figma-pipeline/skills/<skill-name>/` — delete directories not in the resolved install set (canonical store; always pruned).
+- `.claude/skills/<skill-name>` — create/remove symlinks → `../../.figma-pipeline/skills/<skill-name>` (only when `tools.claudeCode == true`).
+- `.cursor/rules/use-skills.mdc` — write or delete (only when `tools.cursor == true`).
+- `.codex/skills.md` — write or delete (only when `tools.codexCli == true`).
 
-This prune is the only write the wizard makes outside the four paths above, and only at `/init` (or `--re-detect`). Driven by `resolve_skills(configSnapshot)` per `@.figma-pipeline/protocols/skills.md`.
+This pass is the only writes the wizard makes outside `.figma-pipeline/config.json`, `.mcp.json`, `.codex/config.json`, and `/tmp/figma-wizard-<runId>/*`, and runs only at `/init` (or `--re-detect`). Driven by `resolve_skills(configSnapshot)` per `@.figma-pipeline/protocols/skills.md`.
 
 Any other write → abort and report.
 
@@ -175,18 +177,25 @@ Write `.figma-pipeline/config.json`. Pretty-printed, 2-space indent.
 
 If `tools.codexCli == true`, mirror the relevant subset to `.codex/config.json` (Codex reads a different shape — see `.codex/README.md`).
 
-### Step 7.5 — Install / strip skills
+### Step 7.5 — Install / strip skills (canonical + per-tool surfaces)
 
-Apply the skill prune defined in `@.figma-pipeline/protocols/skills.md` § _Resolution algorithm — Wizard (install phase)_.
+Apply the install/prune defined in `@.figma-pipeline/protocols/skills.md` § _Resolution algorithm — Wizard (install phase)_.
 
-1. Compute `installSet = resolve_skills(configSnapshot)` — superset across all agents (don't pass `agent_name`; union every per-agent extra).
-2. `ls .claude/skills/` and `ls .agents/skills/` to enumerate present skills.
-3. For each directory NOT in `installSet`, delete it (`rm -rf .claude/skills/<name>` and `.agents/skills/<name>`). Use a single bash command per registry. Tolerate already-missing names.
-4. For each name in `installSet` not present on disk, append to `config.skillsInstall.missing[]`.
-5. Write `config.skillsInstall.installed[] = sorted(installSet ∩ on-disk)` and `config.skillsInstall.resolvedAt = <ISO-8601>`. Re-validate the config.
-6. Print a one-line summary: `Skills: kept <K>, removed <R>, missing <M>`.
+1. **Resolve** — compute `installSet = resolve_skills(configSnapshot)`: superset across every agent (don't pass `agent_name`; union every per-agent extra).
+2. **Prune canonical** — `ls .figma-pipeline/skills/` to enumerate present skills. For each directory NOT in `installSet`, `rm -rf .figma-pipeline/skills/<name>`. For each name in `installSet` not on disk, append to `config.skillsInstall.missing[]`.
+3. **Claude Code surface** — branch on `config.tools.claudeCode`:
+   - `true`: `mkdir -p .claude/skills/`. For every `name` in `installSet`, ensure a symlink at `.claude/skills/<name>` → `../../.figma-pipeline/skills/<name>`. Iterate existing `.claude/skills/*` entries: delete any whose name is not in `installSet` AND whose readlink target starts with `../../.figma-pipeline/skills/` (wizard-owned). Leave non-symlink children alone — those are consumer-owned.
+   - `false`: iterate `.claude/skills/*` and delete only entries that are symlinks into `../../.figma-pipeline/skills/`. Do not `rm -rf` the whole dir.
+4. **Cursor surface** — branch on `config.tools.cursor`:
+   - `true`: write `.cursor/rules/use-skills.mdc` with the standard body (see `@.cursor/rules/use-skills.mdc` template — overwrite is intentional, the rule is wizard-owned).
+   - `false`: `rm -f .cursor/rules/use-skills.mdc`.
+5. **Codex surface** — branch on `config.tools.codexCli`:
+   - `true`: write `.codex/skills.md` with the standard body (see `@.codex/skills.md` template — overwrite is intentional, wizard-owned). Body lists every installed skill name + path so Codex agents have a single index to `Read`.
+   - `false`: `rm -f .codex/skills.md`.
+6. **Audit** — write `config.skillsInstall.installed[] = sorted(installSet ∩ on-disk-canonical)` and `config.skillsInstall.resolvedAt = <ISO-8601>`. Re-validate the config.
+7. **Report one-liner** — `Skills: kept <K>, removed <R>, missing <M>; surfaces: <claude?> <cursor?> <codex?>`.
 
-This is the only step where the wizard writes outside its normal four paths. It runs ONCE at end-of-init and is the only step the post-init allowlist cannot guard (it executes before the allowlist applies).
+This step's writes execute through Bash (`rm -rf`, `ln -sfn`) for the symlink work and the `Write` tool for the two text files. None of those targets are inside the PreToolUse hook's `Write/Edit/MultiEdit` enforcement surface, so the prune is honor-system — the agent MUST limit itself to the four target classes above.
 
 ### Step 8 — Report
 
@@ -207,6 +216,7 @@ Print a tight summary:
   Unit tests:   <enabled? "<framework> (<outputDir>)" : "disabled">
   E2E tests:    <enabled? "playwright (<outputDir>)" : "disabled">
   Skills:       kept <K>, removed <R>, missing <M>
+  Surfaces:     <claude/none> <cursor/none> <codex/none>
   Tools:        <ClaudeCode|Cursor|CodexCLI list>
 
   Allowlist (writes will be restricted to):

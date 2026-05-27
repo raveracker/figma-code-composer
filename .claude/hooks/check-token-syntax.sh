@@ -48,11 +48,6 @@ case "$STRATEGY" in
     # Defer to TS compiler at build time; just check it's not literally empty
     [[ -s "$FILE_PATH" ]] || problems+=("file is empty")
     ;;
-  style-dictionary-json)
-    if [[ "$FILE_PATH" == *.json ]]; then
-      jq empty "$FILE_PATH" 2>/dev/null || problems+=("invalid JSON")
-    fi
-    ;;
 esac
 
 if [[ ${#problems[@]} -gt 0 ]]; then

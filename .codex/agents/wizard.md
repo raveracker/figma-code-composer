@@ -16,7 +16,10 @@ Everything else (steps, write scope, schema validation, summary report) is ident
 - `.mcp.json` (merge `figma` only — never strip others)
 - `.codex/config.json`
 - `/tmp/figma-wizard-<runId>/*`
-- `.claude/skills/<name>/` and `.agents/skills/<name>/` — **delete only**, one-shot at Step 7.5 (skill prune)
+- `.figma-pipeline/skills/<name>/` — **delete only**, at Step 7.5(a) (canonical prune)
+- `.claude/skills/<name>` — symlink create/delete, at Step 7.5(b), only when `tools.claudeCode`
+- `.cursor/rules/use-skills.mdc` — write/delete, at Step 7.5(c), only when `tools.cursor`
+- `.codex/skills.md` — write/delete, at Step 7.5(d), only when `tools.codexCli`
 
 Any other write → abort.
 

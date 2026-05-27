@@ -310,7 +310,7 @@
         "installed": {
           "type": "array",
           "items": { "type": "string" },
-          "description": "Skill directory names kept under .claude/skills/ and .agents/skills/. Everything else was deleted by the wizard."
+          "description": "Skill directory names kept under .figma-pipeline/skills/ after the wizard's prune. Per-tool surfaces (.claude/skills/ symlinks, .cursor/rules/use-skills.mdc, .codex/skills.md) are derived from this set + config.tools.*."
         },
         "missing": {
           "type": "array",

@@ -24,7 +24,12 @@ Steps:
 8. **Stories + Tests** — Storybook yes/no; unit-test framework (vitest/jest/karma); E2E enabled toggle (Playwright is set automatically — never asked). Per § Step 5.5.
 9. **Tools** — multi-select; toggle `tools.claudeCode` / `tools.cursor` / `tools.codexCli`.
 10. **Compose + validate** — write `.figma-pipeline/config.json`; validate against the schema (use `npx ajv-cli validate` if available; else structural check).
-11. **Install / strip skills** — apply the skill prune per `.figma-pipeline/protocols/skills.md` § _Resolution algorithm — Wizard (install phase)_. Compute the install set; `rm -rf` every directory under `.claude/skills/` and `.agents/skills/` that is not in it; write the audit to `config.skillsInstall`.
+11. **Install / strip skills** — apply the install + per-tool surface pass per `.figma-pipeline/protocols/skills.md` § _Resolution algorithm — Wizard (install phase)_:
+    a. Prune canonical `.figma-pipeline/skills/<name>/` to the resolved install set.
+    b. If `tools.claudeCode`: ensure `.claude/skills/<name>` symlinks → `../../.figma-pipeline/skills/<name>` for each name in installSet; remove wizard-owned symlinks not in installSet. Else: remove all wizard-owned symlinks under `.claude/skills/`.
+    c. If `tools.cursor`: write `.cursor/rules/use-skills.mdc` from the canonical template. Else: delete it.
+    d. If `tools.codexCli`: write `.codex/skills.md` from the canonical template. Else: delete it.
+    e. Update `config.skillsInstall.installed[]` / `missing[]` / `resolvedAt`.
 12. **Report** — print the summary block from `.claude/agents/wizard.md` § Step 8.
 
 ## Write scope
@@ -35,7 +40,10 @@ Cursor in agent mode may write only:
 - `.mcp.json` (merge `figma` only)
 - `.codex/config.json` (when codexCli is enabled)
 - `/tmp/figma-wizard-*` (scratch)
-- `.claude/skills/<name>/` and `.agents/skills/<name>/` — **delete only**, one-shot at Step 11
+- `.figma-pipeline/skills/<name>/` — **delete only**, at Step 11(a)
+- `.claude/skills/<name>` — symlink create/delete, at Step 11(b), only when `tools.claudeCode`
+- `.cursor/rules/use-skills.mdc` — write/delete, at Step 11(c)
+- `.codex/skills.md` — write/delete, at Step 11(d)
 
 Any other write → stop and tell the user. The Cursor rule `.cursor/rules/frozen-paths.mdc` enforces this in agent mode.
 
