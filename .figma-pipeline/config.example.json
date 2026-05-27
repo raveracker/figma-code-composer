@@ -24,7 +24,8 @@
     "outputDir": "src/styles/tokens",
     "files": ["primitives.css", "semantic.css", "components.css"],
     "namingConvention": "kebab-case",
-    "prefix": "--app-"
+    "prefix": "--app-",
+    "fileLayout": "split"
   },
   "components": {
     "designMethodology": "atomic",
@@ -90,5 +91,19 @@
     "claudeCode": true,
     "cursor": true,
     "codexCli": true
+  },
+  "complexity": {
+    "enabled": true,
+    "thresholds": { "trivial": 20, "moderate": 50, "complex": 80 }
+  },
+  "knowledgeGraph": {
+    "enabled": true,
+    "storeDir": ".figma-pipeline/kg",
+    "embeddings": { "provider": "local", "model": "Xenova/all-MiniLM-L6-v2" },
+    "retention": { "handoverDays": 30, "stagingDays": 7 },
+    "visualRegression": { "enabled": false, "thresholdPercent": 2 }
+  },
+  "rtk": {
+    "installed": false
   }
 }

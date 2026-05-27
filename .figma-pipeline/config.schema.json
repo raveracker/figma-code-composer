@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://figma-to-code-orchestration.dev/config.schema.json",
+  "$id": "https://figma-code-composer.dev/config.schema.json",
   "title": "figma-pipeline config",
   "description": "Single source of truth for the figma-to-code orchestration pipeline. Written by the /init wizard; read by every agent before acting.",
   "type": "object",
@@ -98,6 +98,12 @@
         "prefix": {
           "type": "string",
           "description": "Optional prefix for emitted token names (e.g. '--app-')."
+        },
+        "fileLayout": {
+          "type": "string",
+          "enum": ["combined", "split", "framework-native"],
+          "default": "split",
+          "description": "How token output is structured. 'combined' = one tokens.css. 'split' = primitives/semantic/components. 'framework-native' = the format the CSS system expects (panda.config.ts, theme.ts for styled-components, *.css.ts for vanilla-extract, etc.)."
         }
       }
     },
@@ -320,6 +326,117 @@
         "resolvedAt": {
           "type": "string",
           "description": "ISO-8601 timestamp of the most recent install/strip pass."
+        }
+      }
+    },
+    "complexity": {
+      "type": "object",
+      "description": "Complexity-driven routing. figma-fetcher emits a complexity score per manifest; figma-coordinator picks the minimum skill+model set per agent per tier. See .figma-pipeline/protocols/complexity.md.",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "When false, the coordinator always uses the 'complex' tier regardless of score (safest default behavior — what the pipeline did before complexity routing was introduced)."
+        },
+        "tierOverrides": {
+          "type": "object",
+          "description": "Force-bump a tier to a higher one (never to a lower one). Example: { \"trivial\": \"moderate\" } means even trivial-scored designs run the moderate playbook.",
+          "additionalProperties": {
+            "type": "string",
+            "enum": ["trivial", "moderate", "complex", "extreme"]
+          }
+        },
+        "model": {
+          "type": "object",
+          "description": "Per-tier model overrides. Keys: trivial, moderate, complex, extreme. Values: any Claude model ID. Omitted tiers fall through to the coordinator's default mapping.",
+          "additionalProperties": { "type": "string" }
+        },
+        "thresholds": {
+          "type": "object",
+          "description": "Score cutoffs between tiers. Defaults: trivial<20, moderate<50, complex<80, extreme>=80.",
+          "properties": {
+            "trivial": { "type": "integer", "minimum": 0, "maximum": 100, "default": 20 },
+            "moderate": { "type": "integer", "minimum": 0, "maximum": 100, "default": 50 },
+            "complex": { "type": "integer", "minimum": 0, "maximum": 100, "default": 80 }
+          }
+        }
+      }
+    },
+    "knowledgeGraph": {
+      "type": "object",
+      "description": "Knowledge-graph + RAG configuration. The KG records every component the pipeline builds; the coordinator queries it before each build to enable reuse, prop-shape alignment, and skip-when-unchanged. See .figma-pipeline/protocols/knowledge-graph.md.",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "When false, agents skip kg:stage/kg:merge/kg:query calls entirely. Useful for dry-run builds or projects that don't want a KG."
+        },
+        "storeDir": {
+          "type": "string",
+          "default": ".figma-pipeline/kg",
+          "description": "Where ledger.jsonl, graph.json, embeddings.sqlite, handovers/, and staging/ live. Relative to repo root."
+        },
+        "embeddings": {
+          "type": "object",
+          "description": "How component summaries are embedded for RAG retrieval.",
+          "properties": {
+            "provider": {
+              "type": "string",
+              "enum": ["local", "openai", "voyage", "none"],
+              "default": "local",
+              "description": "'local' uses @xenova/transformers (no API cost). 'none' disables RAG but keeps the ledger."
+            },
+            "model": {
+              "type": "string",
+              "default": "Xenova/all-MiniLM-L6-v2",
+              "description": "Model identifier for the chosen provider."
+            }
+          }
+        },
+        "retention": {
+          "type": "object",
+          "description": "How long handovers and staging deltas stick around.",
+          "properties": {
+            "handoverDays": { "type": "integer", "minimum": 1, "default": 30 },
+            "stagingDays": { "type": "integer", "minimum": 1, "default": 7 }
+          }
+        },
+        "visualRegression": {
+          "type": "object",
+          "description": "Post-build screenshot diff against the Figma source. Disabled by default — opt in once you have a Storybook static export pipeline.",
+          "properties": {
+            "enabled": { "type": "boolean", "default": false },
+            "thresholdPercent": { "type": "number", "minimum": 0, "maximum": 100, "default": 2 }
+          }
+        }
+      }
+    },
+    "rtk": {
+      "type": "object",
+      "description": "Optional integration with RTK (https://github.com/rtk-ai/rtk) — a Rust CLI that compresses shell-command output before it reaches the AI's context. Wizard records the detection result; doctor command re-checks.",
+      "properties": {
+        "installed": {
+          "type": "boolean",
+          "default": false,
+          "description": "True when `rtk` is on PATH at the most recent wizard or doctor run."
+        },
+        "version": { "type": "string" },
+        "detectedAt": { "type": "string", "description": "ISO-8601 timestamp of the last detection." }
+      }
+    },
+    "codex": {
+      "type": "object",
+      "description": "Codex CLI-specific overrides. Read only when tools.codexCli == true. Per-size model mapping for complexity routing — see protocols/complexity.md § Per-tool size → model mapping.",
+      "properties": {
+        "modelMap": {
+          "type": "object",
+          "description": "Maps abstract size (sm/md/lg) to a concrete OpenAI model ID. Defaults are conservative; users can pin to any model their Codex CLI version supports. The coordinator passes the resolved ID via `codex run-agent <name> --model <id>`.",
+          "properties": {
+            "sm": { "type": "string", "default": "gpt-4o-mini" },
+            "md": { "type": "string", "default": "gpt-4o" },
+            "lg": { "type": "string", "default": "o3" }
+          },
+          "additionalProperties": false
         }
       }
     }
