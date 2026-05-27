@@ -15,6 +15,11 @@
     "scaffold"
   ],
   "license": "MIT",
+  "author": {
+    "name": "Allan Jeo Joseph",
+    "email": "allanjeo95@gmail.com",
+    "url": "https://github.com/raveracker"
+  },
   "type": "module",
   "engines": {
     "node": ">=18.0.0"
