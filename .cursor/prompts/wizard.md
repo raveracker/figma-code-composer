@@ -22,6 +22,7 @@ Steps:
 6. **CSS choice** — present the CSS-system options per `.claude/agents/wizard.md` § Step 4.
 7. **Derive paths** — ask the user to confirm or override the path defaults.
 8. **Stories + Tests** — Storybook yes/no; unit-test framework (vitest/jest/karma); E2E enabled toggle (Playwright is set automatically — never asked). Per § Step 5.5.
+8.5. **Output-structure details** — token file layout (split/combined/framework-native), prefix, naming; story/test layouts; icon fill model + barrel. Skip questions whose values came back high-confidence from the detector. Per § Step 5.6.
 9. **Tools** — multi-select; toggle `tools.claudeCode` / `tools.cursor` / `tools.codexCli`.
 10. **Compose + validate** — write `.figma-pipeline/config.json`; validate against the schema (use `npx ajv-cli validate` if available; else structural check).
 11. **Install / strip skills** — apply the install + per-tool surface pass per `.figma-pipeline/protocols/skills.md` § _Resolution algorithm — Wizard (install phase)_:
@@ -30,7 +31,8 @@ Steps:
     c. If `tools.cursor`: write `.cursor/rules/use-skills.mdc` from the canonical template. Else: delete it.
     d. If `tools.codexCli`: write `.codex/skills.md` from the canonical template. Else: delete it.
     e. Update `config.skillsInstall.installed[]` / `missing[]` / `resolvedAt`.
-12. **Report** — print the summary block from `.claude/agents/wizard.md` § Step 8.
+11.5. **RTK detection** — `command -v rtk` to detect the optional shell-output compressor. Record `config.rtk = { installed, version, detectedAt }`. If absent, offer the `brew install rtk && rtk init -g` one-liner; never install. Per § Step 7.6.
+12. **Report** — print the summary block from `.claude/agents/wizard.md` § Step 8 (includes the new RTK, KG, Complexity lines).
 
 ## Write scope
 

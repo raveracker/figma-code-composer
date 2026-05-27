@@ -159,6 +159,63 @@ If **E2E** is selected, **do not ask for a framework** — Playwright is set aut
 
 If neither track is selected, set both `config.tests.unit.enabled` and `config.tests.e2e.enabled` to `false`.
 
+### Step 5.6 — Output-structure details (per-config-combo)
+
+`project-detector` and the prior steps fixed *where* output lands. This step fixes **how** it's structured for the specific stack combo. Skip any question whose value was returned with `confidence: high` from the detector (e.g., if existing tokens already live in one combined `tokens.css`, default `fileLayout=combined` and don't ask). Ask only the questions whose targets are enabled (e.g., skip story-layout when `stories.enabled = false`).
+
+**Q-token-layout** (when `tokens.outputDir` is set):
+"How should the emitted token files be structured?"
+
+- **Split (Recommended for Tailwind v4 / v3 / UnoCSS / CSS-vars)** — three files: `primitives.css`, `semantic.css`, `components.css`.
+- **Combined** — one `tokens.css` with all tokens. Simplest, harder to reason about for larger token sets.
+- **Framework-native** — emit the format the CSS system expects: `panda.config.ts` for Panda, `theme.ts` for styled-components, `*.css.ts` for vanilla-extract. Auto-selected (no question) when `cssSystem.name ∈ { panda, vanilla-extract, styled-components }`.
+
+Set `config.tokens.fileLayout` accordingly.
+
+**Q-token-prefix** (when `tokens.outputDir` is set AND `config.tokens.fileLayout != "framework-native"`):
+"Token name prefix?" Free-text, default `--app-` for CSS-vars systems, `app-` for JS-token systems. Skip when the detector found existing tokens with a clear prefix (use that as the default).
+
+Set `config.tokens.prefix`.
+
+**Q-token-naming** (when `tokens.outputDir` is set):
+"Token naming convention?"
+
+- **kebab-case** (Recommended for CSS-vars / Tailwind) — `--app-color-brand-primary`
+- **camelCase** (Recommended for JS tokens) — `appColorBrandPrimary`
+- **dot.path** — `app.color.brand.primary`
+- **slash/path** — `app/color/brand/primary`
+
+Set `config.tokens.namingConvention`. Default per cssSystem: kebab-case for tailwind-*/css-*/sass/unocss; camelCase for vanilla-extract/panda/styled-components.
+
+**Q-story-layout** (only when `stories.enabled = true`):
+"Where do stories live?"
+
+- **Co-located (Recommended)** — alongside each component (`Button/Button.stories.tsx`).
+- **Parallel tree** — under a top-level `stories/` mirror of the components tree.
+
+Set `config.stories.outputDir = "co-located"` or the user's provided path.
+
+**Q-test-layout** (only when `tests.unit.enabled = true`):
+"Where do unit tests live?" (E2E always goes under `e2e/` — never asked.)
+
+- **Co-located (Recommended)** — alongside each component (`Button/Button.test.tsx`).
+- **Parallel `__tests__/`** — under each folder's `__tests__/` subdir.
+- **Parallel `tests/` tree** — separate top-level mirror.
+
+Set `config.tests.unit.outputDir` accordingly.
+
+**Q-icon-fill** (when `icons.outputDir` is set):
+"How are icon fills handled?"
+
+- **Mixed (Recommended)** — allows both `currentColor` and literal fills per-icon based on the Figma source.
+- **currentColor only** — all icons inherit text color; flag any literal fills as ambiguities.
+- **literal only** — preserve all hex/variable fills as-is; ignore `currentColor` Figma semantics.
+
+Set `config.icons.fillModel`.
+
+**Q-icon-barrel** (when `icons.outputDir` is set):
+"Emit a barrel file (`index.ts`) re-exporting every icon?" yes/no — set `config.icons.barrelFile` to `"index.ts"` (yes) or `null` (no — consumers use direct imports). Skip when `cssSystem.name = styled-components` (named-export convention is universal there).
+
 ### Step 6 — Tools
 
 Ask: "Which AI tools should this scaffold wire for?" multi-select; defaults from existing files:
@@ -197,6 +254,18 @@ Apply the install/prune defined in `@.figma-pipeline/protocols/skills.md` § _Re
 
 This step's writes execute through Bash (`rm -rf`, `ln -sfn`) for the symlink work and the `Write` tool for the two text files. None of those targets are inside the PreToolUse hook's `Write/Edit/MultiEdit` enforcement surface, so the prune is honor-system — the agent MUST limit itself to the four target classes above.
 
+### Step 7.6 — RTK detection (optional shell-output compression)
+
+[RTK](https://github.com/rtk-ai/rtk) is a Rust CLI that intercepts shell commands like `git status`, `npm test`, `ls -la` and compresses their output 60–90% before it reaches the AI's context. It runs as an external binary — never bundled into this project — and works across all three tools (Claude Code, Cursor, Codex) because it operates at the shell level.
+
+1. Detect: `command -v rtk >/dev/null 2>&1`.
+2. **If present**: record `config.rtk = { installed: true, version: <output of `rtk --version`>, detectedAt: <ISO-8601> }`. No further action. Skip Q-rtk-install.
+3. **If absent**: ask `Q-rtk-install` — "Install RTK to compress shell-output tokens? (~10–15% token savings on side-channel reads; no impact on Figma MCP payloads or generated code.)"
+   - **Skip (default)** — record `config.rtk = { installed: false, detectedAt: <ISO-8601> }`. Print one-line instructions for later: `brew install rtk && rtk init -g`.
+   - **Show install command** — print `brew install rtk && rtk init -g` and wait for the user to run it; re-detect after they confirm. If still absent, record `installed: false` and continue.
+
+This step never installs anything itself — the binary install is the user's call.
+
 ### Step 8 — Report
 
 Print a tight summary:
@@ -208,16 +277,20 @@ Print a tight summary:
   Framework:    <name> (<variant>) <version>
   Language:     <ts|js>
   CSS:          <cssSystem>
-  Tokens:       <strategy> → <outputDir>
+  Tokens:       <strategy> → <outputDir> (<fileLayout>, prefix=<prefix>, <namingConvention>)
   DS / Method:  <designSystem.name or designMethodology>
   Components:   <main components dir>
-  Icons:        <iconsDir>
+  Icons:        <iconsDir> (fill=<fillModel>, barrel=<barrelFile or "none">)
   Stories:      <enabled? "storybook (<outputDir>)" : "disabled">
   Unit tests:   <enabled? "<framework> (<outputDir>)" : "disabled">
   E2E tests:    <enabled? "playwright (<outputDir>)" : "disabled">
   Skills:       kept <K>, removed <R>, missing <M>
   Surfaces:     <claude/none> <cursor/none> <codex/none>
   Tools:        <ClaudeCode|Cursor|CodexCLI list>
+  RTK:          <installed ? "✓ v<version>" : "not installed — see brew install rtk">
+  KG:           <enabled ? "enabled (storeDir=<storeDir>, embeddings=<provider>)" : "disabled">
+  Complexity:   <enabled ? "tier-routed" : "always-complex">
+
 
   Allowlist (writes will be restricted to):
     - <dir1>
