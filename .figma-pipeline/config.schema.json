@@ -2,7 +2,7 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://figma-code-composer.dev/config.schema.json",
   "title": "figma-pipeline config",
-  "description": "Single source of truth for the figma-to-code orchestration pipeline. Written by the /init wizard; read by every agent before acting.",
+  "description": "Single source of truth for the figma-to-code orchestration pipeline. Written by the /init-figma-compose wizard; read by every agent before acting.",
   "type": "object",
   "required": ["version", "project", "framework", "language", "cssSystem", "tokens", "components", "icons", "writeScope"],
   "properties": {
@@ -270,6 +270,10 @@
           "type": "string",
           "enum": ["design-addon", "raw-url", "none"],
           "default": "design-addon"
+        },
+        "mcpVerifiedAt": {
+          "type": "string",
+          "description": "ISO-8601 timestamp of the most recent successful Figma MCP read (set by the /init-figma-compose wizard at Step 2). Presence proves MCP was reachable at wizard time; coordinators may treat it as a soft cache."
         }
       }
     },
@@ -302,11 +306,20 @@
     },
     "tools": {
       "type": "object",
-      "description": "Which AI tools this scaffold is wired for. Wizard sets at /init.",
+      "description": "Which AI tools this scaffold is wired for. Wizard sets at /init-figma-compose.",
       "properties": {
         "claudeCode": { "type": "boolean", "default": true },
         "cursor": { "type": "boolean", "default": true },
-        "codexCli": { "type": "boolean", "default": true }
+        "codexCli": { "type": "boolean", "default": true },
+        "codexShortcut": {
+          "type": "object",
+          "description": "Audit of the project-root Codex shortcut. Only set when tools.codexCli==true. The wizard writes an executable wrapper at <projectRoot>/codex-run (chmod 0755) that does `exec .codex/wrap.sh \"$@\"`. User invokes ./codex-run figma-build <url> — no source, no shell-rc edit, no direnv. Wizard never touches shell rc — see .claude/agents/wizard.md § Step 7.7b.",
+          "properties": {
+            "generatedAt": { "type": "string", "description": "ISO-8601 of last write." },
+            "path": { "type": "string", "default": "codex-run", "description": "Project-relative path to the generated executable (always at project root)." },
+            "executable": { "type": "boolean", "default": true, "description": "True when the wrapper has the 0755 permission set." }
+          }
+        }
       }
     },
     "skillsInstall": {
@@ -413,12 +426,17 @@
     },
     "rtk": {
       "type": "object",
-      "description": "Optional integration with RTK (https://github.com/rtk-ai/rtk) — a Rust CLI that compresses shell-command output before it reaches the AI's context. Wizard records the detection result; doctor command re-checks.",
+      "description": "Optional integration with RTK (https://github.com/rtk-ai/rtk) — a Rust CLI that compresses shell-command output 60-90% before it reaches the AI's context. RTK is inherently user-level (per-machine, per-user) — there is no project-scoped install mode. The wizard NEVER installs RTK or runs `rtk init` itself; it only detects and (when missing) prints per-tool install/init commands. See .claude/agents/wizard.md § Step 7.6 for the rationale.",
       "properties": {
         "installed": {
           "type": "boolean",
           "default": false,
           "description": "True when `rtk` is on PATH at the most recent wizard or doctor run."
+        },
+        "initialized": {
+          "type": "boolean",
+          "default": false,
+          "description": "True when an RTK hook is detected in the user's AI-tool config (e.g., a PreToolUse Bash hook in ~/.claude/settings.json). Probed at wizard time when installed=true."
         },
         "version": { "type": "string" },
         "detectedAt": { "type": "string", "description": "ISO-8601 timestamp of the last detection." }
@@ -438,6 +456,32 @@
           },
           "additionalProperties": false
         }
+      }
+    },
+    "graphify": {
+      "type": "object",
+      "description": "Optional integration with graphify (https://github.com/safishamsi/graphify, PyPI: graphifyy). External Python CLI that builds a queryable knowledge graph at <projectRoot>/graphify-out/ when the user types /graphify . in their AI assistant. The wizard does NOT build the graph — it only detects the CLI and (when present) registers the project-scoped skill via `graphify install --project`. Downstream agents read graph.json for reuse hints and degrade gracefully when absent.",
+      "properties": {
+        "installed": { "type": "boolean", "default": false, "description": "True when the `graphify` CLI is on PATH at wizard time." },
+        "version": { "type": "string" },
+        "outputDir": { "type": "string", "default": "graphify-out" },
+        "skillScope": {
+          "type": "string",
+          "enum": ["project", "global-or-user-managed"],
+          "description": "How the /graphify skill is wired for this repo. 'project' means the wizard ran `graphify install --project` and committed `.claude/skills/graphify/SKILL.md` (etc.) to the repo. 'global-or-user-managed' means the user's own global install handles /graphify; the wizard left the repo alone."
+        },
+        "registeredAt": { "type": "string", "description": "ISO-8601 of last successful `graphify install --project`." },
+        "installFailed": { "type": "boolean", "default": false },
+        "error": { "type": "string", "description": "Short stderr snippet captured when installFailed=true." },
+        "detectedAt": { "type": "string" }
+      }
+    },
+    "gitignorePatch": {
+      "type": "object",
+      "description": "Audit of the wizard's idempotent patch to the project-root .gitignore (Step 7.8).",
+      "properties": {
+        "appliedAt": { "type": "string" },
+        "entriesAdded": { "type": "integer", "minimum": 0 }
       }
     }
   },

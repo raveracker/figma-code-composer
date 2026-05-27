@@ -7,7 +7,7 @@ globs: [".figma-pipeline/config.json", ".figma-pipeline/config.schema.json", ".f
 
 Backs **binding rule 1** (write allowlist is derived from this file) and feeds the `configSnapshot` that the coordinator passes to every specialist.
 
-This file is the **runtime configuration** every pipeline agent reads. Hand-edits are allowed; the wizard writes it during `/init`.
+This file is the **runtime configuration** every pipeline agent reads. Hand-edits are allowed; the wizard writes it during `/init-figma-compose`.
 
 ## Required top-level keys
 
@@ -33,4 +33,4 @@ Optional (commonly present): `designSystem`, `stories`, `tests`, `figma`, `tools
 
 Free to hand-edit. After editing, the next `Write` will trigger `check-config-schema.sh` (Claude Code) or this rule in Cursor — Cursor users should re-validate manually with `npx --yes ajv-cli@5 validate -s .figma-pipeline/config.schema.json -d .figma-pipeline/config.json`.
 
-To re-detect framework + CSS system without losing path overrides: run `/init --re-detect`.
+To re-detect framework + CSS system without losing path overrides: run `/init-figma-compose --re-detect`.

@@ -8,7 +8,7 @@ Codex has no native lifecycle hooks. `.codex/wrap.sh` simulates them by running 
 codex run <cmd>
    │
    ├─► pre-command.sh   ──┐
-   │                      │  rule 1  (allowlist defaults — refuses without config when cmd ≠ init)
+   │                      │  rule 1  (allowlist defaults — refuses without config when cmd ≠ init-figma-compose)
    │                      │  rule 1  (.env block — supporting / strict)
    │                      │  routing (figma URL nudge → rules 1+2)
    │                      └─►

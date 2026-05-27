@@ -6,7 +6,7 @@ This directory is the **single source of truth** for the figma-to-code orchestra
 
 | File                              | Purpose                                                                  |
 | --------------------------------- | ------------------------------------------------------------------------ |
-| `config.json`                     | Live config (created by `/init`; not committed by default — but check git policy in your repo) |
+| `config.json`                     | Live config (created by `/init-figma-compose`; not committed by default — but check git policy in your repo) |
 | `config.schema.json`              | JSON Schema for `config.json`                                            |
 | `config.example.json`             | Reference config (React + Tailwind v4 + Atomic Design)                   |
 | `protocols/figma-manifest.md`     | Data contract between figma-fetcher and downstream agents                |
@@ -20,7 +20,7 @@ This directory is the **single source of truth** for the figma-to-code orchestra
 
 ## Editing `config.json`
 
-The `/init` wizard writes this file. You can hand-edit it at any time. Re-run the wizard with `/init --re-detect` to refresh framework + CSS detection without losing path overrides.
+The `/init-figma-compose` wizard writes this file. You can hand-edit it at any time. Re-run the wizard with `/init-figma-compose --re-detect` to refresh framework + CSS detection without losing path overrides.
 
 ## Versioning
 

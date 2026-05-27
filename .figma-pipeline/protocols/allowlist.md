@@ -6,7 +6,7 @@
 
 The figma-pipeline agents have broad write power (token files, component folders, icons, stories, tests). To stay safe in a target project, **writes are restricted to a configured set of directories** that the wizard derives from your stack choices.
 
-## Default allowlist (before `/init` runs)
+## Default allowlist (before `/init-figma-compose` runs)
 
 Until `.figma-pipeline/config.json` exists, the agent may write only:
 
@@ -15,9 +15,9 @@ Until `.figma-pipeline/config.json` exists, the agent may write only:
 - `.codex/**`
 - `/tmp/**`
 
-This is enough for `/init` to write the config. Nothing in the target project's source tree is touched.
+This is enough for `/init-figma-compose` to write the config. Nothing in the target project's source tree is touched.
 
-## Post-`/init` allowlist (derived)
+## Post-`/init-figma-compose` allowlist (derived)
 
 The wizard builds `config.writeScope.allowedDirs` by collecting every path-bearing key:
 

@@ -1,5 +1,5 @@
 ---
-description: Tells Cursor agents where the figma-pipeline skill catalog lives and how to consult a skill. Wizard-owned — overwritten on every /init when tools.cursor=true; deleted when tools.cursor=false.
+description: Tells Cursor agents where the figma-pipeline skill catalog lives and how to consult a skill. Wizard-owned — overwritten on every /init-figma-compose when tools.cursor=true; deleted when tools.cursor=false.
 alwaysApply: true
 ---
 

@@ -32,7 +32,7 @@
 //   --version / -v     Print package version
 
 import { createRequire } from "node:module";
-import { readFileSync, existsSync, mkdirSync, cpSync, chmodSync, statSync, readdirSync } from "node:fs";
+import { readFileSync, existsSync, mkdirSync, cpSync, chmodSync, statSync, readdirSync, writeFileSync, appendFileSync } from "node:fs";
 import { dirname, join, relative, resolve, isAbsolute } from "node:path";
 import { fileURLToPath } from "node:url";
 import { createInterface } from "node:readline/promises";
@@ -202,9 +202,9 @@ ${c("bold", "Examples:")}
 
 ${c("bold", "After install:")}
   cd <target> && open in your AI tool of choice
-  Claude Code: /init
-  Cursor:      type /init in agent chat
-  Codex CLI:   ./.codex/wrap.sh init
+  Claude Code: /init-figma-compose
+  Cursor:      type /init-figma-compose in agent chat
+  Codex CLI:   ./.codex/wrap.sh init-figma-compose
 `);
 }
 
@@ -264,6 +264,40 @@ function ensureWrapShExecutable(targetDir) {
   if (pathExists(wrap)) {
     try { chmodSync(wrap, 0o755); } catch { /* noop */ }
   }
+}
+
+// Append scaffold-generated paths to the target project's .gitignore so
+// consumers don't accidentally commit local wizard state. Idempotent — if
+// the marker block already exists, do nothing.
+const GITIGNORE_MARKER = "# figma-code-composer — local wizard state (do not commit)";
+const GITIGNORE_BLOCK = [
+  "",
+  GITIGNORE_MARKER,
+  ".figma-pipeline/config.json",
+  ".figma-pipeline/scratch/",
+  "/tmp/figma-*/",
+  "graphify-out/",
+  ".mcp.json",
+  "",
+].join("\n");
+
+function patchGitignore(targetDir, dryRun) {
+  const path = join(targetDir, ".gitignore");
+  const existing = pathExists(path) ? readFileSync(path, "utf8") : "";
+  if (existing.includes(GITIGNORE_MARKER)) {
+    return { skipped: true, reason: "marker block already present" };
+  }
+  if (dryRun) {
+    return { skipped: false, dryRun: true, lines: GITIGNORE_BLOCK.split("\n").length };
+  }
+  const trailingNewline = existing.length === 0 || existing.endsWith("\n");
+  const next = (trailingNewline ? existing : existing + "\n") + GITIGNORE_BLOCK;
+  if (existing === "") {
+    writeFileSync(path, next);
+  } else {
+    appendFileSync(path, (trailingNewline ? "" : "\n") + GITIGNORE_BLOCK);
+  }
+  return { skipped: false, written: true };
 }
 
 // ─── core: copy ─────────────────────────────────────────────────────────────
@@ -409,17 +443,28 @@ async function runInit(argv) {
     }
   }
 
+  // Patch the target project's .gitignore so wizard state never leaks into commits.
+  // (The wizard re-runs the same patch idempotently — safe to do here too.)
+  const gi = patchGitignore(targetDir, args.dryRun);
+  if (gi.skipped) {
+    console.log(c("dim", `  .gitignore: already has scaffold block, leaving alone`));
+  } else if (gi.dryRun) {
+    console.log(c("yellow", `  .gitignore: would append ${gi.lines}-line scaffold block`));
+  } else {
+    console.log(`  ${c("green", "✓")} .gitignore patched (scaffold block appended)`);
+  }
+
   console.log("");
   console.log(c("bold", args.dryRun ? "Dry run complete." : "✅ Scaffold installed."));
   console.log("");
   console.log(c("bold", "Next steps:"));
   console.log(`  ${c("dim", "1.")} cd ${relative(process.cwd(), targetDir) || "."}`);
   console.log(`  ${c("dim", "2.")} Open the project in your AI tool of choice, then run the wizard:`);
-  if (tools.includes("claude")) console.log(`     ${c("cyan", "Claude Code")}  →  /init`);
-  if (tools.includes("cursor")) console.log(`     ${c("cyan", "Cursor")}       →  type /init in agent chat`);
-  if (tools.includes("codex"))  console.log(`     ${c("cyan", "Codex CLI")}    →  ./.codex/wrap.sh init`);
+  if (tools.includes("claude")) console.log(`     ${c("cyan", "Claude Code")}  →  /init-figma-compose`);
+  if (tools.includes("cursor")) console.log(`     ${c("cyan", "Cursor")}       →  type /init-figma-compose in agent chat`);
+  if (tools.includes("codex"))  console.log(`     ${c("cyan", "Codex CLI")}    →  ./.codex/wrap.sh init-figma-compose`);
   console.log(`  ${c("dim", "3.")} Read ${c("cyan", "CLAUDE.md")} for binding rules, ${c("cyan", "AGENTS.md")} for contributor guidelines.`);
-  console.log(`  ${c("dim", "4.")} (Optional) install RTK to compress shell-output tokens: ${c("cyan", "brew install rtk && rtk init -g")}`);
+  console.log(`  ${c("dim", "4.")} (Optional) install RTK to compress shell-output tokens — the wizard will print the right install + per-tool init commands for your stack (Claude Code / Cursor / Codex). RTK is user-level only; never auto-installed.`);
   console.log("");
 }
 

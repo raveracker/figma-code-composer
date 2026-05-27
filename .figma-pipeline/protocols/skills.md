@@ -10,21 +10,21 @@ All skill content lives under one tool-neutral directory:
 .figma-pipeline/skills/<skill-name>/SKILL.md
 ```
 
-This is the **only** place skill files exist. The scaffold ships every supported skill here; at `/init` the wizard prunes the directory down to the resolved install set.
+This is the **only** place skill files exist. The scaffold ships every supported skill here; at `/init-figma-compose` the wizard prunes the directory down to the resolved install set.
 
 Tools surface skills differently:
 
 | Tool       | How the agent reaches a skill                                                                       |
 | ---------- | --------------------------------------------------------------------------------------------------- |
-| Claude Code| `.claude/skills/<name>` is a **symlink** the wizard creates at `/init` pointing at canonical. `Skill` tool loads it natively. |
+| Claude Code| `.claude/skills/<name>` is a **symlink** the wizard creates at `/init-figma-compose` pointing at canonical. `Skill` tool loads it natively. |
 | Cursor     | Cursor has no native skill loader. `.cursor/rules/use-skills.mdc` (wizard-generated) tells Cursor agents to `@`-reference `.figma-pipeline/skills/<name>/SKILL.md` when needed. |
 | Codex CLI  | Codex has no native skill loader either. `.codex/skills.md` (wizard-generated) is the index Codex agents `Read` to discover and apply a skill.                       |
 
-The per-tool surfaces (`.claude/skills/`, `.cursor/rules/use-skills.mdc`, `.codex/skills.md`) only exist when the corresponding `tools.*` flag is `true` in `config.json`. If the consumer disables a tool later, the surface is removed on the next `/init`.
+The per-tool surfaces (`.claude/skills/`, `.cursor/rules/use-skills.mdc`, `.codex/skills.md`) only exist when the corresponding `tools.*` flag is `true` in `config.json`. If the consumer disables a tool later, the surface is removed on the next `/init-figma-compose`.
 
 ## Two distinct phases
 
-1. **Install (wizard, once at `/init`)** — keep skill directories matching the resolved set under `.figma-pipeline/skills/`; delete the rest. Then create per-tool surfaces conditional on `tools.*`. Re-runs cleanly on `/init --re-detect`.
+1. **Install (wizard, once at `/init-figma-compose`)** — keep skill directories matching the resolved set under `.figma-pipeline/skills/`; delete the rest. Then create per-tool surfaces conditional on `tools.*`. Re-runs cleanly on `/init-figma-compose --re-detect`.
 2. **Invoke (agents, per turn)** — each agent invokes the skills assigned to it (see _Per-agent additions_ below). Skills not on disk are recorded in `flags[]` and the agent proceeds — never blocks.
 
 ---
@@ -332,7 +332,7 @@ def resolve_skills(configSnapshot, agent_name=None):
 
 ### Wizard (install phase)
 
-At `/init` (and on every `--re-detect`):
+At `/init-figma-compose` (and on every `--re-detect`):
 
 1. Compute `installSet = resolve_skills(configSnapshot)` (no `agent_name` — superset of every agent's load).
 2. Union every per-agent extra into `installSet` so each downstream agent's mandatory skills are on disk.
@@ -355,7 +355,7 @@ For each resolved skill, the agent invokes it via the `Skill` tool **once** at t
 
 `skills-lock.json` at the repo root tracks the provenance (source repo + hash) of each installed skill. The figma-pipeline does NOT depend on that lockfile shape — agents reference skills by name only and tolerate missing ones — but it SHOULD stay in sync with `.figma-pipeline/skills/` so a consumer running `npm audit`-style integrity checks gets clean output.
 
-After any change to the installed set (the wizard's `/init` prune, a `--re-detect` re-pass, or a manual install/uninstall), regenerate the lock so its keys match `ls .figma-pipeline/skills/`. A quick filter:
+After any change to the installed set (the wizard's `/init-figma-compose` prune, a `--re-detect` re-pass, or a manual install/uninstall), regenerate the lock so its keys match `ls .figma-pipeline/skills/`. A quick filter:
 
 ```js
 // node — prune lock to on-disk only

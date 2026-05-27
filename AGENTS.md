@@ -13,7 +13,7 @@ This is a drop-in scaffold for a Figma-driven multi-agent code-generation pipeli
 | `.figma-pipeline/adapters/frameworks/<name>.md`       | Per-framework templates (React / Vue / Angular / Svelte). |
 | `.figma-pipeline/adapters/css/<system>.md`            | Per-CSS-system recipes (Tailwind v4/v3, UnoCSS, Sass, vanilla-extract, Panda, styled-components, CSS Modules, CSS vars). |
 | `.figma-pipeline/adapters/design-systems/<name>.md`   | Per-DS overrides — Atomic (vanilla atomic design) is first-class; Chakra/Mantine/MUI/Radix/shadcn/HeadlessUI as stubs. |
-| `.claude/agents/` + `commands/` + `hooks/`            | Claude Code surface (11 agents, 5 commands, 9 hooks). Per-tool skill surface (`.claude/skills/<name>` symlinks → canonical) is wizard-generated at `/init`. |
+| `.claude/agents/` + `commands/` + `hooks/`            | Claude Code surface (11 agents, 5 commands, 9 hooks). Per-tool skill surface (`.claude/skills/<name>` symlinks → canonical) is wizard-generated at `/init-figma-compose`. |
 | `.figma-pipeline/skills/`                             | Canonical skill catalog (130 skills). Tool-neutral; all three tools (Claude Code, Cursor, Codex) read from here via their respective surfaces. |
 | `.cursor/rules/` + `prompts/`                         | Cursor mirror (8 `.mdc` rules + 11 agent prompts + 5 slash-command prompts + a `rules/README.md` index). |
 | `.codex/agents/` + `commands/` + `hooks/` + `wrap.sh` | Codex CLI mirror with lifecycle simulator.                                    |
@@ -32,7 +32,7 @@ No app build step. The pipeline is exercised via the wizard + figma slash comman
 ./.codex/wrap.sh figma-tokens <figma-url>        # tokens only
 ```
 
-Claude Code users invoke the same flow as slash commands (`/init`, `/figma-build`, …) which spawn the matching agents in `.claude/agents/`. Cursor users trigger the equivalent prompts from `.cursor/prompts/commands/`.
+Claude Code users invoke the same flow as slash commands (`/init-figma-compose`, `/figma-build`, …) which spawn the matching agents in `.claude/agents/`. Cursor users trigger the equivalent prompts from `.cursor/prompts/commands/`.
 
 Schema validation (run after editing any config or protocol):
 
@@ -72,7 +72,7 @@ No coverage target. The bar is: every tool mirror affected by the change has bee
 
 Mirror `CLAUDE.md` § Binding rules. Each rule maps to enforcement in all three tools (see `.cursor/rules/README.md` and `.codex/hooks/README.md` for the per-tool tables).
 
-1. **Write-access allowlist driven by `.figma-pipeline/config.json`.** Before `/init`: writes allowed only under `.figma-pipeline/**`, `/tmp/**`, `.mcp.json`, `.codex/**`. After `/init`: configured token / component / icon / story / test paths join the allowlist. Escape hatch: `FP_ALLOW_RESTRICTED_WRITE=1` in the shell (legacy `HK_ALLOW_RESTRICTED_WRITE=1` still accepted).
+1. **Write-access allowlist driven by `.figma-pipeline/config.json`.** Before `/init-figma-compose`: writes allowed only under the bootstrap allowlist — `.figma-pipeline/**`, `/tmp/**`, `.mcp.json`, `.codex/**`, `.gitignore` (Step 7.8 patch), `graphify-out/**`, and per-tool graphify skill paths owned by `graphify install --project` (`.claude/skills/graphify/**`, `.cursor/rules/**`, `AGENTS.md`, `.codex/skills.md`). After `/init-figma-compose`: configured token / component / icon / story / test paths join the allowlist. Escape hatch: `FP_ALLOW_RESTRICTED_WRITE=1` in the shell (legacy `HK_ALLOW_RESTRICTED_WRITE=1` still accepted).
 2. **Manifest is the single source of truth between agents.** Only `figma-fetcher` writes `/tmp/figma-<runId>/manifest.json`; everyone else reads.
 3. **Variable names are preserved, never resolved.** `styledProperties[].figmaVariable` holds the raw Figma path. Resolving to a hex / rem / rgb literal inside the manifest is a contract violation.
 4. **Unbound values are flags, not invitations.** `unbound: true` REQUIRES a non-null `rawValue`. Builders stop-and-flag — never invent a token, never inline.
@@ -106,5 +106,5 @@ Never `git commit` or `git push` from inside an agent unless the user explicitly
 - **Design methodologies** — Atomic Design, Feature-Sliced, Component-Based Architecture, Flat / custom.
 - **Stories** — Storybook (only supported stories framework — Histoire and Ladle removed).
 - **Tests** — two independent tracks: **unit** (Vitest / Jest / Karma) and **E2E** (Playwright, set automatically when E2E is enabled).
-- **Design System ⊕ Methodology** — exactly one axis is active per project; the wizard enforces this at `/init`.
+- **Design System ⊕ Methodology** — exactly one axis is active per project; the wizard enforces this at `/init-figma-compose`.
 - **Skills bundle** — canonical lives at `.figma-pipeline/skills/<name>/SKILL.md`. Wizard prunes canonical to the resolved set and toggles per-tool surfaces (`.claude/skills/<name>` symlinks / `.cursor/rules/use-skills.mdc` / `.codex/skills.md`) based on `tools.*`. Audit in `config.skillsInstall`.

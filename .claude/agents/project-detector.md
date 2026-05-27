@@ -4,7 +4,7 @@ description: >-
   Reads the target project tree (package.json, lockfiles, config files, source
   fingerprints) and returns a structured detection report: framework, language,
   CSS system, candidate component/token/icon paths, design methodology guess.
-  Read-only — never writes. Spawned by the wizard during /init step 3.
+  Read-only — never writes. Spawned by the wizard during /init-figma-compose step 3.
 tools: Read, Glob, Grep, Bash
 model: haiku
 ---

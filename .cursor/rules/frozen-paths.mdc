@@ -7,7 +7,7 @@ alwaysApply: true
 
 Cursor in agent mode may create / edit / delete files **only inside** the directories listed in `.figma-pipeline/config.json` → `writeScope.allowedDirs`. Everything else in the project is read-only.
 
-## Before `/init` runs (bootstrap)
+## Before `/init-figma-compose` runs (bootstrap)
 
 Until `.figma-pipeline/config.json` exists, only these roots are writable:
 
@@ -16,7 +16,7 @@ Until `.figma-pipeline/config.json` exists, only these roots are writable:
 - `.codex/**`
 - `/tmp/**`
 
-## After `/init`
+## After `/init-figma-compose`
 
 The wizard composes `writeScope.allowedDirs` from the configured paths (token output, component dirs, icon output, story / test output when not co-located). Plus always: `.figma-pipeline/**`, `.mcp.json`, `.codex/**`, `/tmp/**`.
 

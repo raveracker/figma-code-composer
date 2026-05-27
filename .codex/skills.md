@@ -6,7 +6,7 @@ Codex does not have a native skill loader. The figma-to-code orchestration pipel
 .figma-pipeline/skills/<skill-name>/SKILL.md
 ```
 
-This file is the Codex-side index. It is wizard-owned: re-written on every `/init` when `tools.codexCli=true`; removed when `tools.codexCli=false`.
+This file is the Codex-side index. It is wizard-owned: re-written on every `/init-figma-compose` when `tools.codexCli=true`; removed when `tools.codexCli=false`.
 
 ## Convention
 

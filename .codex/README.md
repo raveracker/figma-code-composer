@@ -3,7 +3,7 @@
 Drop this scaffold into any frontend repo to get a Figma-driven multi-agent pipeline:
 Figma file → typed manifest → design tokens → framework-native components → stories + tests + docs.
 
-**Framework-agnostic by design.** Configure once via the `/init` wizard; the agents adapt to your stack (React / Vue / Angular / Svelte), CSS system (Tailwind v4 / Tailwind v3 / UnoCSS / vanilla CSS-vars / CSS Modules / Sass / vanilla-extract / Panda / styled-components), and **design system** (Atomic / AntD / Chakra / Hero UI / Mantine / MUI / Radix / shadcn / none).
+**Framework-agnostic by design.** Configure once via the `/init-figma-compose` wizard; the agents adapt to your stack (React / Vue / Angular / Svelte), CSS system (Tailwind v4 / Tailwind v3 / UnoCSS / vanilla CSS-vars / CSS Modules / Sass / vanilla-extract / Panda / styled-components), and **design system** (Atomic / AntD / Chakra / Hero UI / Mantine / MUI / Radix / shadcn / none).
 
 Works in **Claude Code**, **Cursor**, and **Codex CLI** — same agents, three entry points.
 
@@ -14,7 +14,7 @@ Works in **Claude Code**, **Cursor**, and **Codex CLI** — same agents, three e
 ```bash
 # 1. Open a terminal at the project root
 # 2. Run the wizard
-./.codex/wrap.sh init
+./.codex/wrap.sh init-figma-compose
 # 3. Confirm Figma MCP in .mcp.json, pick framework + CSS system + write paths
 # 4. Pull components / icons / tokens
 ./.codex/wrap.sh figma-build  <figma-url>
@@ -40,7 +40,7 @@ codex-run figma-build <figma-url>
 
 | Path                                                 | Purpose                                                                                |
 | ---------------------------------------------------- | -------------------------------------------------------------------------------------- |
-| `.figma-pipeline/config.json`                        | Wizard output — framework, CSS system, paths, Figma file keys (created by `/init`)     |
+| `.figma-pipeline/config.json`                        | Wizard output — framework, CSS system, paths, Figma file keys (created by `/init-figma-compose`)     |
 | `.figma-pipeline/protocols/`                         | Framework-agnostic data contracts (manifest, token-strategy, component-layout, allowlist, skills) |
 | `.figma-pipeline/adapters/frameworks/<framework>.md` | Per-framework code-generation templates                                                |
 | `.figma-pipeline/adapters/css/<cssSystem>.md`        | Per-CSS-system token + utility recipes                                                 |
@@ -49,7 +49,7 @@ codex-run figma-build <figma-url>
 | `.codex/agents/`                                     | Agent definitions (one `.md` per agent — same set as `.claude/agents/`)                |
 | `.codex/commands/`                                   | Slash-command recipes (`init`, `figma-build`, `figma-update`, `figma-icons`, `figma-tokens`) |
 | `.codex/hooks/`                                      | `pre-command.sh`, `post-command.sh`, `on-exit.sh` — invoked by `wrap.sh`               |
-| `.codex/config.json`                                 | Codex-specific config (written by `/init` when `tools.codexCli == true`)               |
+| `.codex/config.json`                                 | Codex-specific config (written by `/init-figma-compose` when `tools.codexCli == true`)               |
 | `.claude/`                                           | Claude Code mirror (same agents + commands; read-only for Codex)                       |
 | `.cursor/`                                           | Cursor mirror (same agents + commands; read-only for Codex)                            |
 
@@ -57,7 +57,7 @@ codex-run figma-build <figma-url>
 
 ## Binding rules
 
-1. **Write-access allowlist driven by `.figma-pipeline/config.json`.** Until `/init` runs, only these roots are writable: `.figma-pipeline/**`, `/tmp/**`, `.mcp.json`, `.codex/**`. After `/init`, the configured component / token / icon / story / test paths join the allowlist. Codex does NOT enforce this at the tool layer — `wrap.sh`'s `pre-command.sh` only blocks `.env` access. Review the working tree after every run.
+1. **Write-access allowlist driven by `.figma-pipeline/config.json`.** Until `/init-figma-compose` runs, only these roots are writable: `.figma-pipeline/**`, `/tmp/**`, `.mcp.json`, `.codex/**`. After `/init-figma-compose`, the configured component / token / icon / story / test paths join the allowlist. Codex does NOT enforce this at the tool layer — `wrap.sh`'s `pre-command.sh` only blocks `.env` access. Review the working tree after every run.
 2. **Manifest is the single source of truth between agents.** `figma-fetcher` is the only writer; every downstream agent treats it as read-only input. See `.figma-pipeline/protocols/figma-manifest.md`. `post-command.sh` validates the latest `/tmp/figma-*/manifest.json` after every run.
 3. **Variable names are preserved, never resolved.** Tokens in the manifest hold the raw Figma variable path. Resolving to a hex/rem value is a contract violation.
 4. **Unbound values are flags, not invitations.** When a Figma style has no variable binding, the manifest records the raw value AND `unbound: true`. Builders MUST stop-and-flag — never invent a token or inline the raw value.

@@ -3,7 +3,7 @@
 #
 # Enforces CLAUDE.md binding rules at command start:
 #
-#   [rule 1] config.json must exist (allowlist source) — refuse if missing (except for `init`).
+#   [rule 1] config.json must exist (allowlist source) — refuse if missing (except for `init-figma-compose`).
 #   [rule 1, supporting] .env access is hard-blocked (read AND write).
 #   Routing (rules 1+2): figma.com URLs are nudged toward /figma-* commands so
 #     every build goes through the coordinator and the manifest contract.
@@ -15,11 +15,16 @@ CONFIG="$REPO_ROOT/.figma-pipeline/config.json"
 
 CMD="${1:-}"
 
-# [rule 1] Allow init to run without config; everything else requires the allowlist source.
-if [[ "$CMD" != "init" && ! -r "$CONFIG" ]]; then
-  echo "[codex/pre-command] [rule 1] no .figma-pipeline/config.json — run 'codex run init' first" >&2
-  exit 1
-fi
+# [rule 1] Allow the wizard to run without config; everything else requires the allowlist source.
+case "$CMD" in
+  init|init-figma-compose) ;;
+  *)
+    if [[ ! -r "$CONFIG" ]]; then
+      echo "[codex/pre-command] [rule 1] no .figma-pipeline/config.json — run 'codex run init-figma-compose' first" >&2
+      exit 1
+    fi
+    ;;
+esac
 
 # Figma URL nudge
 for arg in "$@"; do

@@ -16,6 +16,7 @@ Spawn `figma-coordinator` (model: sonnet) with:
 }
 ```
 
-Pre-flight: requires `.figma-pipeline/config.json` (run `/init` first if missing).
+Pre-flight: requires `.figma-pipeline/config.json` (run `/init-figma-compose` first if missing).
+ The wizard verifies Figma MCP is reachable as a hard gate — if config.json exists, MCP was alive at wizard time. If MCP has since dropped, `figma-coordinator` will surface that to the user before any specialist runs.
 
 Do not write any file directly. Do not commit. Do not push.

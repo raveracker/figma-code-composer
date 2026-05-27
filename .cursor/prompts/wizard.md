@@ -1,6 +1,6 @@
-# Cursor wizard prompt — `/init` mirror
+# Cursor wizard prompt — `/init-figma-compose` mirror
 
-When the user types `/init` (or asks to "set up figma-pipeline" / "configure the pipeline" / "run the wizard"), follow the protocol below — it is the Cursor mirror of `.claude/agents/wizard.md`.
+When the user types `/init-figma-compose` (or asks to "set up figma-pipeline" / "configure the pipeline" / "run the figma wizard"), follow the protocol below — it is the Cursor mirror of `.claude/agents/wizard.md`. (Renamed from `/init` to avoid clashing with built-in `/init` commands.)
 
 Read these first:
 
@@ -16,7 +16,7 @@ Steps:
 
 1. **Pre-flight** — handle existing `.figma-pipeline/config.json`: ask overwrite vs incremental vs abort.
 2. **Project identity** — ask for `name` + `description`.
-3. **Figma MCP connect** — verify `.mcp.json` has a `figma` entry. In Cursor, the user manages MCP servers via their global settings; instruct them to enable the Figma server if missing and continue when they confirm. (Cursor does not expose programmatic auth like Claude Code.)
+3. **Figma MCP connect (HARD GATE)** — verify `.mcp.json` has a `figma` entry. In Cursor, the user manages MCP servers via Settings → MCP. Instruct them to enable the Figma server, then run any low-cost MCP read (e.g., metadata) and ask the user to confirm the result. **If MCP is unreachable, abort the wizard before writing `config.json`.** Per § Step 2 in `.claude/agents/wizard.md`. (Cursor does not expose programmatic auth like Claude Code, so the user owns the connection step.)
 4. **Stack detection** — invoke the `project-detector` workflow inline: run the `Glob`/`Read`/`Grep` checks listed in `.claude/agents/project-detector.md` § Detection rules, then confirm with the user.
 5. **Design system OR methodology** — ask design system first per `.claude/agents/wizard.md` § Step 3.5. If `none`, then ask design methodology. Picking a DS sets `designMethodology = "custom"` automatically (or `atomic` when DS=atomic).
 6. **CSS choice** — present the CSS-system options per `.claude/agents/wizard.md` § Step 4.
@@ -31,8 +31,11 @@ Steps:
     c. If `tools.cursor`: write `.cursor/rules/use-skills.mdc` from the canonical template. Else: delete it.
     d. If `tools.codexCli`: write `.codex/skills.md` from the canonical template. Else: delete it.
     e. Update `config.skillsInstall.installed[]` / `missing[]` / `resolvedAt`.
-11.5. **RTK detection** — `command -v rtk` to detect the optional shell-output compressor. Record `config.rtk = { installed, version, detectedAt }`. If absent, offer the `brew install rtk && rtk init -g` one-liner; never install. Per § Step 7.6.
-12. **Report** — print the summary block from `.claude/agents/wizard.md` § Step 8 (includes the new RTK, KG, Complexity lines).
+11.5. **RTK detection** — `command -v rtk` to detect the optional shell-output compressor. Record `config.rtk = { installed, initialized, version, detectedAt }`. If absent, offer the install commands plus per-tool init commands tailored to `config.tools.*` (Claude Code: `rtk init -g`, Cursor: `rtk init --agent cursor`, Codex: `rtk init -g --codex`); never auto-install — RTK is user-level only. Per § Step 7.6.
+11.6. **Graphify registration** — `command -v graphify`. If present, ask the user whether to register `/graphify` project-scoped via `graphify install --project --platform cursor` and record `config.graphify`. If absent, print install hint (`uv tool install graphifyy` or `pipx install graphifyy`) — never install yourself. The actual graph build happens when the user types `/graphify .` in Cursor's agent chat after the wizard exits. Per § Step 7.7.
+11.6b. **Codex `./codex-run` shortcut (only when `tools.codexCli==true`)** — write an executable `<projectRoot>/codex-run` (chmod 0755) that does `exec .codex/wrap.sh "$@"`. User invokes `./codex-run figma-build <url>` — no source, no rc edit. Never touch shell rc. Per § Step 7.7b.
+11.7. **Patch project `.gitignore`** — idempotently append `.figma-pipeline/config.json`, `.figma-pipeline/scratch/`, `/tmp/figma-*/`, `graphify-out/`, `.mcp.json`. Record `config.gitignorePatch`. Per § Step 7.8.
+12. **Report** — print the summary block from `.claude/agents/wizard.md` § Step 8 (includes RTK, Graphify, KG, Complexity, .gitignore lines).
 
 ## Write scope
 
@@ -46,6 +49,8 @@ Cursor in agent mode may write only:
 - `.claude/skills/<name>` — symlink create/delete, at Step 11(b), only when `tools.claudeCode`
 - `.cursor/rules/use-skills.mdc` — write/delete, at Step 11(c)
 - `.codex/skills.md` — write/delete, at Step 11(d)
+- `<projectRoot>/.gitignore` — append-only, at Step 11.7
+- `<projectRoot>/graphify-out/` — written indirectly by the `graphify` binary at Step 11.6
 
 Any other write → stop and tell the user. The Cursor rule `.cursor/rules/frozen-paths.mdc` enforces this in agent mode.
 

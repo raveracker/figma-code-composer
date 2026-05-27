@@ -29,7 +29,7 @@ Also load (when their corresponding `config.*.enabled` is true):
 
 ## Pre-flight (always)
 
-1. Read `.figma-pipeline/config.json`. If absent → abort: "run `/init` first."
+1. Read `.figma-pipeline/config.json`. If absent → abort: "run `/init-figma-compose` first."
 2. Validate `version == "1.0"`. Mismatch → abort.
 3. Stamp the run: `runId = <YYYYMMDD-HHMM>-<slug>`; `mkdir -p /tmp/figma-<runId>`.
 4. Snapshot `configSnapshot` from `config.json`: `framework.name`, `framework.variant`, `language`, `cssSystem.name`, `components.designMethodology`, `tokens.strategy`, `designSystem.name`, `designSystem.themeName`. Pass to every spawn.

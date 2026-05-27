@@ -12,7 +12,7 @@
 #   .codex/wrap.sh <command> [args...]
 #
 # Examples:
-#   .codex/wrap.sh init
+#   .codex/wrap.sh init-figma-compose
 #   .codex/wrap.sh figma-build https://figma.com/design/...
 #
 # Make this the actual entrypoint by aliasing in your shell:

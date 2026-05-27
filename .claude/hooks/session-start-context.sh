@@ -25,5 +25,5 @@ if [[ -r "$CONFIG" ]]; then
     echo "   .figma-pipeline/config.json present (install jq for details)"
   fi
 else
-  echo "   ⚠️  No .figma-pipeline/config.json — run /init to configure"
+  echo "   ⚠️  No .figma-pipeline/config.json — run /init-figma-compose to configure"
 fi
