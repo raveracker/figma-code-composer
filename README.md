@@ -197,6 +197,52 @@ When a design system is selected, `component-builder`, `story-author`, `test-aut
 
 ---
 
+## Credits — bundled skills
+
+The 130 skills shipped under `.figma-pipeline/skills/` are curated from work by the following open-source authors and projects. Each skill retains its original SKILL.md (intact, attribution preserved); this scaffold's role is the wizard, agents, hooks, protocols, and the pipeline that orchestrates them.
+
+If a skill in this catalog is yours and you'd like the attribution adjusted (different name, link, removal), please open an issue.
+
+| Source repository | Skills | Sample skill names |
+| ----------------- | -----: | ------------------ |
+| [thebushidocollective/han](https://github.com/thebushidocollective/han) | 44 | atomic-design-atoms, atomic-design-fundamentals, atomic-design-integration, atomic-design-molecules, … |
+| [mindrally/skills](https://github.com/mindrally/skills) | 20 | accessibility-a11y, css, figma-integration, nextjs-react-redux-typescript-cursor-rules, … |
+| [wshobson/agents](https://github.com/wshobson/agents) | 10 | accessibility-compliance, design-system-patterns, e2e-testing-patterns, javascript-testing-patterns, … |
+| [analogjs/angular-skills](https://github.com/analogjs/angular-skills) | 10 | angular-component, angular-di, angular-directives, angular-forms, … |
+| [alirezarezvani/claude-skills](https://github.com/alirezarezvani/claude-skills) | 7 | a11y-audit, playwright-pro, senior-frontend, senior-qa, … |
+| [mui/material-ui](https://github.com/mui/material-ui) | 4 | material-ui-nextjs, material-ui-styling, material-ui-tailwind, material-ui-theming |
+| [angular/angular](https://github.com/angular/angular) | 3 | adev-writing-guide, angular-developer, angular-new-app |
+| [chakra-ui/chakra-ui](https://github.com/chakra-ui/chakra-ui) | 3 | chakra-ui-builder, chakra-ui-migrate, chakra-ui-refactor |
+| [mantinedev/skills](https://github.com/mantinedev/skills) | 3 | mantine-combobox, mantine-custom-components, mantine-form |
+| [heroui-inc/heroui](https://github.com/heroui-inc/heroui) | 2 | heroui-migration, heroui-react |
+| [vercel-labs/next-skills](https://github.com/vercel-labs/next-skills) | 2 | next-best-practices, next-cache-components |
+| [sveltejs/ai-tools](https://github.com/sveltejs/ai-tools) | 2 | svelte-code-writer, svelte-core-bestpractices |
+| [vercel-labs/agent-skills](https://github.com/vercel-labs/agent-skills) | 2 | vercel-react-best-practices, vercel-react-view-transitions |
+| [ant-design/antd-skill](https://github.com/ant-design/antd-skill) | 1 | ant-design |
+| [ant-design/ant-design-cli](https://github.com/ant-design/ant-design-cli) | 1 | antd |
+| [mgd34msu/goodvibes-plugin](https://github.com/mgd34msu/goodvibes-plugin) | 1 | component-architecture |
+| [pproenca/dot-skills](https://github.com/pproenca/dot-skills) | 1 | feature-arch |
+| [feature-sliced/skills](https://github.com/feature-sliced/skills) | 1 | feature-sliced-design |
+| [figma/mcp-server-guide](https://github.com/figma/mcp-server-guide) | 1 | figma-use |
+| [majesticlabs-dev/majestic-marketplace](https://github.com/majesticlabs-dev/majestic-marketplace) | 1 | frontend-css-patterns |
+| [hashintel/hash](https://github.com/hashintel/hash) | 1 | panda-css |
+| [sickn33/antigravity-awesome-skills](https://github.com/sickn33/antigravity-awesome-skills) | 1 | radix-ui-design-system |
+| [vercel-labs/vercel-plugin](https://github.com/vercel-labs/vercel-plugin) | 1 | react-best-practices |
+| [aj-geddes/useful-ai-prompts](https://github.com/aj-geddes/useful-ai-prompts) | 1 | react-component-architecture |
+| [shadcn/ui](https://github.com/shadcn/ui) | 1 | shadcn |
+| [ramziddin/solid-skills](https://github.com/ramziddin/solid-skills) | 1 | solid |
+| [fusengine/agents](https://github.com/fusengine/agents) | 1 | solid-react |
+| [laravel/boost](https://github.com/laravel/boost) | 1 | tailwindcss-development |
+| [antfu/skills](https://github.com/antfu/skills) | 1 | unocss |
+| [ceski23/skills](https://github.com/ceski23/skills) | 1 | vanilla-extract |
+| [hyf0/vue-skills](https://github.com/hyf0/vue-skills) | 1 | vue-best-practices |
+
+Skill provenance (source repo + content hash) is tracked in `skills-lock.json` at the repo root.
+
+---
+
 ## License
 
-TBD.
+This project is licensed under the **MIT License** — see [LICENSE](./LICENSE) for the full text.
+
+Bundled third-party skills retain their original licenses. Each skill's source repository (linked above) is the authoritative reference; consult the upstream `LICENSE` file before redistributing a specific skill in isolation.
