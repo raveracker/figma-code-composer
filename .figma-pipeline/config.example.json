@@ -49,10 +49,17 @@
     "titleConvention": "Components/{Layer}/{Name}"
   },
   "tests": {
-    "enabled": true,
-    "framework": "vitest",
-    "outputDir": "co-located",
-    "testingLibrary": "react-testing-library"
+    "unit": {
+      "enabled": true,
+      "framework": "vitest",
+      "outputDir": "co-located",
+      "testingLibrary": "react-testing-library"
+    },
+    "e2e": {
+      "enabled": true,
+      "framework": "playwright",
+      "outputDir": "e2e"
+    }
   },
   "designSystem": {
     "name": "none"

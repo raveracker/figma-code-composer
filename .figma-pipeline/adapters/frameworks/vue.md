@@ -43,7 +43,7 @@ const classes = computed(() => [
 
 ## Style attachment
 - `:class` array with `computed` expressions for variant classes.
-- `<style scoped>` blocks ONLY when `cssSystem.name ∈ {css-vars, plain-css}` and the styling cannot be expressed via utility classes.
+- `<style scoped>` blocks ONLY when `cssSystem.name == "css-vars"` and the styling cannot be expressed via utility classes.
 - `cssSystem.name == "css-modules"`: import `<style module>` and reference `$style.root`.
 
 ## Story idiom

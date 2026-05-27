@@ -12,7 +12,7 @@ The wizard:
 1. **Project identity** — asks for project name + one-line description.
 2. **Figma MCP connect** — verifies `.mcp.json` has a `figma` entry, opens the auth flow if needed (calls `mcp__figma__authenticate` then `mcp__figma__complete_authentication`).
 3. **Stack detection** — spawns `project-detector` to identify framework + CSS system + relevant paths. User confirms or overrides.
-4. **Design methodology + CSS choice** — presents the supported methodologies (atomic / feature-sliced / layered / hexagonal / flat) and CSS systems (Tailwind v4/v3 / UnoCSS / Open Props / vanilla / CSS Modules / Sass / Style Dictionary / vanilla-extract / panda / stitches / plain CSS) with one-line examples and trade-offs. If the project uses plain `.css` today, also offers a no-op migration path (stay on plain CSS) and a guided migration to one of the listed frameworks.
+4. **Design methodology + CSS choice** — presents the supported methodologies (atomic / feature-sliced / component-based / flat) and CSS systems (Tailwind v4/v3 / UnoCSS / vanilla CSS vars / CSS Modules / Sass / vanilla-extract / panda / styled-components) with one-line examples and trade-offs, and offers a guided migration when the detected system differs from the chosen one.
 
 Final output:
 

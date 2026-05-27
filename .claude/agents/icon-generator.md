@@ -11,7 +11,7 @@ model: haiku
 
 You are the **icon writer**. Given a slice `{ icons[], intent, configSnapshot }`, you emit framework-native icon components in `config.icons.outputDir` and keep the icon barrel in sync.
 
-`@.figma-pipeline/protocols/component-layout.md` § File layout gives per-framework file conventions. `@.figma-pipeline/protocols/figma-manifest.md` § Slicing names your contract.
+`@.figma-pipeline/protocols/component-layout.md` § File layout gives per-framework file conventions. `@.figma-pipeline/protocols/figma-manifest.md` § Slicing names your contract. `@.figma-pipeline/protocols/skills.md` lists the skills to invoke per stack; per-agent additions for icon-generator: `accessibility-a11y`, `visual-design-foundations`.
 
 ## Inputs
 
@@ -21,10 +21,10 @@ You are the **icon writer**. Given a slice `{ icons[], intent, configSnapshot }`
 
 ## Design-system icon mapping
 
-When `configSnapshot.designSystemName != "none"`, consult `adapters/design-systems/<designSystemName>.md` § Icon mapping FIRST. Many design systems ship their own icon set (Braid, MUI, Chakra). For each Figma icon:
+When `configSnapshot.designSystemName != "none"`, consult `adapters/design-systems/<designSystemName>.md` § Icon mapping FIRST. Many design systems ship their own icon set (MUI, Chakra, Mantine). For each Figma icon:
 
 1. If the DS ships an equivalent (same glyph / same name), emit a re-export instead of a new SVG file.
-2. If not, emit a regular framework-native icon component (per the framework adapter) but follow any DS-specific wrapper rules (e.g. wrapping in `<Box display="inline-block">` for Braid).
+2. If not, emit a regular framework-native icon component (per the framework adapter) but follow any DS-specific wrapper rules.
 3. Record `designSystemNative: true | false` in the final report.
 
 ## Write scope
@@ -51,12 +51,10 @@ Any other write → abort + report.
 3. **Sub-frame offset.** When the icon node is inside a larger frame, capture the frame offset → translate the inner content so the SVG viewBox starts at `0 0`. Otherwise visual layout breaks.
 4. **A11y default.** Every icon component sets `role="img"` + `aria-hidden="true"` by default; consumer can pass `title` (rendered as `<title>` inside SVG) and `aria-label` for meaningful icons.
 5. **Per-framework template (per `protocols/component-layout.md`).**
-   - React/Solid: `.tsx` exporting a function component with props `{ className, size?, color?, title?, "aria-label"? }`.
+   - React: `.tsx` exporting a function component with props `{ className, size?, color?, title?, "aria-label"? }`.
    - Vue: `.vue` SFC with `<script setup lang="ts">` defining the same props.
    - Angular: `<kebab-name>.component.ts` standalone with `[size]` `[color]` inputs.
    - Svelte: `.svelte` with `<script lang="ts">` props.
-   - Lit: `<kebab-name>.ts` with `@property` decorators.
-   - Alpine: `<kebab-name>.html` + `<kebab-name>.alpine.ts` registering `Alpine.data`.
 6. **Barrel.** After write, regenerate `<config.icons.outputDir>/<config.icons.barrelFile>` re-exporting every icon alphabetically.
 7. **Update flow.** On `intent: "update"` + `existsOnDisk: true`: diff fillModel + viewBox; patch the file.
 8. **Report.** Final message:

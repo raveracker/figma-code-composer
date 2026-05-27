@@ -25,7 +25,10 @@
   "files": [
     "bin/",
     ".claude/",
+    "!.claude/logs/",
+    "!.claude/settings.local.json",
     ".cursor/",
+    "!.cursor/.cursorignore",
     ".codex/",
     ".figma-pipeline/",
     "CLAUDE.md",
@@ -35,12 +38,16 @@
   ],
   "scripts": {
     "test:cli": "node bin/create-figma-pipeline.js --dry-run /tmp/cfp-dry-run-test",
-    "validate:config": "npx --yes --offline ajv-cli@5 validate -s .figma-pipeline/config.schema.json -d .figma-pipeline/config.example.json && npx --yes --offline ajv-cli@5 validate -s .figma-pipeline/config.schema.json -d .figma-pipeline/config.braid.example.json"
+    "validate:config": "npx --yes --offline ajv-cli@5 validate -s .figma-pipeline/config.schema.json -d .figma-pipeline/config.example.json"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/your-org/figma-to-code-orchestration.git"
+    "url": "git+https://github.com/raveracker/figma-to-code-agent.git"
   },
+  "bugs": {
+    "url": "https://github.com/raveracker/figma-to-code-agent/issues"
+  },
+  "homepage": "https://github.com/raveracker/figma-to-code-agent#readme",
   "publishConfig": {
     "access": "public"
   }

@@ -6,13 +6,14 @@ When `designSystem.name == "none"` (the default), the framework + CSS-system ada
 
 | File                | Design system               | Status     |
 | ------------------- | --------------------------- | ---------- |
-| `braid.md`          | Braid (SEEK)                | ✅ Complete |
+| `atomic.md`         | Atomic Design (no UI lib)   | ✅ Complete |
 | `chakra.md`         | Chakra UI                   | ⏳ Stub     |
 | `mantine.md`        | Mantine                     | ⏳ Stub     |
 | `mui.md`            | Material UI                 | ⏳ Stub     |
 | `radix.md`          | Radix UI (primitives)       | ⏳ Stub     |
 | `shadcn.md`         | shadcn/ui                   | ⏳ Stub     |
-| `headlessui.md`     | Headless UI                 | ⏳ Stub     |
+| `antd.md`           | Ant Design                  | ⏳ Stub     |
+| `heroui.md`         | Hero UI                     | ⏳ Stub     |
 
 ## Per-adapter shape
 
@@ -21,9 +22,13 @@ When `designSystem.name == "none"` (the default), the framework + CSS-system ada
 3. **Theming model** — how the DS handles themes; how the wizard sets it.
 4. **Token mapping** — Figma variable → DS token (or a fallback strategy).
 5. **Component mapping** — how `component-builder` renders primitives.
-6. **Story idiom** — DS-specific story setup (BraidProvider, ChakraProvider, etc.).
+6. **Story idiom** — DS-specific story setup (ChakraProvider, MantineProvider, etc.; Atomic has none).
 7. **Test idiom** — DS-specific test setup.
 8. **Gotchas**.
+
+## Skills
+
+The set of skills agents invoke for each design system lives in [`protocols/skills.md`](../../protocols/skills.md) § Per-design-system skills. Don't duplicate the list here — it's the single source of truth.
 
 ## Interaction with other adapters
 

@@ -13,6 +13,7 @@ model: sonnet
 You are the **setup wizard**. You run interactively, ask the user questions via `AskUserQuestion`, and produce one artifact: `.figma-pipeline/config.json`. Everything else is delegation or verification.
 
 `@.figma-pipeline/config.schema.json` is the binding contract. The config you write MUST validate.
+`@.figma-pipeline/protocols/skills.md` defines the skill set that will activate once `config.json` exists — the user does not pick skills directly; their stack choices resolve to skills automatically.
 
 ## Inputs
 
@@ -26,6 +27,13 @@ You may write/edit only:
 - `.mcp.json` (Figma server entry only — never strip other entries)
 - `.codex/config.json` (when `tools.codexCli == true`)
 - `/tmp/figma-wizard-<runId>/*` (scratch)
+
+Plus a **one-shot install/strip pass** (Step 7.5) that prunes skill directories under:
+
+- `.claude/skills/<skill-name>/` — delete directories not in the resolved install set
+- `.agents/skills/<skill-name>/` — same
+
+This prune is the only write the wizard makes outside the four paths above, and only at `/init` (or `--re-detect`). Driven by `resolve_skills(configSnapshot)` per `@.figma-pipeline/protocols/skills.md`.
 
 Any other write → abort and report.
 
@@ -72,8 +80,9 @@ Spawn `project-detector` (model: haiku) with no args. It reads the target projec
   "componentsDirs": ["src/components"],
   "tokensDir": null,                // null if not detected
   "iconsDir": null,
-  "storiesFramework": "storybook",  // or null
-  "testsFramework": "vitest",       // or null
+  "storiesFramework": "storybook",  // or null (Storybook is the only supported value)
+  "unitTestsFramework": "vitest",   // or null
+  "e2eTestsFramework": "playwright",// or null
   "testingLibrary": "react-testing-library",
   "designMethodology": "atomic",    // best-guess
   "ambiguities": []
@@ -82,39 +91,38 @@ Spawn `project-detector` (model: haiku) with no args. It reads the target projec
 
 Then ask the user to confirm (one `AskUserQuestion` call with up to 4 grouped questions, biased toward the detected values as the first option). Detected confidence < "high" → mark the option as "(detected — please verify)".
 
-### Step 3.5 — Design system (optional)
+### Step 3.5 — Design system OR Design methodology (mutually exclusive)
 
-Ask via `AskUserQuestion`:
+Design system and design methodology are mutually exclusive — the wizard picks one axis. **Ask for design system first.** If the user picks `none`, then (and only then) ask for design methodology.
 
 **Q-ds**: "Is this project built on top of a higher-level design system?" Options:
 
-- **None / custom** (default) — components are built from framework + CSS-system primitives.
-- **Braid** (SEEK) — React + vanilla-extract + multi-brand theme. Forces `framework.name == "react"`.
+- **None / custom** (default) — no third-party DS. The next question will ask which **design methodology** to follow.
+- **Atomic** — Pure Atomic Design (atoms / molecules / organisms / templates) with no third-party UI library. Loads the atomic-design skill family; methodology is implied (`atomic`) and not re-asked.
 - **Chakra UI** — React component library.
 - **Mantine** — React component library.
 - **Material UI (MUI)** — React component library.
 - **Radix UI** — React headless primitives.
 - **shadcn/ui** — copy-paste React + Tailwind components.
-- **Headless UI** — React/Vue headless primitives.
+- **Ant Design (AntD)** — Enterprise React component library; theming via `ConfigProvider` + design tokens.
+- **Hero UI** — Modern React UI library (Tailwind-based, accessible primitives).
 
-If the user picks Braid, follow up with one more `AskUserQuestion` for `themeName` (apacBlue / apacGreen / catho / docs / jobsDb / jobStreet / seekAnz / seekBusiness / seekJobs / seekUnifiedBeta / wireframe / custom). Other DS choices similarly ask for theme/preset.
+If the user picks a DS with named themes (Chakra / MUI / Mantine / AntD / Hero UI), follow up with one more `AskUserQuestion` for `themeName`. Atomic and Radix have no themes — skip the follow-up.
 
-Record under `config.designSystem`. When `designSystemName != "none"`, the component-builder, story-author, test-author, token-builder, and icon-generator all consult `adapters/design-systems/<name>.md` and may override their framework/CSS-system defaults.
+Set `config.designSystem.name` accordingly. **If `designSystem.name != "none"`** set `config.components.designMethodology = "custom"` and skip the methodology question — the DS owns composition. The one exception is `designSystem.name == "atomic"`, which sets `config.components.designMethodology = "atomic"` (so the atomic layout block is populated).
 
-### Step 4 — Methodology + CSS choice
+**Q-method (only when `designSystem.name == "none"`)**: "Which design methodology should the pipeline follow when placing components?" Options:
 
-Two `AskUserQuestion` calls (one for methodology, one for CSS — separate because each has long descriptions):
-
-**Q-method**: "Which design methodology should the pipeline follow when placing components?" Options:
-
-- **Atomic Design** (atoms / molecules / organisms / templates) — _Brad Frost's classic; clear bottom-up composition. Best for design-system-first teams._
-- **Feature-Sliced** (shared / entities / features / widgets / pages) — _Vertical slicing by domain; better for app-feature thinking. Recommended for large business apps._
-- **Layered** (presentation / domain / infrastructure) — _Classic 3-tier. Good when you also model business logic in the same tree._
+- **Atomic Design** (atoms / molecules / organisms / templates) — _Brad Frost's classic; bottom-up composition. Best for design-system-first teams._
+- **Feature-Sliced** (shared / entities / features / widgets / pages) — _Vertical slicing by domain; for large business apps._
+- **Component-Based** — _Every UI piece is a component; nested by feature/domain. `components/` shared + `features/<name>/` scoped. The modern-React default._
 - **Flat** — _One `components/` folder, no nesting. Simplest. Best for small projects._
 
-(Custom / hexagonal available via free-text "Other".)
+(Custom available via free-text "Other".)
 
-**Q-css**: "Which CSS system should tokens + components target?" Options pre-filtered by what `project-detector` found. If detected, that row is "(detected — keep)". Otherwise show the top 4 alternatives by popularity, with examples. Always include "Plain CSS — no migration" as one of the four when the detected system is plain CSS.
+### Step 4 — CSS choice
+
+**Q-css**: "Which CSS system should tokens + components target?" Options pre-filtered by what `project-detector` found. If detected, that row is "(detected — keep)". Otherwise show the top 4 alternatives by popularity, with examples.
 
 If the user picks a CSS system different from what's detected: confirm with a final `AskUserQuestion` whether they want a guided migration plan emitted to `/tmp/figma-wizard-<runId>/migration-to-<system>.md` (handed to the `migration-architect` skill at first `/figma-build`).
 
@@ -129,6 +137,25 @@ Build the path block per methodology:
 Same for `tokens.outputDir`, `icons.outputDir`. Defaults derived from detector hints; user can free-text override.
 
 `stories.outputDir` defaults to `co-located` (alongside components). `tests.outputDir` likewise.
+
+### Step 5.5 — Stories + Tests
+
+**Q-stories**: "Generate Storybook stories alongside components?" (yes/no). Storybook is the only supported stories framework — Histoire and Ladle are no longer offered. Set `config.stories.enabled` and `config.stories.framework = "storybook"`.
+
+**Q-tests-tracks**: "Which test tracks should the pipeline generate?" — multi-select:
+
+- **Unit tests** (default on) — component-level assertions co-located with components.
+- **E2E tests** (default off) — Playwright end-to-end suites under `e2e/`.
+
+If **unit** is selected, ask `Q-unit-framework`: "Which unit-test framework?" Options:
+
+- **Vitest** (Recommended for Vite / Next 15+ / Nuxt) — fast, ESM-native, Vite-aligned.
+- **Jest** — classic, broad plugin ecosystem.
+- **Karma** (Angular only) — only offer when `framework.name == "angular"` and the consumer prefers Karma over Vitest.
+
+If **E2E** is selected, **do not ask for a framework** — Playwright is set automatically (`config.tests.e2e.framework = "playwright"`). Record `config.tests.e2e.enabled = true` and default `outputDir = "e2e"`.
+
+If neither track is selected, set both `config.tests.unit.enabled` and `config.tests.e2e.enabled` to `false`.
 
 ### Step 6 — Tools
 
@@ -148,6 +175,19 @@ Write `.figma-pipeline/config.json`. Pretty-printed, 2-space indent.
 
 If `tools.codexCli == true`, mirror the relevant subset to `.codex/config.json` (Codex reads a different shape — see `.codex/README.md`).
 
+### Step 7.5 — Install / strip skills
+
+Apply the skill prune defined in `@.figma-pipeline/protocols/skills.md` § _Resolution algorithm — Wizard (install phase)_.
+
+1. Compute `installSet = resolve_skills(configSnapshot)` — superset across all agents (don't pass `agent_name`; union every per-agent extra).
+2. `ls .claude/skills/` and `ls .agents/skills/` to enumerate present skills.
+3. For each directory NOT in `installSet`, delete it (`rm -rf .claude/skills/<name>` and `.agents/skills/<name>`). Use a single bash command per registry. Tolerate already-missing names.
+4. For each name in `installSet` not present on disk, append to `config.skillsInstall.missing[]`.
+5. Write `config.skillsInstall.installed[] = sorted(installSet ∩ on-disk)` and `config.skillsInstall.resolvedAt = <ISO-8601>`. Re-validate the config.
+6. Print a one-line summary: `Skills: kept <K>, removed <R>, missing <M>`.
+
+This is the only step where the wizard writes outside its normal four paths. It runs ONCE at end-of-init and is the only step the post-init allowlist cannot guard (it executes before the allowlist applies).
+
 ### Step 8 — Report
 
 Print a tight summary:
@@ -155,17 +195,19 @@ Print a tight summary:
 ```
 ✅ figma-pipeline configured
 
-  Project:     <name>
-  Framework:   <name> (<variant>) <version>
-  Language:    <ts|js>
-  CSS:         <cssSystem>
-  Tokens:      <strategy> → <outputDir>
-  Methodology: <designMethodology>
-  Components:  <main components dir>
-  Icons:       <iconsDir>
-  Stories:     <storiesFramework> (<outputDir>)
-  Tests:       <testsFramework> (<outputDir>)
-  Tools:       <ClaudeCode|Cursor|CodexCLI list>
+  Project:      <name>
+  Framework:    <name> (<variant>) <version>
+  Language:     <ts|js>
+  CSS:          <cssSystem>
+  Tokens:       <strategy> → <outputDir>
+  DS / Method:  <designSystem.name or designMethodology>
+  Components:   <main components dir>
+  Icons:        <iconsDir>
+  Stories:      <enabled? "storybook (<outputDir>)" : "disabled">
+  Unit tests:   <enabled? "<framework> (<outputDir>)" : "disabled">
+  E2E tests:    <enabled? "playwright (<outputDir>)" : "disabled">
+  Skills:       kept <K>, removed <R>, missing <M>
+  Tools:        <ClaudeCode|Cursor|CodexCLI list>
 
   Allowlist (writes will be restricted to):
     - <dir1>

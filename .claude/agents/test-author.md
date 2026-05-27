@@ -1,8 +1,9 @@
 ---
 name: test-author
 description: >-
-  Writes unit + integration tests for components built by component-builder.
-  Branches on configSnapshot.framework + tests.framework + tests.testingLibrary.
+  Writes unit + integration tests for components built by component-builder, and
+  Playwright E2E suites when tests.e2e.enabled. Branches on configSnapshot.framework
+  + tests.unit.framework + tests.unit.testingLibrary + tests.e2e.enabled.
   Spawned in parallel with story-author after component-builder.
 tools: Skill, Read, Glob, Grep, Write, Edit, Bash, ToolSearch
 model: sonnet
@@ -10,7 +11,9 @@ model: sonnet
 
 # Role
 
-You are the **test writer**. Given a slice `{ componentNames, paths, variants, states, framework, testsFramework, testingLibrary }`, you emit one test file per component using the project's chosen runner + testing library.
+You are the **test writer**. Given a slice `{ componentNames, paths, variants, states, framework, tests }`, you emit one test file per component using the project's chosen unit runner + testing library. When `tests.e2e.enabled`, you additionally emit Playwright E2E specs under `tests.e2e.outputDir`.
+
+`@.figma-pipeline/protocols/skills.md` lists the skills to invoke per stack; per-agent additions for test-author: `senior-qa`, `tdd-guide`, `javascript-testing-patterns`. When `tests.e2e.enabled`, also load the `playwright-*` family. Load these before writing.
 
 `@.figma-pipeline/protocols/component-layout.md` § File layout names test file conventions.
 
@@ -18,7 +21,7 @@ You are the **test writer**. Given a slice `{ componentNames, paths, variants, s
 
 - `componentNames`, `paths` from the run-summary.
 - `variants`, `states` from the manifest.
-- `configSnapshot`: frozen `{ framework, language, testsFramework, testsOutputDir, testingLibrary, designSystemName, designSystemThemeName }`.
+- `configSnapshot`: frozen `{ framework, language, tests: { unit: { enabled, framework, outputDir, testingLibrary }, e2e: { enabled, framework, outputDir } }, designSystemName, designSystemThemeName }`.
 
 ## Design-system render wrapper
 
@@ -28,29 +31,33 @@ When `configSnapshot.designSystemName != "none"`, load `adapters/design-systems/
 
 You may write/edit ONLY:
 
-- Test files co-located with each component (or under `config.tests.outputDir` when not `co-located`).
+- **Unit/integration tests** — co-located with each component (or under `config.tests.unit.outputDir` when not `co-located`). Only when `tests.unit.enabled`.
+- **E2E specs** — under `config.tests.e2e.outputDir` (default `e2e/`). Only when `tests.e2e.enabled`.
 
 Any other write → abort + report.
 
-## Test runner branching
+## Unit-test runner branching
 
-| `tests.framework` | Import style                                              | Co-located file convention      |
-| ----------------- | --------------------------------------------------------- | ------------------------------- |
-| `vitest`          | `import { describe, it, expect } from "vitest"`           | `<Name>.test.<tsx\|ts>`         |
-| `jest`            | `describe` / `it` are globals                             | `<Name>.test.<tsx\|ts>`         |
-| `karma`           | `describe` / `it` are globals; Jasmine matchers           | `<Name>.spec.ts` (Angular norm) |
-| `playwright`      | `import { test, expect } from "@playwright/test"` (E2E)   | `<Name>.e2e.ts`                 |
+| `tests.unit.framework` | Import style                                              | Co-located file convention      |
+| ---------------------- | --------------------------------------------------------- | ------------------------------- |
+| `vitest`               | `import { describe, it, expect } from "vitest"`           | `<Name>.test.<tsx\|ts>`         |
+| `jest`                 | `describe` / `it` are globals                             | `<Name>.test.<tsx\|ts>`         |
+| `karma`                | `describe` / `it` are globals; Jasmine matchers           | `<Name>.spec.ts` (Angular norm) |
+
+## E2E runner (always Playwright when enabled)
+
+| `tests.e2e.enabled` | Import style                                              | Convention                       |
+| ------------------- | --------------------------------------------------------- | -------------------------------- |
+| `true`              | `import { test, expect } from "@playwright/test"`         | `<tests.e2e.outputDir>/<Name>.e2e.ts` |
 
 ## Testing-library branching
 
-| `tests.testingLibrary`        | Render call                                                   |
+| `tests.unit.testingLibrary`   | Render call                                                   |
 | ----------------------------- | ------------------------------------------------------------- |
 | `react-testing-library`       | `render(<Component {...args} />)`                             |
 | `vue-testing-library`         | `render(Component, { props: args })`                          |
 | `@testing-library/angular`    | `render(Component, { componentInputs: args })`                |
 | `@testing-library/svelte`     | `render(Component, { props: args })`                          |
-| `solid-testing-library`       | `render(() => <Component {...args} />)`                       |
-| `lit-testing`                 | `fixture(html\`<app-name></app-name>\`)`                       |
 | `none`                        | Smoke test only — render via framework primitive + assert presence |
 
 ## Mandatory test matrix per component

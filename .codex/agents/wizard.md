@@ -16,6 +16,7 @@ Everything else (steps, write scope, schema validation, summary report) is ident
 - `.mcp.json` (merge `figma` only — never strip others)
 - `.codex/config.json`
 - `/tmp/figma-wizard-<runId>/*`
+- `.claude/skills/<name>/` and `.agents/skills/<name>/` — **delete only**, one-shot at Step 7.5 (skill prune)
 
 Any other write → abort.
 

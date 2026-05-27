@@ -8,9 +8,6 @@ Each adapter is a single markdown file telling `component-builder`, `icon-genera
 | `vue.md`              | Vue 3          | ✅ Complete |
 | `angular.md`          | Angular ≥17    | ✅ Complete |
 | `svelte.md`           | Svelte 5       | ✅ Complete |
-| `solid.md`            | Solid          | ✅ Complete |
-| `lit.md`              | Lit 3          | ✅ Complete |
-| `alpine.md`           | Alpine.js      | ✅ Complete |
 
 Each adapter file follows a fixed shape:
 
@@ -19,6 +16,10 @@ Each adapter file follows a fixed shape:
 3. **Props convention** — how Figma `variants` + `states` map to framework props.
 4. **State idiom** — local state, derived values, side effects.
 5. **Style attachment** — how classes/styles attach per CSS system.
-6. **Story idiom** — Storybook/Histoire/Ladle render shape.
+6. **Story idiom** — Storybook render shape.
 7. **Test idiom** — testing-library render shape.
 8. **Gotchas** — silent-fail traps specific to this framework.
+
+## Skills
+
+The set of skills agents invoke for each framework lives in [`protocols/skills.md`](../../protocols/skills.md) § Per-framework skills. Don't duplicate the list here — it's the single source of truth.

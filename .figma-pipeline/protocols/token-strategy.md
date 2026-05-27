@@ -9,15 +9,12 @@ The token-builder receives `manifest.tokens` (a flat dict of `figma-variable-pat
 | `tailwind-v4`           | `tailwind-css-vars`       | `@theme { --color-*: …; }` blocks; CSS Custom Properties  | `primitives.css` + `semantic.css` + `components.css`     | `:root` + `[data-theme=...]` overrides               |
 | `tailwind-v3`           | `js-tokens`               | JS object exported from `tailwind.config.js`              | `tokens/index.{js,ts}` consumed by `theme.extend`        | `darkMode: 'class'` + JS object branching            |
 | `unocss`                | `unocss-theme`            | UnoCSS `theme` extend (TS object)                         | `unocss.config.ts` `theme` block                         | UnoCSS shortcuts + variants                          |
-| `open-props`            | `css-custom-properties`   | `--*` props inside `:root`                                | `tokens/props.css` + per-category files                  | `[data-theme=…]` blocks                              |
 | `css-modules`           | `css-custom-properties`   | `:root` CSS vars consumed via `var(--…)`                  | `styles/tokens/*.css`                                    | `[data-theme=…]` blocks                              |
 | `css-vars` (vanilla)    | `css-custom-properties`   | `:root` CSS vars                                          | `styles/tokens/*.css`                                    | `[data-theme=…]` blocks                              |
 | `sass`                  | `scss-variables`          | SCSS `$tokens` + optional CSS-var output                  | `styles/tokens/_*.scss`                                  | SCSS map + mixin per theme                           |
-| `style-dictionary`      | `style-dictionary-json`   | JSON source files; transforms emit CSS/JS/iOS/Android     | `tokens/*.json`                                          | Per-platform via SD transforms                       |
 | `vanilla-extract`       | `js-tokens`               | TS `createGlobalTheme` exports                            | `styles/tokens.css.ts`                                   | `createTheme` per theme                              |
 | `panda`                 | `js-tokens`               | Panda `defineTokens` + `defineSemanticTokens`             | `panda.config.ts` `theme.tokens`                         | Panda `conditions` for theming                       |
-| `stitches`              | `js-tokens`               | `createStitches({ theme: { … } })`                        | `stitches.config.ts`                                     | `createTheme()` per theme                            |
-| `plain-css`             | `css-custom-properties`   | `:root` CSS vars only                                     | Single `tokens.css`                                      | `[data-theme=…]` blocks                              |
+| `styled-components`     | `js-tokens`               | Typed theme object consumed via `<ThemeProvider theme={…}>` | `tokens/theme.ts` + `tokens/styled.d.ts`                | Multiple theme objects (e.g. `lightTheme`, `darkTheme`) switched at the provider |
 
 ## Token naming
 
@@ -34,10 +31,9 @@ Final identifier = `tokens.prefix` + converted-name. Default prefix: empty (`""`
 
 When Figma variables have multiple modes (e.g. `default`, `dark`, `brand-a`, `brand-b`), the token-builder emits:
 
-- **CSS-property-based systems** (`tailwind-v4`, `css-vars`, `css-modules`, `open-props`, `plain-css`): each mode → a `[data-theme="<mode>"]` block; `default` mode → `:root`.
-- **JS-token-based systems** (`tailwind-v3`, `vanilla-extract`, `panda`, `stitches`, `unocss`): emit one theme constant per mode; consumer is responsible for runtime switching.
+- **CSS-property-based systems** (`tailwind-v4`, `css-vars`, `css-modules`): each mode → a `[data-theme="<mode>"]` block; `default` mode → `:root`.
+- **JS-token-based systems** (`tailwind-v3`, `vanilla-extract`, `panda`, `styled-components`, `unocss`): emit one theme constant per mode; consumer is responsible for runtime switching.
 - **SCSS systems**: emit one SCSS map per mode; emit a `@mixin theme($name)` that includes the matching map.
-- **Style Dictionary**: emit one JSON source per mode; let SD's platform transforms handle the rest.
 
 ## Unbound + missing values
 

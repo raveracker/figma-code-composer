@@ -65,8 +65,15 @@ for pat in "${ALWAYS_BLOCKED_GLOBS[@]}"; do
 done
 
 if [[ -r "$CONFIG" ]] && command -v jq >/dev/null 2>&1; then
-  mapfile -t CFG_GLOBS < <(jq -r '.writeScope.allowedDirs[]?' "$CONFIG" 2>/dev/null)
-  mapfile -t CFG_BLOCKED < <(jq -r '.writeScope.alwaysBlocked[]?' "$CONFIG" 2>/dev/null)
+  # Read globs portably (bash 3.2 — no mapfile/readarray on default macOS bash).
+  CFG_GLOBS=()
+  while IFS= read -r line; do
+    [[ -n "$line" ]] && CFG_GLOBS+=("$line")
+  done < <(jq -r '.writeScope.allowedDirs[]?' "$CONFIG" 2>/dev/null)
+  CFG_BLOCKED=()
+  while IFS= read -r line; do
+    [[ -n "$line" ]] && CFG_BLOCKED+=("$line")
+  done < <(jq -r '.writeScope.alwaysBlocked[]?' "$CONFIG" 2>/dev/null)
   for pat in "${CFG_BLOCKED[@]}"; do
     if matches_glob "$REL_PATH" "$pat"; then
       echo "[check-frozen-paths] BLOCKED (config alwaysBlocked): $REL_PATH matches $pat" >&2

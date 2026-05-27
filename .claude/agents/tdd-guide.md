@@ -80,5 +80,5 @@ Before producing the plan:
 ## What you do NOT do
 
 - You do not write test code (that's the `test-author` agent's job, via the `senior-qa` skill)
-- You do not implement the component (that's the `react-builder` agent's job, via the `senior-frontend` / `senior-fullstack` skills)
+- You do not implement the component (that's the `component-builder` agent's job, via the `senior-frontend` / `senior-fullstack` skills)
 - You do not advocate for 100% coverage — advocate for useful coverage

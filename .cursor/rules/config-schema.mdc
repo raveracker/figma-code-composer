@@ -1,6 +1,6 @@
 ---
 description: "Supporting rule — Shape contract for .figma-pipeline/config.json. The config is rule 1's allowlist source AND every agent's branching input; the schema below must validate."
-globs: [".figma-pipeline/config.json", ".figma-pipeline/config.schema.json", ".figma-pipeline/config.example.json", ".figma-pipeline/config.braid.example.json"]
+globs: [".figma-pipeline/config.json", ".figma-pipeline/config.schema.json", ".figma-pipeline/config.example.json"]
 ---
 
 # Supporting — `.figma-pipeline/config.json` contract
@@ -18,16 +18,16 @@ Optional (commonly present): `designSystem`, `stories`, `tests`, `figma`, `tools
 ## Hard constraints
 
 - `version == "1.0"`. Bumping is a breaking change for every agent.
-- `framework.name ∈ {react, vue, angular, svelte, solid, lit, alpine}`.
-- `cssSystem.name ∈ {tailwind-v4, tailwind-v3, unocss, open-props, css-modules, css-vars, sass, style-dictionary, plain-css, vanilla-extract, panda, stitches}`.
-- `tokens.strategy ∈ {tailwind-css-vars, css-custom-properties, scss-variables, js-tokens, style-dictionary-json, unocss-theme}`.
-- `components.designMethodology ∈ {atomic, feature-sliced, layered, hexagonal, flat, custom}`.
-- `designSystem.name ∈ {none, braid, chakra, mantine, mui, radix, shadcn, headlessui}` when present (default: `none`).
+- `framework.name ∈ {react, vue, angular, svelte}`.
+- `cssSystem.name ∈ {tailwind-v4, tailwind-v3, unocss, css-modules, css-vars, sass, vanilla-extract, panda, styled-components}`.
+- `tokens.strategy ∈ {tailwind-css-vars, css-custom-properties, scss-variables, js-tokens, unocss-theme}`.
+- `components.designMethodology ∈ {atomic, feature-sliced, component-based, flat, custom}`.
+- `designSystem.name ∈ {none, atomic, antd, chakra, heroui, mantine, mui, radix, shadcn}` when present (default: `none`).
 - `writeScope.allowedDirs` MUST be non-empty.
 
 ## Path keys feed the write allowlist
 
-`tokens.outputDir`, `components.atomicLayout.*Dir` (or feature-sliced / flat equivalents), `icons.outputDir`, `stories.outputDir` (when not `co-located`), `tests.outputDir` (when not `co-located`) — each appears under `writeScope.allowedDirs` with a trailing `/**`.
+`tokens.outputDir`, `components.atomicLayout.*Dir` (or feature-sliced / component-based / flat equivalents), `icons.outputDir`, `stories.outputDir` (when not `co-located`), `tests.outputDir` (when not `co-located`) — each appears under `writeScope.allowedDirs` with a trailing `/**`.
 
 ## Edits
 

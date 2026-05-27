@@ -13,10 +13,10 @@ This directory is the **single source of truth** for the figma-to-code orchestra
 | `protocols/token-strategy.md`     | How each CSS system maps Figma variables → tokens                        |
 | `protocols/component-layout.md`   | Per-framework file conventions + per-methodology layer resolution        |
 | `protocols/allowlist.md`          | Write-access policy enforced by hooks                                    |
+| `protocols/skills.md`             | Canonical skill mapping — which skills each agent invokes per stack       |
 | `adapters/frameworks/<name>.md`   | Per-framework code templates + idiom notes                               |
 | `adapters/css/<system>.md`        | Per-CSS-system token + utility recipes                                   |
-| `adapters/design-systems/<name>.md` | Per-design-system overrides (Braid, Chakra, MUI, …) — when `config.designSystem.name != "none"`, this layer wins over framework + CSS adapters for component shape |
-| `config.braid.example.json`       | Reference config for Braid + Next.js + Atomic Design                     |
+| `adapters/design-systems/<name>.md` | Per-design-system overrides (Atomic, Chakra, MUI, …) — when `config.designSystem.name != "none"`, this layer modifies framework + CSS adapter output for component shape |
 
 ## Editing `config.json`
 

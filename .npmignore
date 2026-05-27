@@ -1,20 +1,25 @@
 # Only items explicitly listed in package.json "files" are published.
-# This file is a belt-and-suspenders fallback for editor/CI noise that
-# might land in the package root.
+# This file further filters to keep the tarball clean.
 
 .git/
 .github/
 .DS_Store
-*.log
 node_modules/
 graphify-out/
 .gitignore
 .idea/
 .vscode/
 
+# Logs (anywhere)
+*.log
+**/*.log
+.claude/logs/
+**/logs/
+
 # Local-only configs that should never ship
-.mcp.json
 .cursorignore
+.claude/settings.local.json
+**/settings.local.json
 
 # Dev scratch
 /tmp/

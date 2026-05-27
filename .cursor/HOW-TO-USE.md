@@ -3,7 +3,7 @@
 Drop this scaffold into any frontend repo to get a Figma-driven multi-agent pipeline:
 Figma file → typed manifest → design tokens → framework-native components → stories + tests + docs.
 
-**Framework-agnostic by design.** Configure once via the `/init` wizard; the agents adapt to your stack (React / Vue / Angular / Svelte / Solid / Lit / Alpine), CSS system (Tailwind v4 / Tailwind v3 / UnoCSS / Open Props / vanilla CSS-vars / CSS Modules / Sass / Style Dictionary / …), and **design system** (Braid / Chakra / Mantine / MUI / Radix / shadcn / Headless UI / none).
+**Framework-agnostic by design.** Configure once via the `/init` wizard; the agents adapt to your stack (React / Vue / Angular / Svelte), CSS system (Tailwind v4 / Tailwind v3 / UnoCSS / vanilla CSS-vars / CSS Modules / Sass / vanilla-extract / Panda / styled-components), and **design system** (Atomic / AntD / Chakra / Hero UI / Mantine / MUI / Radix / shadcn / none).
 
 Works in **Claude Code**, **Cursor**, and **Codex CLI** — same agents, three entry points.
 
@@ -32,14 +32,13 @@ The wizard writes `.figma-pipeline/config.json` (the single source of truth for 
 | Path                                                 | Purpose                                                                                |
 | ---------------------------------------------------- | -------------------------------------------------------------------------------------- |
 | `.figma-pipeline/config.json`                        | Wizard output — framework, CSS system, paths, Figma file keys (created by `/init`)     |
-| `.figma-pipeline/protocols/`                         | Framework-agnostic data contracts (manifest, token-strategy, component-layout, allowlist) |
+| `.figma-pipeline/protocols/`                         | Framework-agnostic data contracts (manifest, token-strategy, component-layout, allowlist, skills) |
 | `.figma-pipeline/adapters/frameworks/<framework>.md` | Per-framework code-generation templates                                                |
 | `.figma-pipeline/adapters/css/<cssSystem>.md`        | Per-CSS-system token + utility recipes                                                 |
-| `.figma-pipeline/adapters/design-systems/<name>.md`  | Per-design-system overrides (Braid first-class)                                        |
+| `.figma-pipeline/adapters/design-systems/<name>.md`  | Per-design-system overrides (Atomic, Chakra, Mantine, …)                               |
 | `.cursor/rules/`                                     | Always-on rules — write allowlist, env block, manifest contract, config schema, figma URL nudge, per-agent roles |
 | `.cursor/prompts/`                                   | Agent prompts — paste into Cursor agent mode (one per `.claude/agents/<x>.md`)         |
 | `.cursor/prompts/commands/`                          | Slash-command prompts (`init`, `figma-build`, `figma-update`, `figma-icons`, `figma-tokens`) |
-| `.cursor/skills/INDEX.md`                            | Skills Cursor can leverage from `.claude/skills/`                                      |
 | `.cursor/settings.json`                              | Cursor project settings                                                                |
 | `.cursor/mcp.json`                                   | Cursor's MCP server entries (Figma + Storybook)                                        |
 | `.claude/`                                           | Claude Code mirror (same agents + commands; read-only for Cursor)                      |
@@ -61,12 +60,12 @@ The wizard writes `.figma-pipeline/config.json` (the single source of truth for 
 
 ## Coverage
 
-- **Frameworks** — React (Next / Vite / Remix / Astro / CRA), Vue 3 (Nuxt / Vite / Astro), Angular ≥17 (standalone + signals), Svelte 5 (runes), Solid, Lit 3, Alpine.js 3+.
-- **CSS systems** — Tailwind v4, Tailwind v3, UnoCSS, Open Props, CSS Modules, vanilla CSS vars, Sass / SCSS, Style Dictionary, plain CSS, vanilla-extract, Panda CSS, Stitches.
-- **Design systems** (optional, override component shape) — Braid (SEEK), Chakra UI, Mantine, Material UI, Radix UI, shadcn/ui, Headless UI, _none / custom_.
-- **Design methodologies** — Atomic Design, Feature-Sliced, Layered, Hexagonal, Flat / custom.
-- **Stories** — Storybook, Histoire, Ladle.
-- **Tests** — Vitest, Jest, Karma, Playwright (with framework-matched testing libraries).
+- **Frameworks** — React (Next / Vite / Remix / Astro / CRA), Vue 3 (Nuxt / Vite / Astro), Angular ≥17 (standalone + signals), Svelte 5 (runes).
+- **CSS systems** — Tailwind v4, Tailwind v3, UnoCSS, CSS Modules, vanilla CSS vars, Sass / SCSS, vanilla-extract, Panda CSS, styled-components.
+- **Design systems** (optional) — Atomic (vanilla Atomic Design, no UI lib), Ant Design, Chakra UI, Hero UI, Mantine, Material UI, Radix UI, shadcn/ui, _none / custom_.
+- **Design methodologies** — Atomic Design, Feature-Sliced, Component-Based Architecture, Flat / custom.
+- **Stories** — Storybook (only).
+- **Tests** — two tracks: **unit** (Vitest / Jest / Karma) + **E2E** (Playwright, automatic when E2E is enabled).
 
 ---
 

@@ -64,7 +64,7 @@ The `tokens.prefix` config value (e.g. `--app-`) is recommended ONLY for namespa
 
 ## Custom token registration
 
-When using `tailwind-merge` (the recommended class-merger for React/Solid), every custom token group MUST be registered via `extendTailwindMerge` at `config.cssSystem.config.extendTailwindMergePath`:
+When using `tailwind-merge` (the recommended class-merger for React), every custom token group MUST be registered via `extendTailwindMerge` at `config.cssSystem.config.extendTailwindMergePath`:
 
 ```ts
 // src/lib/utils.ts (or wherever extendTailwindMergePath points)

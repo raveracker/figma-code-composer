@@ -26,6 +26,16 @@ The fetcher classifies each Figma component into a `layer` based on `config.comp
 | `widget`   | `config.components.featureSlicedLayout.widgetsDir`  |
 | `page`     | `config.components.featureSlicedLayout.pagesDir`    |
 
+### `designMethodology: component-based`
+
+| `layer`     | `targetDir`                                                                          |
+| ----------- | ------------------------------------------------------------------------------------ |
+| `shared`    | `config.components.componentBasedLayout.componentsDir` (e.g. `src/components`)       |
+| `feature`   | `config.components.componentBasedLayout.featuresDir/<domain>/` (e.g. `src/features/auth/`) |
+| `page`      | `config.components.componentBasedLayout.pagesDir` (e.g. `src/pages` or `app/`)        |
+
+The fetcher infers `feature` placement by mapping a Figma frame's parent group / annotation to a domain folder. When a feature subdir doesn't exist, the builder creates it. No atom/molecule hierarchy enforced — every emitted file is just a component.
+
 ### `designMethodology: flat` / `custom`
 
 All components → `config.components.flatLayout.componentsDir`. `layer` is recorded for tagging but does not influence placement.
@@ -87,33 +97,6 @@ Angular uses kebab-case folder + selector convention; selector = `<prefix>-<keba
   └─ index.ts
 ```
 
-### Solid (`framework.name: solid`)
-
-Identical layout to React but Solid components use `Component<Props>` from `solid-js`.
-
-### Lit (`framework.name: lit`)
-
-```
-<targetDir>/<kebab-name>/
-  ├─ <kebab-name>.ts       # @customElement('<prefix>-<kebab-name>')
-  ├─ <kebab-name>.styles.ts
-  ├─ <kebab-name>.stories.ts
-  ├─ <kebab-name>.test.ts
-  └─ index.ts
-```
-
-Tag name = `<prefix>-<kebab-name>` (prefix from `framework.config.tagPrefix`, default `app-`). Names with a single word get a dash appended (`button` → `app-button`).
-
-### Alpine (`framework.name: alpine`)
-
-```
-<targetDir>/<kebab-name>/
-  ├─ <kebab-name>.html         # markup + x-data
-  ├─ <kebab-name>.alpine.ts    # behavior (registered with Alpine.data)
-  ├─ <kebab-name>.stories.ts   # via storybook-html
-  └─ index.ts                  # re-export of data fn
-```
-
 ---
 
 ## Naming
@@ -126,7 +109,7 @@ Tag name = `<prefix>-<kebab-name>` (prefix from `framework.config.tagPrefix`, de
 | `kebab-case`  | `product-cta-bar`      |
 | `camelCase`   | `productCtaBar`        |
 
-Angular and Lit always use kebab-case for files + selectors regardless of this setting (framework convention wins). React/Vue/Svelte/Solid default to PascalCase.
+Angular always uses kebab-case for files + selectors regardless of this setting (framework convention wins). React/Vue/Svelte default to PascalCase.
 
 ---
 
@@ -135,15 +118,12 @@ Angular and Lit always use kebab-case for files + selectors regardless of this s
 `index.ts` (or `index.js`) re-exports the named component + types:
 
 ```ts
-// React/Solid
+// React
 export { ProductCtaBar } from "./ProductCtaBar";
 export type { ProductCtaBarProps } from "./ProductCtaBar";
 
 // Vue
 export { default as ProductCtaBar } from "./ProductCtaBar.vue";
-
-// Lit
-export { ProductCtaBar } from "./product-cta-bar";
 ```
 
 When `fileNaming: index`, the inner file IS the barrel and no separate `index.ts` is emitted.
@@ -154,7 +134,7 @@ When `fileNaming: index`, the inner file IS the barrel and no separate `index.ts
 
 `stories.titleConvention` is a template with placeholders:
 
-- `{Layer}` — `Atoms`, `Molecules`, `Organisms`, `Templates` (atomic); `Shared`, `Entities`, `Features`, `Widgets`, `Pages` (feature-sliced); `Components` (flat).
+- `{Layer}` — `Atoms`, `Molecules`, `Organisms`, `Templates` (atomic); `Shared`, `Entities`, `Features`, `Widgets`, `Pages` (feature-sliced); `Shared`, `Features`, `Pages` (component-based); `Components` (flat).
 - `{Name}` — component name in PascalCase.
 - `{Domain}` — subdirectory name (only resolves for nested layouts like `organisms/user/ProfileHeader` → `User`).
 

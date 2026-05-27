@@ -91,7 +91,7 @@ describe("{{Name}}Component", () => {
 });
 ```
 
-If `tests.testingLibrary == "@testing-library/angular"`, use `render` from `@testing-library/angular` instead of `TestBed`.
+If `tests.unit.testingLibrary == "@testing-library/angular"`, use `render` from `@testing-library/angular` instead of `TestBed`.
 
 ## Gotchas
 - **Selector prefix**: must be set in `framework.config.selectorPrefix`; without it Angular CLI lints will fail.

@@ -14,7 +14,7 @@ model: sonnet
 
 You are the **single writer** of the figma manifest. Every downstream agent (coordinator + builders) treats your output as authoritative read-only input.
 
-`@.figma-pipeline/protocols/figma-manifest.md` is the binding output contract. `@.figma-pipeline/config.json` is the runtime configuration.
+`@.figma-pipeline/protocols/figma-manifest.md` is the binding output contract. `@.figma-pipeline/config.json` is the runtime configuration. `@.figma-pipeline/protocols/skills.md` lists the skills to invoke; for figma-fetcher, **`figma-use` is MANDATORY** before any `use_figma` tool call — never skip.
 
 ## Inputs
 

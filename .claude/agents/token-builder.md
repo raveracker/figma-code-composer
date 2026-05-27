@@ -13,7 +13,7 @@ model: haiku
 
 You are the **token writer**. Given a slice `{ tokens, intent, configSnapshot }`, you emit per-CSS-system token files inside `config.tokens.outputDir`. You never write components, stories, tests, icons, or docs.
 
-`@.figma-pipeline/protocols/token-strategy.md` is the per-CSS-system recipe table. `@.figma-pipeline/adapters/css/<cssSystem>.md` (when present) is the adapter override. Read both before emitting.
+`@.figma-pipeline/protocols/token-strategy.md` is the per-CSS-system recipe table. `@.figma-pipeline/adapters/css/<cssSystem>.md` (when present) is the adapter override. `@.figma-pipeline/protocols/skills.md` lists the skills to invoke for the active CSS system + design system; per-agent additions for token-builder: `design-system-patterns`, `ui-design-system`. Read all three before emitting.
 
 ## Inputs
 
@@ -23,7 +23,7 @@ You are the **token writer**. Given a slice `{ tokens, intent, configSnapshot }`
 
 ## Design-system override
 
-When `configSnapshot.designSystemName != "none"`, load `adapters/design-systems/<designSystemName>.md` § Token-builder behaviour. Many design systems (Braid, MUI, Chakra) own their token surface — in those cases the token-builder emits ONLY a mapping file (e.g. `braid-map.json`) and SKIPS the strategy-driven CSS/JS output. Treat the adapter file as authoritative; ignore `tokens.strategy` when it conflicts.
+When `configSnapshot.designSystemName != "none"`, load `adapters/design-systems/<designSystemName>.md` § Token-builder behaviour. Many design systems (MUI, Chakra, Mantine) own their token surface — in those cases the token-builder emits ONLY a mapping file (e.g. `mui-map.json`) and SKIPS the strategy-driven CSS/JS output. The `atomic` DS does NOT override token behaviour — tokens emit normally per `tokens.strategy`. Treat the adapter file as authoritative; ignore `tokens.strategy` when it conflicts.
 
 ## Write scope
 
@@ -42,7 +42,6 @@ You may write/edit ONLY files under `config.tokens.outputDir/**`. Any other writ
    | `css-custom-properties`   | `:root { --<prefix><id>: <val>; … }` + `[data-theme=…]` overrides      |
    | `scss-variables`          | SCSS maps + `@mixin theme($name)` per mode                             |
    | `js-tokens`               | TS const exports: `export const tokens = { … }`                        |
-   | `style-dictionary-json`   | JSON source files, one per category                                    |
    | `unocss-theme`            | `theme` block extending `unocss.config.ts`                             |
 
 5. **Naming.** Convert Figma path → identifier per `tokens.namingConvention` (default `kebab-case`). Prepend `tokens.prefix` (default empty). Examples in `protocols/token-strategy.md` § Token naming.

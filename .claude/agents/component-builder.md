@@ -17,6 +17,7 @@ You are the **component writer**. Given a slice `{ components[], tokens, intent,
 `@.figma-pipeline/adapters/frameworks/<framework>.md` is the per-framework code template (when present).
 `@.figma-pipeline/adapters/css/<cssSystem>.md` is the per-CSS-system styling recipe (when present).
 `@.figma-pipeline/adapters/design-systems/<designSystem>.md` (when `designSystem.name != "none"`) **overrides** the framework + CSS adapters for component-shape emission.
+`@.figma-pipeline/protocols/skills.md` lists the skills to invoke for the active stack. **Before writing any component, load every skill the protocol resolves for this `configSnapshot`** plus per-agent additions (component-builder: `senior-frontend`, `responsive-design`, `accessibility-a11y`).
 
 ## Inputs
 
@@ -71,12 +72,9 @@ Before writing any component file, for each `styledProperties[]` entry across al
 | `configSnapshot.framework` | Main file ext | Style attachment              | State idiom                                |
 | -------------------------- | ------------- | ----------------------------- | ------------------------------------------ |
 | `react`                    | `.tsx`/`.jsx` | `className` (cva for variants) | `useState`, `useReducer`, derived inline   |
-| `vue`                      | `.vue` (SFC)  | `:class` array; `<style scoped>` only for cssSystem == `css-vars`/`plain-css` | `ref`/`reactive` |
+| `vue`                      | `.vue` (SFC)  | `:class` array; `<style scoped>` only for cssSystem == `css-vars` | `ref`/`reactive` |
 | `angular`                  | `.component.ts` (standalone) | `class.<x>="…"` host binding; styleUrls per cssSystem | signals (`signal`/`computed`) |
 | `svelte`                   | `.svelte`     | `class:directive` + `:global()` only when needed | `let`/`$state` (Svelte 5) |
-| `solid`                    | `.tsx`        | `class` (NOT `className`) — Solid uses native attr name; `cva` works | `createSignal`/`createMemo` |
-| `lit`                      | `.ts` (@customElement) | `static styles = css\`…\``; classes via `classMap` | `@property` reactive props |
-| `alpine`                   | `.html` + `.alpine.ts` | `class="…"`; `x-bind:class` for dynamic | `x-data` factory |
 
 ## Token reference format
 
@@ -86,16 +84,16 @@ Before writing any component file, for each `styledProperties[]` entry across al
 | `tailwind-v3`           | Same — class names refer to `theme.extend` entries                  |
 | `unocss`                | Same — class names refer to `theme` entries                         |
 | `css-modules`           | `import styles from './X.module.css'`; class names                  |
-| `css-vars` / `plain-css`| Inline `class="…"` with global classes; vars used in `var(--…)`     |
+| `css-vars`              | Inline `class="…"` with global classes; vars used in `var(--…)`     |
 | `sass`                  | SCSS `@use` of the tokens module                                    |
 | `js-tokens` systems     | Import the token object; pass to the styling primitive              |
-| `style-dictionary`      | Whatever SD platform you targeted; usually same as `css-custom-properties` |
+| `styled-components`     | `import styled from "styled-components"; const Root = styled.div\`…\``; tokens read from theme via `${({ theme }) => …}` |
 
 ## Do NOT
 
 - Write outside the configured component target directories.
 - Touch token files, icon files, story files, or test files.
-- Use a CSS-in-JS lib (styled-components, emotion) when the project already has a chosen `cssSystem` — branch off the config.
+- Use a different CSS-in-JS lib (emotion, linaria) when `cssSystem.name == "styled-components"` — branch off the config and emit per the styled-components adapter.
 - Mirror props into state via `useEffect`.
 - Inline literal hex/rem values when a Figma variable exists for them.
 - Run `git commit` / `git push`.

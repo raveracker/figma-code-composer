@@ -1,0 +1,1163 @@
+{
+  "version": 1,
+  "skills": {
+    "a11y-audit": {
+      "source": "alirezarezvani/claude-skills",
+      "sourceType": "github",
+      "skillPath": "engineering-team/a11y-audit/skills/a11y-audit/SKILL.md",
+      "computedHash": "8cb4a8d98551e4e944173adcceba6597cd2315ad9b16b8724c9eb265d4656b8c"
+    },
+    "ab-test-setup": {
+      "source": "alirezarezvani/claude-skills",
+      "sourceType": "github",
+      "skillPath": "marketing-skill/skills/ab-test-setup/SKILL.md",
+      "computedHash": "b474726b1ced198be54af516076a3b7aa8690ca7e90e6516a3c1f78f8c6bffef"
+    },
+    "accessibility-a11y": {
+      "source": "mindrally/skills",
+      "sourceType": "github",
+      "skillPath": "accessibility-a11y/SKILL.md",
+      "computedHash": "3117d5b0302f4fbb90cf7b3b65474aa0ea70eadaf91036ab9e20c912d68f9289"
+    },
+    "accessibility-compliance": {
+      "source": "wshobson/agents",
+      "sourceType": "github",
+      "skillPath": "plugins/ui-design/skills/accessibility-compliance/SKILL.md",
+      "computedHash": "e76877abeed83f3751d1e18c8205f02c8b5d3e7cc2e060670805b449f6faefdb"
+    },
+    "adev-writing-guide": {
+      "source": "angular/angular",
+      "sourceType": "github",
+      "skillPath": ".agent/skills/adev-writing-guide/SKILL.md",
+      "computedHash": "da960d6201a2f8ea2dcb5709205188392764c5d717567e5668cea094cde2d0f0"
+    },
+    "ai-ui-patterns": {
+      "source": "patternsdev/skills",
+      "sourceType": "github",
+      "skillPath": "react/ai-ui-patterns/SKILL.md",
+      "computedHash": "cad85e899332ee65fb243edd53aca63bc44c806bedadb8e355ace172ee9db37a"
+    },
+    "angular-component": {
+      "source": "analogjs/angular-skills",
+      "sourceType": "github",
+      "skillPath": "skills/angular-component/SKILL.md",
+      "computedHash": "2789fdf11e2a70832ce2e6e79954018325a010ebdd45c5d4b1e7bfdf44679b7c"
+    },
+    "angular-developer": {
+      "source": "angular/angular",
+      "sourceType": "github",
+      "skillPath": "skills/dev-skills/angular-developer/SKILL.md",
+      "computedHash": "36f7f57e1485c994de62eae5b00f54c12f81d1d16661afa6d3c214dd9bcf7269"
+    },
+    "angular-di": {
+      "source": "analogjs/angular-skills",
+      "sourceType": "github",
+      "skillPath": "skills/angular-di/SKILL.md",
+      "computedHash": "4d3dd9ecceec5642eea118aede824501bdec537b6b8735564a68787ec9617b75"
+    },
+    "angular-directives": {
+      "source": "analogjs/angular-skills",
+      "sourceType": "github",
+      "skillPath": "skills/angular-directives/SKILL.md",
+      "computedHash": "b8ce636215ec0792839fe57c3632b475957bed1ebc404e9a1c54222e0e506bfa"
+    },
+    "angular-forms": {
+      "source": "analogjs/angular-skills",
+      "sourceType": "github",
+      "skillPath": "skills/angular-forms/SKILL.md",
+      "computedHash": "a2e28f7c7c1b9b13f0a8212f403515886f9d23bf13732a355b1f5d01f5cc9d69"
+    },
+    "angular-http": {
+      "source": "analogjs/angular-skills",
+      "sourceType": "github",
+      "skillPath": "skills/angular-http/SKILL.md",
+      "computedHash": "ad8821177929ea09eb94e7fc386d842c76c7f39b6c4d7aa3176ba3596dbabecc"
+    },
+    "angular-new-app": {
+      "source": "angular/angular",
+      "sourceType": "github",
+      "skillPath": "skills/dev-skills/angular-new-app/SKILL.md",
+      "computedHash": "49bd84ab08bd3498c52f476bed48fbb942dc6dbc0925607e84549adbed34bccf"
+    },
+    "angular-routing": {
+      "source": "analogjs/angular-skills",
+      "sourceType": "github",
+      "skillPath": "skills/angular-routing/SKILL.md",
+      "computedHash": "e54b8803da246042525e67effe7ea2a9dc26d5a50e857125793f579c7027aef3"
+    },
+    "angular-signals": {
+      "source": "analogjs/angular-skills",
+      "sourceType": "github",
+      "skillPath": "skills/angular-signals/SKILL.md",
+      "computedHash": "ddedef1232295f200b966778bc36d16fc07d2113ad1dbc73d75d14eb544953bc"
+    },
+    "angular-ssr": {
+      "source": "analogjs/angular-skills",
+      "sourceType": "github",
+      "skillPath": "skills/angular-ssr/SKILL.md",
+      "computedHash": "e4627d43ca867d14f3936e3246d0da54966baa63e87a541ae6ad4ee9286fa28c"
+    },
+    "angular-testing": {
+      "source": "analogjs/angular-skills",
+      "sourceType": "github",
+      "skillPath": "skills/angular-testing/SKILL.md",
+      "computedHash": "66adf01ccb30305e179ce41ff76ded6b60dbb5909bd889cc350cdd13b6933130"
+    },
+    "angular-tooling": {
+      "source": "analogjs/angular-skills",
+      "sourceType": "github",
+      "skillPath": "skills/angular-tooling/SKILL.md",
+      "computedHash": "2a67063279e8ac1b5cf3d9c4e9ed4652508564640c1fc59642857d4f6d20db11"
+    },
+    "ant-design": {
+      "source": "ant-design/antd-skill",
+      "sourceType": "github",
+      "skillPath": "skills/ant-design/SKILL.md",
+      "computedHash": "096d4ac9513e43030f960aab49b50168a3d5eb35be86926ac6e96e5998ea9466"
+    },
+    "antd": {
+      "source": "ant-design/ant-design-cli",
+      "sourceType": "github",
+      "skillPath": "skills/antd/SKILL.md",
+      "computedHash": "6c54a1bdd529e64d90fac92671e5c12003d78fac16f5309723e5ee06896b1053"
+    },
+    "async-components": {
+      "source": "patternsdev/skills",
+      "sourceType": "github",
+      "skillPath": "vue/async-components/SKILL.md",
+      "computedHash": "e676a81faf0c426fd410b8901c43750748ba3a07a69066f9702594f78d113091"
+    },
+    "atomic-design-atoms": {
+      "source": "thebushidocollective/han",
+      "sourceType": "github",
+      "skillPath": "plugins/patterns/atomic-design/skills/atomic-design-atoms/SKILL.md",
+      "computedHash": "48f5cdf951c55eae1dea33594fe594bba158eb6ab125add44a354cda9b5fbb18"
+    },
+    "atomic-design-fundamentals": {
+      "source": "thebushidocollective/han",
+      "sourceType": "github",
+      "skillPath": "plugins/patterns/atomic-design/skills/atomic-design-fundamentals/SKILL.md",
+      "computedHash": "4a2d3a077911fd8da7ac42c42ff120345e476078ede8f523c9a0a7b4e3eb7cc8"
+    },
+    "atomic-design-integration": {
+      "source": "thebushidocollective/han",
+      "sourceType": "github",
+      "skillPath": "plugins/patterns/atomic-design/skills/atomic-design-integration/SKILL.md",
+      "computedHash": "c612fd1ffaddab909f5da5dbcd87a408948ad225ad840222c10aa5d49f46f0e1"
+    },
+    "atomic-design-molecules": {
+      "source": "thebushidocollective/han",
+      "sourceType": "github",
+      "skillPath": "plugins/patterns/atomic-design/skills/atomic-design-molecules/SKILL.md",
+      "computedHash": "2ad76c2c9ca4615161a53c2768ef9189791f1482e784ceb62f40654e0ac84bec"
+    },
+    "atomic-design-organisms": {
+      "source": "thebushidocollective/han",
+      "sourceType": "github",
+      "skillPath": "plugins/patterns/atomic-design/skills/atomic-design-organisms/SKILL.md",
+      "computedHash": "0d94007f1183b3dc5fe9709bbbb1cfef375f392c29cf47d7ddf60fd46c60d147"
+    },
+    "atomic-design-quarks": {
+      "source": "thebushidocollective/han",
+      "sourceType": "github",
+      "skillPath": "plugins/patterns/atomic-design/skills/atomic-design-quarks/SKILL.md",
+      "computedHash": "df3c912650c2ac03cf9aeedbe2a118ad2e65175245aed14a174c21afd8d964e2"
+    },
+    "atomic-design-templates": {
+      "source": "thebushidocollective/han",
+      "sourceType": "github",
+      "skillPath": "plugins/patterns/atomic-design/skills/atomic-design-templates/SKILL.md",
+      "computedHash": "f2dba1bb11874f4413d04ed3203214d696389bfb760056130e02b3f0d7bbe25b"
+    },
+    "bundle-splitting": {
+      "source": "patternsdev/skills",
+      "sourceType": "github",
+      "skillPath": "javascript/bundle-splitting/SKILL.md",
+      "computedHash": "9de2cb11d3111881985881ad618b4e1e12c2ae44bc1447657a3ed91bfc0e07a9"
+    },
+    "chakra-ui-builder": {
+      "source": "chakra-ui/chakra-ui",
+      "sourceType": "github",
+      "skillPath": "skills/chakra-ui-builder/SKILL.md",
+      "computedHash": "b60b9f098afb4464df10f625bb8635e9567969d99f8b10012e1305ca988906bb"
+    },
+    "chakra-ui-migrate": {
+      "source": "chakra-ui/chakra-ui",
+      "sourceType": "github",
+      "skillPath": "skills/chakra-ui-migrate/SKILL.md",
+      "computedHash": "fc9b782572e8641aec8d13396b4d35d3b2bec45684c207fe5995d986e62b7fc2"
+    },
+    "chakra-ui-refactor": {
+      "source": "chakra-ui/chakra-ui",
+      "sourceType": "github",
+      "skillPath": "skills/chakra-ui-refactor/SKILL.md",
+      "computedHash": "3ff3aa78fdff4ea9f1b5e950e64c49c2cf428d78b4304bcc769898dd10db668b"
+    },
+    "client-side-rendering": {
+      "source": "patternsdev/skills",
+      "sourceType": "github",
+      "skillPath": "react/client-side-rendering/SKILL.md",
+      "computedHash": "a98c0080999cb0530c38ccb7a0d90c21661aa01ccaced08ec7a9353da22010eb"
+    },
+    "command-pattern": {
+      "source": "patternsdev/skills",
+      "sourceType": "github",
+      "skillPath": "javascript/command-pattern/SKILL.md",
+      "computedHash": "8718e700c3fa9394e32e1fd2367fa1445683514eb9e9b174ccd6bb0774ebd0cf"
+    },
+    "component-architecture": {
+      "source": "mgd34msu/goodvibes-plugin",
+      "sourceType": "github",
+      "skillPath": "plugins/goodvibes/skills/outcome/component-architecture/SKILL.md",
+      "computedHash": "f90b821c35ed5c8975e20dcb9497eaf001195db5842fd52369b027c6f529c92e"
+    },
+    "components": {
+      "source": "patternsdev/skills",
+      "sourceType": "github",
+      "skillPath": "vue/components/SKILL.md",
+      "computedHash": "0fbccf3ddc20b01ecd388b2c17a10b44aa29647df2deccf3e3170856a982ae79"
+    },
+    "composables": {
+      "source": "patternsdev/skills",
+      "sourceType": "github",
+      "skillPath": "vue/composables/SKILL.md",
+      "computedHash": "149ae2e5276c07fa2b1bc9a7fe6bba8ddf9e8bb5474f3e5f438bddc301b57fdd"
+    },
+    "compound-pattern": {
+      "source": "patternsdev/skills",
+      "sourceType": "github",
+      "skillPath": "react/compound-pattern/SKILL.md",
+      "computedHash": "2246d61a920ea810956aab34a70818367c210bf1219346730172ae6bb8534a13"
+    },
+    "compression": {
+      "source": "patternsdev/skills",
+      "sourceType": "github",
+      "skillPath": "javascript/compression/SKILL.md",
+      "computedHash": "f0878e8f642dc2b938207c8597a346d3c64f6c6265ce7c9e0d1c58dd374bd958"
+    },
+    "container-presentational": {
+      "source": "patternsdev/skills",
+      "sourceType": "github",
+      "skillPath": "vue/container-presentational/SKILL.md",
+      "computedHash": "255cbfc89a515f721f386f38fa90282db0b0e3036ce373369123b6805527b644"
+    },
+    "css": {
+      "source": "mindrally/skills",
+      "sourceType": "github",
+      "skillPath": "css/SKILL.md",
+      "computedHash": "80c477418be4bdd2d102ba5a71760125a9c1925292f5b3c208ee56ab9e6e3cc2"
+    },
+    "data-provider": {
+      "source": "patternsdev/skills",
+      "sourceType": "github",
+      "skillPath": "vue/data-provider/SKILL.md",
+      "computedHash": "d67f58127d2544738bbe4d4d85c0eb751eece282629171fdd8bea5d5a8dddc78"
+    },
+    "design-system-patterns": {
+      "source": "wshobson/agents",
+      "sourceType": "github",
+      "skillPath": "plugins/ui-design/skills/design-system-patterns/SKILL.md",
+      "computedHash": "e1d2631eab1a7113fb60e6df3ace05aac0ddce6207bceec87721119a8e1a1c78"
+    },
+    "dynamic-components": {
+      "source": "patternsdev/skills",
+      "sourceType": "github",
+      "skillPath": "vue/dynamic-components/SKILL.md",
+      "computedHash": "1678b4c900b776b9052fbcc454b59ab5edd67e472c4a64d33b197d9e66675b99"
+    },
+    "dynamic-import": {
+      "source": "patternsdev/skills",
+      "sourceType": "github",
+      "skillPath": "javascript/dynamic-import/SKILL.md",
+      "computedHash": "687a3ac3a1e320f494f7900fd913617cdb5e5471cb5c0a922f8848dc84fd2ea4"
+    },
+    "e2e-testing-patterns": {
+      "source": "wshobson/agents",
+      "sourceType": "github",
+      "skillPath": "plugins/developer-essentials/skills/e2e-testing-patterns/SKILL.md",
+      "computedHash": "6daed3254a84348588532aca327ec82a57cafefd7c97c50e75879788f7c1a18d"
+    },
+    "factory-pattern": {
+      "source": "patternsdev/skills",
+      "sourceType": "github",
+      "skillPath": "javascript/factory-pattern/SKILL.md",
+      "computedHash": "1d5aca3fbb6df7c7d670df38ed6fb21e9c92bb1bc9af8cd2a435b5c68439b3b4"
+    },
+    "feature-arch": {
+      "source": "pproenca/dot-skills",
+      "sourceType": "github",
+      "skillPath": "skills/.curated/feature-arch/SKILL.md",
+      "computedHash": "a4c31208e4c022ac2faf8660ac751e58c4e0b8b15a7bb6d102f1ad2419ec3567"
+    },
+    "feature-sliced-design": {
+      "source": "feature-sliced/skills",
+      "sourceType": "github",
+      "skillPath": "feature-sliced-design/SKILL.md",
+      "computedHash": "512b9390be8738170e72fc166c9d9ebf9fa152c152b17235534b5c58da316c28"
+    },
+    "figma-analyze-frame": {
+      "source": "thebushidocollective/han",
+      "sourceType": "github",
+      "skillPath": "plugins/services/figma/skills/figma-analyze-frame/SKILL.md",
+      "computedHash": "52513a1bb02a55ec62538cdd2c9696953f1ed29c957dc1e720692c9ae1a0479c"
+    },
+    "figma-extract-tokens": {
+      "source": "thebushidocollective/han",
+      "sourceType": "github",
+      "skillPath": "plugins/services/figma/skills/figma-extract-tokens/SKILL.md",
+      "computedHash": "31f923296ba3de9ad079f72f8e19c52bd35b8700d483c1130fb392658bda8d87"
+    },
+    "figma-generate-component": {
+      "source": "thebushidocollective/han",
+      "sourceType": "github",
+      "skillPath": "plugins/services/figma/skills/figma-generate-component/SKILL.md",
+      "computedHash": "b32078494384736fa4205210bf8ef409a3c78cef63dea350785ec6029ca14c3a"
+    },
+    "figma-integration": {
+      "source": "mindrally/skills",
+      "sourceType": "github",
+      "skillPath": "figma-integration/SKILL.md",
+      "computedHash": "64287c716e17a4901531dff83fac3cc0af4af68cc531a3b73a0d9223e00bcf54"
+    },
+    "figma-sync-design-system": {
+      "source": "thebushidocollective/han",
+      "sourceType": "github",
+      "skillPath": "plugins/services/figma/skills/figma-sync-design-system/SKILL.md",
+      "computedHash": "d71b61e99975858dcc0f639355197aec424f4b9c20d2cad9041bb85687c36559"
+    },
+    "figma-use": {
+      "source": "figma/mcp-server-guide",
+      "sourceType": "github",
+      "skillPath": "skills/figma-use/SKILL.md",
+      "computedHash": "e2ccd2ea5fe77bcdc2f7149ddc020b98e056c261cfd395a8d40cf0e2aee21a40"
+    },
+    "flat": {
+      "source": "bergside/awesome-design-skills",
+      "sourceType": "github",
+      "skillPath": "skills/flat/SKILL.md",
+      "computedHash": "016fa071162ed671db350f8fd6870624cb9e1c21f9b25e0fab48f5a9c6c3e929"
+    },
+    "flyweight-pattern": {
+      "source": "patternsdev/skills",
+      "sourceType": "github",
+      "skillPath": "javascript/flyweight-pattern/SKILL.md",
+      "computedHash": "aab4726feca396064687586381b53852af84664ebbdc249563b3acd9c64033ac"
+    },
+    "frontend-css-patterns": {
+      "source": "majesticlabs-dev/majestic-marketplace",
+      "sourceType": "github",
+      "skillPath": "plugins/majestic-engineer/skills/frontend-css-patterns/SKILL.md",
+      "computedHash": "caf69a9e3a7bdf06071db5a3e5dcaefea16ef04f1ff92be5eebacf541bf8181b"
+    },
+    "heroui-migration": {
+      "source": "heroui-inc/heroui",
+      "sourceType": "github",
+      "skillPath": "skills/heroui-migration/SKILL.md",
+      "computedHash": "9696b5cf0009120bfe03e00cc94c0e2defc1f5af981fc5bb10b1eeffa53e34cf"
+    },
+    "heroui-react": {
+      "source": "heroui-inc/heroui",
+      "sourceType": "github",
+      "skillPath": "skills/heroui-react/SKILL.md",
+      "computedHash": "c9e1bb41fbc3cee782faae08bd465ae05cd685a6ed7cc3392464fdf29b3ab467"
+    },
+    "hoc-pattern": {
+      "source": "patternsdev/skills",
+      "sourceType": "github",
+      "skillPath": "react/hoc-pattern/SKILL.md",
+      "computedHash": "8dfb5a41553ec20c6a66e4e86f7199dfdbcd8f512d861ef04d78fd045df4b555"
+    },
+    "hooks-pattern": {
+      "source": "patternsdev/skills",
+      "sourceType": "github",
+      "skillPath": "react/hooks-pattern/SKILL.md",
+      "computedHash": "4e5c7539e93ce14810f0b9ee8d0b5945245c787c8b7430f47a36ae393890301d"
+    },
+    "import-on-interaction": {
+      "source": "patternsdev/skills",
+      "sourceType": "github",
+      "skillPath": "javascript/import-on-interaction/SKILL.md",
+      "computedHash": "e68bcf3d52732fe112eb71cf95d5d58c385ea2d02ef2b6ee3052b18be00f5bb6"
+    },
+    "import-on-visibility": {
+      "source": "patternsdev/skills",
+      "sourceType": "github",
+      "skillPath": "javascript/import-on-visibility/SKILL.md",
+      "computedHash": "1a000686183bd47bdaea52c737b564c5b0e74176f26f87f05287ade6df804adf"
+    },
+    "incremental-static-rendering": {
+      "source": "patternsdev/skills",
+      "sourceType": "github",
+      "skillPath": "react/incremental-static-rendering/SKILL.md",
+      "computedHash": "1514a5be7104a37ffbfa5c6230dfe08cb851c8ed41e341cc56ac82cf89402e15"
+    },
+    "islands-architecture": {
+      "source": "patternsdev/skills",
+      "sourceType": "github",
+      "skillPath": "javascript/islands-architecture/SKILL.md",
+      "computedHash": "1e72463ae1bcbec3c42da4d83079f7cabd283655365a7e041967697fe50b0336"
+    },
+    "javascript-testing-patterns": {
+      "source": "wshobson/agents",
+      "sourceType": "github",
+      "skillPath": "plugins/javascript-typescript/skills/javascript-testing-patterns/SKILL.md",
+      "computedHash": "8d0a8d7615ff343770af0218720691d56c55ae258793565936c8b3a97e188f51"
+    },
+    "jest-advanced": {
+      "source": "thebushidocollective/han",
+      "sourceType": "github",
+      "skillPath": "plugins/tools/jest/skills/jest-advanced/SKILL.md",
+      "computedHash": "29fba13ffcd55ca8a60f3fbdd9cfebcf22731d3616370f7fef2a163330438c4a"
+    },
+    "jest-configuration": {
+      "source": "thebushidocollective/han",
+      "sourceType": "github",
+      "skillPath": "plugins/tools/jest/skills/jest-configuration/SKILL.md",
+      "computedHash": "0fc947a2bed5f6173f9977646b08d04e4dc2beeb32fb7a4f4123294f2493a05e"
+    },
+    "jest-testing-patterns": {
+      "source": "thebushidocollective/han",
+      "sourceType": "github",
+      "skillPath": "plugins/tools/jest/skills/jest-testing-patterns/SKILL.md",
+      "computedHash": "8c7dcb52544072fa3d0ef305c792faea7908d03ae7bf99f9f6bb69a8ccf8eef0"
+    },
+    "js-performance-patterns": {
+      "source": "patternsdev/skills",
+      "sourceType": "github",
+      "skillPath": "javascript/js-performance-patterns/SKILL.md",
+      "computedHash": "2a7d4d58779625e2018a7a9234feb6be6d215ad0d36115bb93b50fd578ad9c93"
+    },
+    "loading-sequence": {
+      "source": "patternsdev/skills",
+      "sourceType": "github",
+      "skillPath": "javascript/loading-sequence/SKILL.md",
+      "computedHash": "04f4e79e735153403f2ca9122b1519eb2d3f0e2ca6833c6121755327de20f31c"
+    },
+    "mantine-combobox": {
+      "source": "mantinedev/skills",
+      "sourceType": "github",
+      "skillPath": "skills/mantine-combobox/SKILL.md",
+      "computedHash": "fb3002c7bb704a111b1f4c596573aa9905e1b8dd728ad15dbba8cdf7a53ed98a"
+    },
+    "mantine-custom-components": {
+      "source": "mantinedev/skills",
+      "sourceType": "github",
+      "skillPath": "skills/mantine-custom-components/SKILL.md",
+      "computedHash": "16f771d471da17b76a803ace40211177283ad3adcf319e8e3b4bd1a1ddeb74c1"
+    },
+    "mantine-form": {
+      "source": "mantinedev/skills",
+      "sourceType": "github",
+      "skillPath": "skills/mantine-form/SKILL.md",
+      "computedHash": "1bf98bd02676810bf420019b501ffaaba61774869b2b758dd5518620311ef518"
+    },
+    "material-ui-nextjs": {
+      "source": "mui/material-ui",
+      "sourceType": "github",
+      "skillPath": "skills/material-ui-nextjs/SKILL.md",
+      "computedHash": "63fc0cc8bf0be6693fdf9563e0d277afaba64988462bd481ed0a4cb02343d7d9"
+    },
+    "material-ui-styling": {
+      "source": "mui/material-ui",
+      "sourceType": "github",
+      "skillPath": "skills/material-ui-styling/SKILL.md",
+      "computedHash": "286bc50b4244062e6eda02fad2d8b3765a8d0a74a1cd6821f7348384d10ba610"
+    },
+    "material-ui-tailwind": {
+      "source": "mui/material-ui",
+      "sourceType": "github",
+      "skillPath": "skills/material-ui-tailwind/SKILL.md",
+      "computedHash": "281591c1178124ba4b3818d5ac4fed02def852371c5293d4cd8d08b2dd888ce1"
+    },
+    "material-ui-theming": {
+      "source": "mui/material-ui",
+      "sourceType": "github",
+      "skillPath": "skills/material-ui-theming/SKILL.md",
+      "computedHash": "2fbc2e3babdfbdec37301b9d41c6d3df5bba2c9a62e01b0517018e4133b876d4"
+    },
+    "mediator-pattern": {
+      "source": "patternsdev/skills",
+      "sourceType": "github",
+      "skillPath": "javascript/mediator-pattern/SKILL.md",
+      "computedHash": "287b95cbac18bdaddc9ac2c5ebb240275bc80eb7a550f54b14edf51ee6349ceb"
+    },
+    "mixin-pattern": {
+      "source": "patternsdev/skills",
+      "sourceType": "github",
+      "skillPath": "javascript/mixin-pattern/SKILL.md",
+      "computedHash": "ede2564086722d0dcf517ad1608b9d324bdcc7ef8af8c83d82ebc82b6f2a1d0c"
+    },
+    "modern-javascript-patterns": {
+      "source": "wshobson/agents",
+      "sourceType": "github",
+      "skillPath": "plugins/javascript-typescript/skills/modern-javascript-patterns/SKILL.md",
+      "computedHash": "ef81ef5b5b70287b3962dd0fce50c90b27c636e940ec4e80f9a0b216587be549"
+    },
+    "module-pattern": {
+      "source": "patternsdev/skills",
+      "sourceType": "github",
+      "skillPath": "javascript/module-pattern/SKILL.md",
+      "computedHash": "bdbc7798d9780b77bdb65902bd875c8f21c0286fa9a829c8b4323599113665b0"
+    },
+    "next-best-practices": {
+      "source": "vercel-labs/next-skills",
+      "sourceType": "github",
+      "skillPath": "skills/next-best-practices/SKILL.md",
+      "computedHash": "f4678aef4ffc10a5ea64a91e57abe5a5081af813b06d58d565caf3e8ef56e26c"
+    },
+    "next-cache-components": {
+      "source": "vercel-labs/next-skills",
+      "sourceType": "github",
+      "skillPath": "skills/next-cache-components/SKILL.md",
+      "computedHash": "f835d8226c28abf012cc013928e2627c8a7a046de61127ef229be1711bd1f255"
+    },
+    "nextjs-react-redux-typescript-cursor-rules": {
+      "source": "mindrally/skills",
+      "sourceType": "github",
+      "skillPath": "nextjs-react-redux-typescript-cursor-rules/SKILL.md",
+      "computedHash": "193dbf20b88355a133eefd3b7fdc4ad0df0519cbd52094198d1a65b911ef6985"
+    },
+    "nextjs-server-components": {
+      "source": "thebushidocollective/han",
+      "sourceType": "github",
+      "skillPath": "plugins/frameworks/nextjs/skills/nextjs-server-components/SKILL.md",
+      "computedHash": "47d1124bf5335dcf80839f3cbea043e1ef19d48f8b8f8d75446456f8f17d1130"
+    },
+    "nuxtjs-vue-typescript": {
+      "source": "mindrally/skills",
+      "sourceType": "github",
+      "skillPath": "nuxtjs-vue-typescript/SKILL.md",
+      "computedHash": "e032d20773061d7956882da83c014fef22c24466ecbe9e20ee8ff1d244d59d04"
+    },
+    "observer-pattern": {
+      "source": "patternsdev/skills",
+      "sourceType": "github",
+      "skillPath": "javascript/observer-pattern/SKILL.md",
+      "computedHash": "f29ee39ffb822dce4fbf6fc0bab27d80f0bee4ef39a232d53587ea7504f1cade"
+    },
+    "panda-css": {
+      "source": "hashintel/hash",
+      "sourceType": "github",
+      "skillPath": ".claude/skills/panda-css/SKILL.md",
+      "computedHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "playwright-bdd-configuration": {
+      "source": "thebushidocollective/han",
+      "sourceType": "github",
+      "skillPath": "plugins/tools/playwright-bdd/skills/playwright-bdd-configuration/SKILL.md",
+      "computedHash": "8928752675638bd99117fa039ebb6bd45af238933b30cb749da59ae9a3c338ce"
+    },
+    "playwright-bdd-gherkin-syntax": {
+      "source": "thebushidocollective/han",
+      "sourceType": "github",
+      "skillPath": "plugins/tools/playwright-bdd/skills/playwright-bdd-gherkin-syntax/SKILL.md",
+      "computedHash": "a70cde008482ca9b4c7074267b0afde6a67beb2e992be130db2e43a9a202d839"
+    },
+    "playwright-bdd-step-definitions": {
+      "source": "thebushidocollective/han",
+      "sourceType": "github",
+      "skillPath": "plugins/tools/playwright-bdd/skills/playwright-bdd-step-definitions/SKILL.md",
+      "computedHash": "fc5a982a1a61501be2f2af710ff6081bf6707384b9d839f46cfc45ab5bc38407"
+    },
+    "playwright-cursor-rules": {
+      "source": "mindrally/skills",
+      "sourceType": "github",
+      "skillPath": "playwright-cursor-rules/SKILL.md",
+      "computedHash": "90b15bd23429ee46f16335e2d0124a3ca5683f00d41dbda00eba783a54ab8f27"
+    },
+    "playwright-fixtures-and-hooks": {
+      "source": "thebushidocollective/han",
+      "sourceType": "github",
+      "skillPath": "plugins/tools/playwright/skills/playwright-fixtures-and-hooks/SKILL.md",
+      "computedHash": "a09dc06744c66b0fc98373674a61f6dc3cde2a0798efcabd44132884a263d977"
+    },
+    "playwright-page-object-model": {
+      "source": "thebushidocollective/han",
+      "sourceType": "github",
+      "skillPath": "plugins/tools/playwright/skills/playwright-page-object-model/SKILL.md",
+      "computedHash": "a04cf4a5f2a5cad2b7777abce5863059bf6a73e72ad5f10dad5e2e19ba98ad3b"
+    },
+    "playwright-pro": {
+      "source": "alirezarezvani/claude-skills",
+      "sourceType": "github",
+      "skillPath": "engineering-team/playwright-pro/skills/pw/SKILL.md",
+      "computedHash": "65857406b8b8b6ce1a5237484d287e9b63d6fad4a0484464b325725cbb8a2423"
+    },
+    "playwright-test-architecture": {
+      "source": "thebushidocollective/han",
+      "sourceType": "github",
+      "skillPath": "plugins/tools/playwright/skills/playwright-test-architecture/SKILL.md",
+      "computedHash": "93a0de94b59e901b21223e2265331ad6dea586ede18ad46d1f58c503942ef52d"
+    },
+    "postcss-best-practices": {
+      "source": "mindrally/skills",
+      "sourceType": "github",
+      "skillPath": "postcss-best-practices/SKILL.md",
+      "computedHash": "4a1fa78dd12fffe842a6dc423df25b3eb4bfb72d02d8b37db7db1bfbdd2d4805"
+    },
+    "prefetch": {
+      "source": "patternsdev/skills",
+      "sourceType": "github",
+      "skillPath": "javascript/prefetch/SKILL.md",
+      "computedHash": "1c681560a035e6b053b6b97c136760c33b1355fbad3d4d0d5e16baf4e86b651c"
+    },
+    "preload": {
+      "source": "patternsdev/skills",
+      "sourceType": "github",
+      "skillPath": "javascript/preload/SKILL.md",
+      "computedHash": "1f93be338876dcc1daabdc1e6f041405024bc32ac415820e95c5744389135119"
+    },
+    "presentational-container-pattern": {
+      "source": "patternsdev/skills",
+      "sourceType": "github",
+      "skillPath": "react/presentational-container-pattern/SKILL.md",
+      "computedHash": "3aafd64e3196232e6fe9c4e943a335e3d02d5c0dfccaad60470417beeacf874f"
+    },
+    "progressive-hydration": {
+      "source": "patternsdev/skills",
+      "sourceType": "github",
+      "skillPath": "react/progressive-hydration/SKILL.md",
+      "computedHash": "51876c5b97e5ee2a2ff12ccf6901c75b80e49e393a73a57c96fb6f6f2347beb2"
+    },
+    "prototype-pattern": {
+      "source": "patternsdev/skills",
+      "sourceType": "github",
+      "skillPath": "javascript/prototype-pattern/SKILL.md",
+      "computedHash": "ac654f9270a564ff32256d8767bbbf05c5ca16f1bc14a4b67c165d111213bb4d"
+    },
+    "provide-inject": {
+      "source": "patternsdev/skills",
+      "sourceType": "github",
+      "skillPath": "vue/provide-inject/SKILL.md",
+      "computedHash": "54ab9c9427ccf9d4529faa6be74556a553d3ba63a5c831caf727a41f5498154a"
+    },
+    "provider-pattern": {
+      "source": "patternsdev/skills",
+      "sourceType": "github",
+      "skillPath": "javascript/provider-pattern/SKILL.md",
+      "computedHash": "6eca191dbe34c33aee72dff2886fbcf5451740ee782780ee307b1f88797cf279"
+    },
+    "proxy-pattern": {
+      "source": "patternsdev/skills",
+      "sourceType": "github",
+      "skillPath": "javascript/proxy-pattern/SKILL.md",
+      "computedHash": "20b79c039ec2755caf461851b5679b17818af524838ee83cc8121668373d8c23"
+    },
+    "prpl": {
+      "source": "patternsdev/skills",
+      "sourceType": "github",
+      "skillPath": "javascript/prpl/SKILL.md",
+      "computedHash": "585631a6da0b820632edb4ad1e34b0782c1da8ace74bbec429916e91582b77d0"
+    },
+    "radix-ui-design-system": {
+      "source": "sickn33/antigravity-awesome-skills",
+      "sourceType": "github",
+      "skillPath": "skills/radix-ui-design-system/SKILL.md",
+      "computedHash": "e80a260a82334d85f4ca41d9417f44df759db55db88c881447c8d8d2eb434825"
+    },
+    "react-2026": {
+      "source": "patternsdev/skills",
+      "sourceType": "github",
+      "skillPath": "react/react-2026/SKILL.md",
+      "computedHash": "c069a9325b67a82ebcf3bb5271cfbd858894387ceec69558ecb1ab0a656341d1"
+    },
+    "react-best-practices": {
+      "source": "vercel-labs/vercel-plugin",
+      "sourceType": "github",
+      "skillPath": "skills/react-best-practices/SKILL.md",
+      "computedHash": "bdb13a3a239c067136b39cf77a34462ccc0dd4645d440362182409dcfd331221"
+    },
+    "react-component-architecture": {
+      "source": "aj-geddes/useful-ai-prompts",
+      "sourceType": "github",
+      "skillPath": "skills/react-component-architecture/SKILL.md",
+      "computedHash": "c78ca528a8262531a91d8af8fb88a4f5944d8e6afe63c8b2cd701bcda8c34e7d"
+    },
+    "react-composition-2026": {
+      "source": "patternsdev/skills",
+      "sourceType": "github",
+      "skillPath": "react/react-composition-2026/SKILL.md",
+      "computedHash": "e89ba214136fd59f8cd627f6488782c5f13b13bc6b6f9d1a5f7643d8a1874404"
+    },
+    "react-data-fetching": {
+      "source": "patternsdev/skills",
+      "sourceType": "github",
+      "skillPath": "react/react-data-fetching/SKILL.md",
+      "computedHash": "15b5b98496249315ea3bf0f1785a3df7c9a53ac573c1cfb02c6c70769a415d67"
+    },
+    "react-modernization": {
+      "source": "wshobson/agents",
+      "sourceType": "github",
+      "skillPath": "plugins/framework-migration/skills/react-modernization/SKILL.md",
+      "computedHash": "d3841339d87fccf7265b823d643f4d6715be72db101dcf6d6a9508b3635e3b47"
+    },
+    "react-render-optimization": {
+      "source": "patternsdev/skills",
+      "sourceType": "github",
+      "skillPath": "react/react-render-optimization/SKILL.md",
+      "computedHash": "7e7ffc7be56531d9571a5c489a4a3d7a406ce63f9ad739d2e7f8b8de875a6cd8"
+    },
+    "react-selective-hydration": {
+      "source": "patternsdev/skills",
+      "sourceType": "github",
+      "skillPath": "react/react-selective-hydration/SKILL.md",
+      "computedHash": "c7a1c6234e451cb2632413d478263c3ebcf80eac0b0eb45702b051d18211f456"
+    },
+    "react-server-components": {
+      "source": "patternsdev/skills",
+      "sourceType": "github",
+      "skillPath": "react/react-server-components/SKILL.md",
+      "computedHash": "07f2b7eb04e1f9e62ec65af9ade59ae1d9ee2b147c6374474d564d3752976de5"
+    },
+    "react-state-management": {
+      "source": "wshobson/agents",
+      "sourceType": "github",
+      "skillPath": "plugins/frontend-mobile-development/skills/react-state-management/SKILL.md",
+      "computedHash": "eadfba2e4198625858b67c8e105fb8252448524920344bd037c202bd372aa00d"
+    },
+    "redux-toolkit": {
+      "source": "mindrally/skills",
+      "sourceType": "github",
+      "skillPath": "redux-toolkit/SKILL.md",
+      "computedHash": "327cbba7959a273fc04111e8f86a0be912491152d393b5dc9b55dbb8acc20a8b"
+    },
+    "reference-compiler-cli": {
+      "source": "angular/angular",
+      "sourceType": "github",
+      "skillPath": ".agent/skills/reference-compiler-cli/SKILL.md",
+      "computedHash": "ce937230b5374cf04b00a76251c3545b3dd43797407ef67ebd44b21229a33bd8"
+    },
+    "reference-core": {
+      "source": "angular/angular",
+      "sourceType": "github",
+      "skillPath": ".agent/skills/reference-core/SKILL.md",
+      "computedHash": "16783417eeebecc4c35f5253872c2155967de10bd3e6b5d26f0bf950ff9347d0"
+    },
+    "reference-signal-forms": {
+      "source": "angular/angular",
+      "sourceType": "github",
+      "skillPath": ".agent/skills/reference-signal-forms/SKILL.md",
+      "computedHash": "c48a51a68ab96d93ce98a7a3b55995208c70436423523ea64ae983a1ffa23020"
+    },
+    "remix": {
+      "source": "mindrally/skills",
+      "sourceType": "github",
+      "skillPath": "remix/SKILL.md",
+      "computedHash": "44dd9ae9a13122a6e821f5b44ea420270e2cfbe5c4f20585f558e7d866b31253"
+    },
+    "render-functions": {
+      "source": "patternsdev/skills",
+      "sourceType": "github",
+      "skillPath": "vue/render-functions/SKILL.md",
+      "computedHash": "cd136ded8d6fc1924d7b071db6f1abff17518bfc7dc120937e430be9f57dff75"
+    },
+    "render-props-pattern": {
+      "source": "patternsdev/skills",
+      "sourceType": "github",
+      "skillPath": "react/render-props-pattern/SKILL.md",
+      "computedHash": "752afa0d8feca7416aa7ea098e0f888764e95f2e57361ea6b802faf1d5d2e261"
+    },
+    "renderless-components": {
+      "source": "patternsdev/skills",
+      "sourceType": "github",
+      "skillPath": "vue/renderless-components/SKILL.md",
+      "computedHash": "fb4b4469ede9913c2c9eb93f9747ba31d7ff2fcf68a2705e601ae3399add5693"
+    },
+    "responsive-design": {
+      "source": "mindrally/skills",
+      "sourceType": "github",
+      "skillPath": "responsive-design/SKILL.md",
+      "computedHash": "4addd6e3c12934ee7ca98cc940b2db9475fa0c5836312c6111d32e572b6e38ca"
+    },
+    "route-based": {
+      "source": "patternsdev/skills",
+      "sourceType": "github",
+      "skillPath": "javascript/route-based/SKILL.md",
+      "computedHash": "e3ae4fac1266e0695321f3ba0655ddf17f81d06c7e096856978c7c3da9f8a13f"
+    },
+    "sass-best-practices": {
+      "source": "mindrally/skills",
+      "sourceType": "github",
+      "skillPath": "sass-best-practices/SKILL.md",
+      "computedHash": "6a234f57e66775c02116b317cc77d71eaeaa8f4162c77511fd88a2b600c41031"
+    },
+    "script-setup": {
+      "source": "patternsdev/skills",
+      "sourceType": "github",
+      "skillPath": "vue/script-setup/SKILL.md",
+      "computedHash": "5271a2789f4ac886c8c1e8bd2f45c8d70fdc6b9aad2f2d2610ff089925c0d55a"
+    },
+    "scss-best-practices": {
+      "source": "mindrally/skills",
+      "sourceType": "github",
+      "skillPath": "scss-best-practices/SKILL.md",
+      "computedHash": "16ac9e8bf135304254a358776c5fac043799c1c3ac40221da1338ee972506de5"
+    },
+    "senior-frontend": {
+      "source": "alirezarezvani/claude-skills",
+      "sourceType": "github",
+      "skillPath": "engineering-team/skills/senior-frontend/SKILL.md",
+      "computedHash": "c4845ae10ab5e18b1a6bcfd19067e17545108ee87700f89fd5ea07811ad5096a"
+    },
+    "senior-qa": {
+      "source": "alirezarezvani/claude-skills",
+      "sourceType": "github",
+      "skillPath": "engineering-team/skills/senior-qa/SKILL.md",
+      "computedHash": "39cb292f64ba6ecbc234ab99ce000d3b87c9b64ee57a772b3b6a38f900702749"
+    },
+    "senior-security": {
+      "source": "alirezarezvani/claude-skills",
+      "sourceType": "github",
+      "skillPath": "engineering-team/skills/senior-security/SKILL.md",
+      "computedHash": "815e7e7540d386358d51515e111a9897fc00bd2d5c907a6e91d1dad482010291"
+    },
+    "server-side-rendering": {
+      "source": "patternsdev/skills",
+      "sourceType": "github",
+      "skillPath": "react/server-side-rendering/SKILL.md",
+      "computedHash": "8108798ea15f11699b866049d817d10ad8fcc0ed3ad0bca6edacae69480976c6"
+    },
+    "shadcn": {
+      "source": "shadcn/ui",
+      "sourceType": "github",
+      "skillPath": "skills/shadcn/SKILL.md",
+      "computedHash": "80a6226e78f6d1fe464214ae0ef449d49d8ffaa3e7704f011e9b418c678ad4d1"
+    },
+    "singleton-pattern": {
+      "source": "patternsdev/skills",
+      "sourceType": "github",
+      "skillPath": "javascript/singleton-pattern/SKILL.md",
+      "computedHash": "c1324d4fc1d4e6b81d64002f5173383d98a22d69c61a3d8a2300b41f7673687e"
+    },
+    "solid": {
+      "source": "ramziddin/solid-skills",
+      "sourceType": "github",
+      "skillPath": "skills/solid/SKILL.md",
+      "computedHash": "60de610a3c143f79f69552b7da60298bb46c9e8d80ab16c4c111b025823345d1"
+    },
+    "solid-react": {
+      "source": "fusengine/agents",
+      "sourceType": "github",
+      "skillPath": "plugins/react-expert/skills/solid-react/SKILL.md",
+      "computedHash": "4b104f1a790e90bc89066d1f882a903495bee0c446023da55b60f1155a7704e4"
+    },
+    "state-management": {
+      "source": "patternsdev/skills",
+      "sourceType": "github",
+      "skillPath": "vue/state-management/SKILL.md",
+      "computedHash": "ce4517fc08cab736e1670d4fcac1fb1ad33c68b5adfd8a504355de1ab273cebd"
+    },
+    "static-import": {
+      "source": "patternsdev/skills",
+      "sourceType": "github",
+      "skillPath": "javascript/static-import/SKILL.md",
+      "computedHash": "f422c58299f5a34679cf81bf152f544b8039be83f47ba0f0616c75ab04397a43"
+    },
+    "static-rendering": {
+      "source": "patternsdev/skills",
+      "sourceType": "github",
+      "skillPath": "react/static-rendering/SKILL.md",
+      "computedHash": "5de9b721e0e5dce84f66d6e6f56c5f61a4e2a6d812ba073df7bae0c38c0aa5d2"
+    },
+    "storybook-args-controls": {
+      "source": "thebushidocollective/han",
+      "sourceType": "github",
+      "skillPath": "plugins/tools/storybook/skills/storybook-args-controls/SKILL.md",
+      "computedHash": "36c18845e10b4c9d0dacf21986634674e57043a6c15958a8218ef3535a0f94c3"
+    },
+    "storybook-component-documentation": {
+      "source": "thebushidocollective/han",
+      "sourceType": "github",
+      "skillPath": "plugins/tools/storybook/skills/storybook-component-documentation/SKILL.md",
+      "computedHash": "a5ca610f6d46c35e32e8ce81e4a3d518e4ebf2969866e80c4784a8d3595431fd"
+    },
+    "storybook-configuration": {
+      "source": "thebushidocollective/han",
+      "sourceType": "github",
+      "skillPath": "plugins/tools/storybook/skills/storybook-configuration/SKILL.md",
+      "computedHash": "7e7124aeacc1f88a218a95fc85fcfad9b9bcd7755aca75b3270b9fc2fafb7110"
+    },
+    "storybook-play-functions": {
+      "source": "thebushidocollective/han",
+      "sourceType": "github",
+      "skillPath": "plugins/tools/storybook/skills/storybook-play-functions/SKILL.md",
+      "computedHash": "3bb96746a0c87fca20efa4f677974950fd7190d6a1563edb877d5bab32249b86"
+    },
+    "storybook-story-writing": {
+      "source": "thebushidocollective/han",
+      "sourceType": "github",
+      "skillPath": "plugins/tools/storybook/skills/storybook-story-writing/SKILL.md",
+      "computedHash": "1b0b4120563b8e6fd97334504148cee1dac45043d42acba528679c735a22fb75"
+    },
+    "streaming-ssr": {
+      "source": "patternsdev/skills",
+      "sourceType": "github",
+      "skillPath": "react/streaming-ssr/SKILL.md",
+      "computedHash": "015fd290c1fc0fc14c4ab99439abb3b508dcf11593a302d7caef6fa6cb91ede8"
+    },
+    "styled-components-best-practices": {
+      "source": "mindrally/skills",
+      "sourceType": "github",
+      "skillPath": "styled-components-best-practices/SKILL.md",
+      "computedHash": "d31c4ec87dbf2990891cc7c12db1aa12fbd3e2542a474fcd64ac4327a5ebf8ac"
+    },
+    "svelte-code-writer": {
+      "source": "sveltejs/ai-tools",
+      "sourceType": "github",
+      "skillPath": "plugins/claude/svelte/skills/svelte-code-writer/SKILL.md",
+      "computedHash": "c0e2cce9855f8e312cbb0a05aef164b4659c672d7723e4e598ffa6bc94890542"
+    },
+    "svelte-core-bestpractices": {
+      "source": "sveltejs/ai-tools",
+      "sourceType": "github",
+      "skillPath": "plugins/claude/svelte/skills/svelte-core-bestpractices/SKILL.md",
+      "computedHash": "bec11e369679027edf9d4acbe6d9788f8da33dc14b48b874f231d3ba13705324"
+    },
+    "tailwind-components": {
+      "source": "thebushidocollective/han",
+      "sourceType": "github",
+      "skillPath": "plugins/tools/tailwind/skills/tailwind-components/SKILL.md",
+      "computedHash": "b1cd83d7e406958d066887d76edb32bc6c9b4f5f29dfb3e548358d5af89adc61"
+    },
+    "tailwind-configuration": {
+      "source": "thebushidocollective/han",
+      "sourceType": "github",
+      "skillPath": "plugins/tools/tailwind/skills/tailwind-configuration/SKILL.md",
+      "computedHash": "70cd83097c19b5f9d0d732557995b95f2ccf7dc64892b1ae541d34e8e9e11671"
+    },
+    "tailwind-design-system": {
+      "source": "wshobson/agents",
+      "sourceType": "github",
+      "skillPath": "plugins/frontend-mobile-development/skills/tailwind-design-system/SKILL.md",
+      "computedHash": "cd61afd28f594e8b6712b61749209cbb4466e3eec4e4223793bbd97fc85c1b63"
+    },
+    "tailwind-performance": {
+      "source": "thebushidocollective/han",
+      "sourceType": "github",
+      "skillPath": "plugins/tools/tailwind/skills/tailwind-performance/SKILL.md",
+      "computedHash": "95968ff46a922926b2040f8ac1226c4c72325e3b662d20d689ea04398ef443c1"
+    },
+    "tailwind-responsive-design": {
+      "source": "thebushidocollective/han",
+      "sourceType": "github",
+      "skillPath": "plugins/tools/tailwind/skills/tailwind-responsive-design/SKILL.md",
+      "computedHash": "be0e7e40bdd242626c000a68ee022a7820202e9c03e764bf7ed92ea94f41e14e"
+    },
+    "tailwind-utility-classes": {
+      "source": "thebushidocollective/han",
+      "sourceType": "github",
+      "skillPath": "plugins/tools/tailwind/skills/tailwind-utility-classes/SKILL.md",
+      "computedHash": "2b68709709a1477a6194e0768a2bddabd8b92180840168d340935760f7005d86"
+    },
+    "tailwindcss": {
+      "source": "mindrally/skills",
+      "sourceType": "github",
+      "skillPath": "tailwindcss/SKILL.md",
+      "computedHash": "b1d95ac9242e613966fb11ed413fd2ff61f04641e4e8c1418e0e8258573fcc68"
+    },
+    "tailwindcss-development": {
+      "source": "laravel/boost",
+      "sourceType": "github",
+      "skillPath": ".ai/tailwindcss/3/skill/tailwindcss-development/SKILL.md",
+      "computedHash": "f1d29fcdfb77f72e8f25b157793c2d879e0d6a87199ea976dde60e05e3146799"
+    },
+    "tdd-guide": {
+      "source": "alirezarezvani/claude-skills",
+      "sourceType": "github",
+      "skillPath": "engineering-team/skills/tdd-guide/SKILL.md",
+      "computedHash": "3f0637f5127bc27a9919cfc2dfb648745669507a89ac57878a44ace5fe6e4627"
+    },
+    "third-party": {
+      "source": "patternsdev/skills",
+      "sourceType": "github",
+      "skillPath": "javascript/third-party/SKILL.md",
+      "computedHash": "9491257af3dad02a040adaeb912c98dc21e175a84977ea76bd407d162682ca0b"
+    },
+    "tree-shaking": {
+      "source": "patternsdev/skills",
+      "sourceType": "github",
+      "skillPath": "javascript/tree-shaking/SKILL.md",
+      "computedHash": "9cd30e65551af52e163e1dca6d695c024cad320f66734333cd2fd979de3f0b35"
+    },
+    "typescript": {
+      "source": "mindrally/skills",
+      "sourceType": "github",
+      "skillPath": "typescript/SKILL.md",
+      "computedHash": "0d109e1aac465feed57433e20cf0409ec7436c1519f0c67a2d4336b008fd26cc"
+    },
+    "typescript-async-patterns": {
+      "source": "thebushidocollective/han",
+      "sourceType": "github",
+      "skillPath": "plugins/languages/typescript/skills/typescript-async-patterns/SKILL.md",
+      "computedHash": "9e1c16df576a89d62cf3f974617e2c08d265b5a6119a4a1580e467a121ca6d9f"
+    },
+    "typescript-type-system": {
+      "source": "thebushidocollective/han",
+      "sourceType": "github",
+      "skillPath": "plugins/languages/typescript/skills/typescript-typescript-type-system/SKILL.md",
+      "computedHash": "b9b460d2bb9320cb9a41b9dd26af9ef6834dbcc39c5fc23e4861e0d73bda6474"
+    },
+    "typescript-utility-types": {
+      "source": "thebushidocollective/han",
+      "sourceType": "github",
+      "skillPath": "plugins/languages/typescript/skills/typescript-utility-types/SKILL.md",
+      "computedHash": "a0d6a6a4e2a5958f4f2f120d260e734c61fe5dec6b54ffd9f09b46d1e5ffa3bd"
+    },
+    "ui-design": {
+      "source": "mindrally/skills",
+      "sourceType": "github",
+      "skillPath": "ui-design/SKILL.md",
+      "computedHash": "d2b331ca97c47dc5d3e02557436b496469c3693327fad9a5f68c2b31e13349d1"
+    },
+    "ui-design-system": {
+      "source": "alirezarezvani/claude-skills",
+      "sourceType": "github",
+      "skillPath": "product-team/skills/ui-design-system/SKILL.md",
+      "computedHash": "c7233170249bacc07461840bbfe6391eb029fdc09557d775eba6640b184e1325"
+    },
+    "unocss": {
+      "source": "antfu/skills",
+      "sourceType": "github",
+      "skillPath": "skills/unocss/SKILL.md",
+      "computedHash": "4b7a9f7b89994d5aef70b9d55cb7f65d6e80cea437d5786cd33bb5cf7231c7c4"
+    },
+    "vanilla-extract": {
+      "source": "ceski23/skills",
+      "sourceType": "github",
+      "skillPath": "skills/vanilla-extract/SKILL.md",
+      "computedHash": "0382b9cf79110e96b213eeccdc30932edc41f971766c9595a7c17e7fa5440c4e"
+    },
+    "vercel-react-best-practices": {
+      "source": "vercel-labs/agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/react-best-practices/SKILL.md",
+      "computedHash": "ca7b0c0c6e5f2750043f7f0cd72d16ac4e2abc48f9b5500d047a4b77a2506212"
+    },
+    "vercel-react-view-transitions": {
+      "source": "vercel-labs/agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/react-view-transitions/SKILL.md",
+      "computedHash": "c8952fc9127fa0564d0cb71dccb4215a5608ac933b5831104f09173a97a46f85"
+    },
+    "view-transitions": {
+      "source": "patternsdev/skills",
+      "sourceType": "github",
+      "skillPath": "javascript/view-transitions/SKILL.md",
+      "computedHash": "a62cd0eee23fc63bcb35b8b1e1ba54ac6dbb3ee30a03658b6953519c7b733bdb"
+    },
+    "virtual-lists": {
+      "source": "patternsdev/skills",
+      "sourceType": "github",
+      "skillPath": "javascript/virtual-lists/SKILL.md",
+      "computedHash": "a910a2e96006f952bb740683e3165e4fea4a0d715bfa7ac17a2409076c0d29a8"
+    },
+    "visual-design-foundations": {
+      "source": "wshobson/agents",
+      "sourceType": "github",
+      "skillPath": "plugins/ui-design/skills/visual-design-foundations/SKILL.md",
+      "computedHash": "9f0f44bd206036f17f69cf78f3f3b5f9c0e0118672574ffd35c4c34c3d574d16"
+    },
+    "vite-bundle-optimization": {
+      "source": "patternsdev/skills",
+      "sourceType": "github",
+      "skillPath": "javascript/vite-bundle-optimization/SKILL.md",
+      "computedHash": "f4b0e7663e6309e0d0709de03aaccd7e292942013513120a4cc7757c7d61bbeb"
+    },
+    "vitest-configuration": {
+      "source": "thebushidocollective/han",
+      "sourceType": "github",
+      "skillPath": "plugins/tools/vitest/skills/vitest-configuration/SKILL.md",
+      "computedHash": "40dc892b1458c87e17e81800e70b315d75d9b278cba2bf5ca0b86bbbdd906ab5"
+    },
+    "vitest-performance": {
+      "source": "thebushidocollective/han",
+      "sourceType": "github",
+      "skillPath": "plugins/tools/vitest/skills/vitest-performance/SKILL.md",
+      "computedHash": "63d10f78dfe23722f448793991fe23e0bf8b3a3aadf9b03afcfb2cea82470874"
+    },
+    "vitest-testing-patterns": {
+      "source": "thebushidocollective/han",
+      "sourceType": "github",
+      "skillPath": "plugins/tools/vitest/skills/vitest-testing-patterns/SKILL.md",
+      "computedHash": "03bd80ed80c390357506e95ad3afa9c0fd4a83c031ecb3231f075b7795bf0014"
+    },
+    "vue-best-practices": {
+      "source": "hyf0/vue-skills",
+      "sourceType": "github",
+      "skillPath": "skills/vue-best-practices/SKILL.md",
+      "computedHash": "3df585ad31aec78fe55c56c1411262737e6b231677a3153dec512a882fde80cd"
+    },
+    "vue-component-patterns": {
+      "source": "thebushidocollective/han",
+      "sourceType": "github",
+      "skillPath": "plugins/frameworks/vue/skills/vue-component-patterns/SKILL.md",
+      "computedHash": "d42783786e9bce6267b367c4a0a6c3b7bab861fde43580361a077756556754a1"
+    },
+    "vue-composition-api": {
+      "source": "thebushidocollective/han",
+      "sourceType": "github",
+      "skillPath": "plugins/frameworks/vue/skills/vue-composition-api/SKILL.md",
+      "computedHash": "3dfd9fa798e55c07f691162b0ba7bfc2fa6f3d07f35ee44feeda91f85ac7a8a2"
+    },
+    "vue-reactivity-system": {
+      "source": "thebushidocollective/han",
+      "sourceType": "github",
+      "skillPath": "plugins/frameworks/vue/skills/vue-reactivity-system/SKILL.md",
+      "computedHash": "c5eac41e5bbf3118768c9a2d3b5d0673ae33a6a52b7d096a5501b705c9e034a5"
+    },
+    "vue-typescript": {
+      "source": "mindrally/skills",
+      "sourceType": "github",
+      "skillPath": "vue-typescript/SKILL.md",
+      "computedHash": "bae0e2f07fdb7f1cbec9eadc036d3bc90f78de2d7e1cf2f07767899d22beb847"
+    },
+    "vuejs-typescript-best-practices": {
+      "source": "mindrally/skills",
+      "sourceType": "github",
+      "skillPath": "vuejs-typescript-best-practices/SKILL.md",
+      "computedHash": "deb125e9ecdd506532c4eb0646de4167be31393a3b34906cbaacf612f87e4d18"
+    },
+    "web-component-design": {
+      "source": "wshobson/agents",
+      "sourceType": "github",
+      "skillPath": "plugins/ui-design/skills/web-component-design/SKILL.md",
+      "computedHash": "784a5a753400c54579a62974bdd867c6455555d1a7f806de8483ea5da899d154"
+    },
+    "zod-schema-validation": {
+      "source": "mindrally/skills",
+      "sourceType": "github",
+      "skillPath": "zod-schema-validation/SKILL.md",
+      "computedHash": "f3fd474dfced1090e24af93eeabb3d85cd96e93e188cbbcc97202f5f85781b28"
+    },
+    "zustand-advanced-patterns": {
+      "source": "thebushidocollective/han",
+      "sourceType": "github",
+      "skillPath": "plugins/frameworks/zustand/skills/zustand-advanced-patterns/SKILL.md",
+      "computedHash": "bac14a883f937ad556ee54535ff535fc239fc329c419e7ca2b2e03126cb9a77e"
+    },
+    "zustand-middleware": {
+      "source": "thebushidocollective/han",
+      "sourceType": "github",
+      "skillPath": "plugins/frameworks/zustand/skills/zustand-middleware/SKILL.md",
+      "computedHash": "9b4cb296234ee0cff79e071c86ebc8ccdb24de34ffd69338630da30784699ae2"
+    },
+    "zustand-state-management": {
+      "source": "mindrally/skills",
+      "sourceType": "github",
+      "skillPath": "zustand-state-management/SKILL.md",
+      "computedHash": "b63b116969df0dbf9af19249ceb16c9feab1f0f86a348faefc9354da7bfee262"
+    },
+    "zustand-store-patterns": {
+      "source": "thebushidocollective/han",
+      "sourceType": "github",
+      "skillPath": "plugins/frameworks/zustand/skills/zustand-store-patterns/SKILL.md",
+      "computedHash": "9fc0c835f43228c47490725e84d557da36a44752e214929ac24740e9ad8ace4f"
+    },
+    "zustand-typescript": {
+      "source": "thebushidocollective/han",
+      "sourceType": "github",
+      "skillPath": "plugins/frameworks/zustand/skills/zustand-typescript/SKILL.md",
+      "computedHash": "c7fe696bfb6e17795a3933fb147ebb4e34f3f6243a235e6779f0928364ba77a8"
+    }
+  }
+}

@@ -18,11 +18,14 @@ Steps:
 2. **Project identity** — ask for `name` + `description`.
 3. **Figma MCP connect** — verify `.mcp.json` has a `figma` entry. In Cursor, the user manages MCP servers via their global settings; instruct them to enable the Figma server if missing and continue when they confirm. (Cursor does not expose programmatic auth like Claude Code.)
 4. **Stack detection** — invoke the `project-detector` workflow inline: run the `Glob`/`Read`/`Grep` checks listed in `.claude/agents/project-detector.md` § Detection rules, then confirm with the user.
-5. **Methodology + CSS choice** — present the options from `.claude/agents/wizard.md` § Step 4.
-6. **Derive paths** — ask the user to confirm or override the path defaults.
-7. **Tools** — multi-select; toggle `tools.claudeCode` / `tools.cursor` / `tools.codexCli`.
-8. **Compose + validate** — write `.figma-pipeline/config.json`; validate against the schema (use `npx ajv-cli validate` if available; else structural check).
-9. **Report** — print the summary block from `.claude/agents/wizard.md` § Step 8.
+5. **Design system OR methodology** — ask design system first per `.claude/agents/wizard.md` § Step 3.5. If `none`, then ask design methodology. Picking a DS sets `designMethodology = "custom"` automatically (or `atomic` when DS=atomic).
+6. **CSS choice** — present the CSS-system options per `.claude/agents/wizard.md` § Step 4.
+7. **Derive paths** — ask the user to confirm or override the path defaults.
+8. **Stories + Tests** — Storybook yes/no; unit-test framework (vitest/jest/karma); E2E enabled toggle (Playwright is set automatically — never asked). Per § Step 5.5.
+9. **Tools** — multi-select; toggle `tools.claudeCode` / `tools.cursor` / `tools.codexCli`.
+10. **Compose + validate** — write `.figma-pipeline/config.json`; validate against the schema (use `npx ajv-cli validate` if available; else structural check).
+11. **Install / strip skills** — apply the skill prune per `.figma-pipeline/protocols/skills.md` § _Resolution algorithm — Wizard (install phase)_. Compute the install set; `rm -rf` every directory under `.claude/skills/` and `.agents/skills/` that is not in it; write the audit to `config.skillsInstall`.
+12. **Report** — print the summary block from `.claude/agents/wizard.md` § Step 8.
 
 ## Write scope
 
@@ -32,6 +35,7 @@ Cursor in agent mode may write only:
 - `.mcp.json` (merge `figma` only)
 - `.codex/config.json` (when codexCli is enabled)
 - `/tmp/figma-wizard-*` (scratch)
+- `.claude/skills/<name>/` and `.agents/skills/<name>/` — **delete only**, one-shot at Step 11
 
 Any other write → stop and tell the user. The Cursor rule `.cursor/rules/frozen-paths.mdc` enforces this in agent mode.
 

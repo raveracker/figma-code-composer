@@ -33,8 +33,8 @@ One canonical JSON document, emitted by `figma-fetcher`, that every downstream a
     "cssSystem": "tailwind-v4",
     "designMethodology": "atomic",
     "tokenStrategy": "tailwind-css-vars",
-    "designSystemName": "none",            // "none" | "braid" | "chakra" | "mantine" | "mui" | "radix" | "shadcn" | "headlessui"
-    "designSystemThemeName": null          // e.g. "seekAnz" for braid; null when designSystemName == "none"
+    "designSystemName": "none",            // "none" | "atomic" | "antd" | "chakra" | "heroui" | "mantine" | "mui" | "radix" | "shadcn"
+    "designSystemThemeName": null          // e.g. "default" for chakra; null when designSystemName == "none" or "atomic"
   },
   "layerHint": "molecule",                 // OPTIONAL — from command's 2nd arg
   "icons": [                               // REQUIRED array (may be empty)
@@ -97,7 +97,7 @@ One canonical JSON document, emitted by `figma-fetcher`, that every downstream a
 1. **Single writer.** Only `figma-fetcher` writes the manifest. Any other agent that needs to record output reports it back to `figma-coordinator` — it never mutates the manifest file.
 2. **Variable names are preserved, never resolved.** `figmaVariable` always holds the raw Figma variable path. Resolving it to a hex/rem value in `styledProperties` is a contract violation. (The `tokens` dict carries the resolved values for the token-builder; consumers reading `styledProperties` map by name.)
 3. **Unbound values are flags.** `unbound: true` REQUIRES a non-null `rawValue`. `component-builder` MUST stop-and-flag any `unbound` styled property rather than invent a token or inline the raw value.
-4. **Layer drives placement.** The fetcher resolves `layer` (atomic/feature-sliced/layered/hexagonal/flat/custom) against `config.components.designMethodology` and emits the matching `targetDir`. The component-builder writes only inside `targetDir`.
+4. **Layer drives placement.** The fetcher resolves `layer` (atomic/feature-sliced/component-based/flat/custom) against `config.components.designMethodology` and emits the matching `targetDir`. The component-builder writes only inside `targetDir`.
 5. **Create vs. update.** `existsOnDisk` + `diskPath` are authoritative for the update flow. On `intent: "update"`, writers patch the file at `diskPath`; they never blind-overwrite.
 6. **Blocking ambiguities gate the run.** Any `ambiguities[]` entry with `blocking: true` forces `figma-coordinator` to ask the user before any build/icon agent runs.
 7. **Schema version.** `manifestVersion` MUST equal `"1.0"`. A mismatch is a hard validation failure.

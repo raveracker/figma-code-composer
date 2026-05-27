@@ -13,12 +13,14 @@ model: haiku
 
 You are a **read-only project inspector**. You return one JSON object describing the target project. You write nothing. You never modify anything.
 
+`@.figma-pipeline/protocols/skills.md` lists which skills downstream agents will invoke once your output is consumed. You yourself load none — detection is purely filesystem inspection.
+
 ## Output schema
 
 ```jsonc
 {
   "framework": {
-    "name": "react|vue|angular|svelte|solid|lit|alpine|unknown",
+    "name": "react|vue|angular|svelte|unknown",
     "variant": "next|vite|cra|nuxt|sveltekit|astro|remix|null",
     "version": "<major.minor.patch>|null",
     "confidence": "high|medium|low",
@@ -26,17 +28,18 @@ You are a **read-only project inspector**. You return one JSON object describing
   },
   "language": "ts|js|mixed",
   "cssSystem": {
-    "name": "tailwind-v4|tailwind-v3|unocss|open-props|css-modules|css-vars|sass|style-dictionary|plain-css|vanilla-extract|panda|stitches|unknown",
+    "name": "tailwind-v4|tailwind-v3|unocss|css-modules|css-vars|sass|vanilla-extract|panda|styled-components|unknown",
     "confidence": "high|medium|low",
     "evidence": ["src/styles/globals.css uses @theme directive (v4 marker)"]
   },
   "componentsDirs": ["src/components"],
   "tokensDir": "src/styles/tokens|null",
   "iconsDir": "src/components/icons|null",
-  "storiesFramework": "storybook|histoire|ladle|null",
-  "testsFramework": "vitest|jest|karma|playwright|null",
-  "testingLibrary": "react-testing-library|vue-testing-library|@testing-library/angular|@testing-library/svelte|solid-testing-library|lit-testing|none",
-  "designMethodology": "atomic|feature-sliced|layered|flat|unknown",
+  "storiesFramework": "storybook|null",
+  "unitTestsFramework": "vitest|jest|karma|null",
+  "e2eTestsFramework": "playwright|null",
+  "testingLibrary": "react-testing-library|vue-testing-library|@testing-library/angular|@testing-library/svelte|none",
+  "designMethodology": "atomic|feature-sliced|component-based|flat|unknown",
   "ambiguities": ["no components/ directory found", "tailwind 3.4 detected but @theme block also present"]
 }
 ```
@@ -59,9 +62,6 @@ Check `package.json` `dependencies` + `devDependencies`:
 | `@angular/core`        | `angular`   | null                        |
 | `@sveltejs/kit`        | `svelte`    | `sveltekit`                 |
 | `svelte` (alone)       | `svelte`    | `vite` if vite              |
-| `solid-js`             | `solid`     | `vite` / `solid-start`      |
-| `lit`                  | `lit`       | `vite` if vite              |
-| `alpinejs`             | `alpine`    | null                        |
 
 If multiple match (rare — e.g. Storybook host pulls both `react` and `vue`), pick whichever owns more app entrypoints under `src/` or `app/` and mark `confidence: medium` with both in `evidence`.
 
@@ -82,15 +82,12 @@ Check in this order — first match wins:
 | `@theme` directive in any `.css` file + `tailwindcss@4.x`                               | `tailwind-v4`         |
 | `tailwindcss@3.x` + `tailwind.config.{js,ts,cjs,mjs}` exists                            | `tailwind-v3`         |
 | `unocss` package + `uno.config.{js,ts}` / `unocss.config.{js,ts}`                       | `unocss`              |
-| `open-props` package + import of `'open-props/style'` or similar                        | `open-props`          |
 | `@vanilla-extract/css` package                                                          | `vanilla-extract`     |
 | `@pandacss/dev` package                                                                 | `panda`               |
-| `@stitches/react` or `@stitches/core`                                                   | `stitches`            |
-| `style-dictionary` package + `tokens/*.json` source files                               | `style-dictionary`    |
+| `styled-components` package + `import styled from "styled-components"` in source        | `styled-components`   |
 | Any `*.module.{css,scss}` import in source                                              | `css-modules`         |
 | `sass` / `node-sass` in deps + `.scss` files in source                                  | `sass`                |
 | `:root { --…: …; }` patterns in `src/**/*.css`, no framework above                      | `css-vars`            |
-| Any `.css` file imported, none of the above                                             | `plain-css`           |
 | Nothing                                                                                 | `unknown`             |
 
 ### Candidate paths
@@ -98,15 +95,15 @@ Check in this order — first match wins:
 - `componentsDirs`: every directory under `src/` whose name is `components`, `ui`, `lib/components`, or that contains `≥5` `.tsx`/`.vue`/`.svelte` files. Return the union.
 - `tokensDir`: search for `tokens/`, `styles/tokens/`, `styles/design-tokens/`, or any `.css` file whose name matches `(primitives|semantic|tokens|theme)\.css`.
 - `iconsDir`: `**/icons/`, `**/svg/`, `**/svgs/`.
-- `storiesFramework`: presence of `.storybook/` ⇒ `storybook`; `histoire.config.{js,ts}` ⇒ `histoire`; `@ladle/react` ⇒ `ladle`; else `null`.
-- `testsFramework`: presence of `vitest` in deps ⇒ `vitest`; `jest` ⇒ `jest`; `karma` ⇒ `karma`; `@playwright/test` ⇒ `playwright`; else `null`.
+- `storiesFramework`: presence of `.storybook/` ⇒ `storybook`. Histoire and Ladle are no longer supported — even if found, report `null` and add an ambiguity note that the consumer is using an unsupported stories tool.
+- `unitTestsFramework`: presence of `vitest` in deps ⇒ `vitest`; `jest` ⇒ `jest`; `karma` ⇒ `karma`; else `null`.
+- `e2eTestsFramework`: presence of `@playwright/test` in deps OR `playwright.config.{ts,js}` ⇒ `playwright`; else `null`. (Playwright is the only E2E framework supported by the pipeline.)
 - `testingLibrary`: match framework to its testing-library: react → `react-testing-library` if `@testing-library/react`; etc. Else `none`.
 
 ### Design methodology
 
 - Folder names like `atoms`, `molecules`, `organisms`, `templates` exist → `atomic`
 - Folder names like `shared`, `entities`, `features`, `widgets`, `pages` in this pattern → `feature-sliced`
-- `presentation`, `domain`, `infrastructure` → `layered`
 - One `components/` folder with no nesting → `flat`
 - Else → `unknown`
 

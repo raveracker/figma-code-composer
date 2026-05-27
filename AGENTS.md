@@ -8,13 +8,13 @@ This is a drop-in scaffold for a Figma-driven multi-agent code-generation pipeli
 | ----------------------------------------------------- | ----------------------------------------------------------------------------- |
 | `.figma-pipeline/config.json`                         | Runtime config (created by the wizard). Source of truth every agent reads.    |
 | `.figma-pipeline/config.schema.json`                  | JSON Schema for the config. Hard-pinned `version: "1.0"`.                     |
-| `.figma-pipeline/config.{example,braid.example}.json` | Reference configs — plain React+Tailwind, and Braid on Next.js.               |
-| `.figma-pipeline/protocols/`                          | Cross-tool data contracts: `figma-manifest.md`, `token-strategy.md`, `component-layout.md`, `allowlist.md`. |
-| `.figma-pipeline/adapters/frameworks/<name>.md`       | Per-framework templates (React / Vue / Angular / Svelte / Solid / Lit / Alpine). |
-| `.figma-pipeline/adapters/css/<system>.md`            | Per-CSS-system recipes (Tailwind v4/v3, UnoCSS, Open Props, …).               |
-| `.figma-pipeline/adapters/design-systems/<name>.md`   | Per-DS overrides (Braid first-class; Chakra/Mantine/MUI/Radix/shadcn/HeadlessUI as stubs). |
-| `.claude/agents/` + `commands/` + `hooks/` + `skills/` | Claude Code surface (9 agents, 5 commands, 9 hooks, ~150 skills).            |
-| `.cursor/rules/` + `prompts/`                         | Cursor mirror (9 `.mdc` rules + agent prompts + slash-command prompts).       |
+| `.figma-pipeline/config.example.json` | Reference config — React + Tailwind v4 + Atomic Design.                                    |
+| `.figma-pipeline/protocols/`                          | Cross-tool data contracts: `figma-manifest.md`, `token-strategy.md`, `component-layout.md`, `allowlist.md`, `skills.md`. |
+| `.figma-pipeline/adapters/frameworks/<name>.md`       | Per-framework templates (React / Vue / Angular / Svelte). |
+| `.figma-pipeline/adapters/css/<system>.md`            | Per-CSS-system recipes (Tailwind v4/v3, UnoCSS, Sass, vanilla-extract, Panda, styled-components, CSS Modules, CSS vars). |
+| `.figma-pipeline/adapters/design-systems/<name>.md`   | Per-DS overrides — Atomic (vanilla atomic design) is first-class; Chakra/Mantine/MUI/Radix/shadcn/HeadlessUI as stubs. |
+| `.claude/agents/` + `commands/` + `hooks/`            | Claude Code surface (11 agents, 5 commands, 9 hooks). Skills are not bundled — they live in your global `~/.claude/skills/` and auto-trigger by keyword. |
+| `.cursor/rules/` + `prompts/`                         | Cursor mirror (8 `.mdc` rules + 11 agent prompts + 5 slash-command prompts + a `rules/README.md` index). |
 | `.codex/agents/` + `commands/` + `hooks/` + `wrap.sh` | Codex CLI mirror with lifecycle simulator.                                    |
 
 Keep matching files aligned across `.claude`, `.cursor`, `.codex` whenever behaviour changes.
@@ -99,9 +99,11 @@ Never `git commit` or `git push` from inside an agent unless the user explicitly
 
 ## Coverage
 
-- **Frameworks** — React (Next / Vite / Remix / Astro / CRA), Vue 3 (Nuxt / Vite / Astro), Angular ≥17 (standalone + signals), Svelte 5 (runes), Solid, Lit 3, Alpine.js 3+.
-- **CSS systems** — Tailwind v4, Tailwind v3, UnoCSS, Open Props, CSS Modules, vanilla CSS vars, Sass / SCSS, Style Dictionary, plain CSS, vanilla-extract, Panda CSS, Stitches.
-- **Design systems** (optional, override component shape) — Braid (SEEK), Chakra UI, Mantine, Material UI, Radix UI, shadcn/ui, Headless UI, _none / custom_.
-- **Design methodologies** — Atomic Design, Feature-Sliced, Layered, Hexagonal, Flat / custom.
-- **Stories** — Storybook, Histoire, Ladle.
-- **Tests** — Vitest, Jest, Karma, Playwright (with framework-matched testing libraries).
+- **Frameworks** — React (Next / Vite / Remix / Astro / CRA), Vue 3 (Nuxt / Vite / Astro), Angular ≥17 (standalone + signals), Svelte 5 (runes).
+- **CSS systems** — Tailwind v4, Tailwind v3, UnoCSS, CSS Modules, vanilla CSS vars, Sass / SCSS, vanilla-extract, Panda CSS, styled-components.
+- **Design systems** (optional) — Atomic (vanilla Atomic Design, no UI lib), Ant Design, Chakra UI, Hero UI, Mantine, Material UI, Radix UI, shadcn/ui, _none / custom_.
+- **Design methodologies** — Atomic Design, Feature-Sliced, Component-Based Architecture, Flat / custom.
+- **Stories** — Storybook (only supported stories framework — Histoire and Ladle removed).
+- **Tests** — two independent tracks: **unit** (Vitest / Jest / Karma) and **E2E** (Playwright, set automatically when E2E is enabled).
+- **Design System ⊕ Methodology** — exactly one axis is active per project; the wizard enforces this at `/init`.
+- **Skills bundle** — the wizard prunes `.claude/skills/` and `.agents/skills/` to the resolved set; audit lives in `config.skillsInstall`.

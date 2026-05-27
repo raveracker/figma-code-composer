@@ -17,7 +17,7 @@ Cursor doesn't natively spawn sub-agents — you run them sequentially in one ch
 | `component-builder`   | configured component target dirs (`atomicLayout.*Dir` / `featureSlicedLayout.*Dir` / `flatLayout.componentsDir`) |
 | `icon-generator`      | `config.icons.outputDir/**` (component files + barrel)                                     |
 | `story-author`        | stories colocated with components (or `config.stories.outputDir`)                          |
-| `test-author`         | tests colocated with components (or `config.tests.outputDir`)                              |
+| `test-author`         | unit tests colocated with components (or `config.tests.unit.outputDir`) + E2E specs under `config.tests.e2e.outputDir` |
 
 If you find yourself wanting to write outside your current role's scope, STOP. Either switch roles explicitly ("now acting as token-builder") or escalate to the user.
 

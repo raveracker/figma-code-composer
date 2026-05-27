@@ -7,15 +7,12 @@ Each adapter tells `token-builder` how to emit tokens and `component-builder` ho
 | `tailwind-v4.md`          | Tailwind CSS v4    | ✅ Complete |
 | `tailwind-v3.md`          | Tailwind CSS v3    | ✅ Complete |
 | `unocss.md`               | UnoCSS             | ✅ Complete |
-| `open-props.md`           | Open Props         | ✅ Complete |
 | `css-modules.md`          | CSS Modules        | ✅ Complete |
 | `css-vars.md`             | Vanilla CSS vars   | ✅ Complete |
 | `sass.md`                 | Sass / SCSS        | ✅ Complete |
-| `style-dictionary.md`     | Style Dictionary   | ✅ Complete |
-| `plain-css.md`            | Plain `.css`       | ✅ Complete |
 | `vanilla-extract.md`      | vanilla-extract    | ✅ Complete |
 | `panda.md`                | Panda CSS          | ✅ Complete |
-| `stitches.md`             | Stitches           | ✅ Complete |
+| `styled-components.md`    | styled-components  | ✅ Complete |
 
 Each file follows a fixed shape:
 
@@ -24,6 +21,10 @@ Each file follows a fixed shape:
 3. **Component class attachment** — how the component-builder references tokens.
 4. **Custom token registration** — required when the system silently strips unregistered classes.
 5. **Gotchas** — silent-fail traps.
+
+## Skills
+
+The set of skills agents invoke for each CSS system lives in [`protocols/skills.md`](../../protocols/skills.md) § Per-CSS-system skills. Don't duplicate the list here — it's the single source of truth.
 
 ## Picking a strategy when migrating
 
@@ -35,6 +36,3 @@ When the wizard offers to migrate from plain CSS to a framework, it suggests a C
 | Vue       | unocss or tailwind-v4   | UnoCSS is faster + lighter; Tailwind v4 has bigger ecosystem |
 | Angular   | tailwind-v3 or sass     | Angular tooling integrates better with both                 |
 | Svelte    | tailwind-v4             | First-class svelte plugin                                   |
-| Solid     | tailwind-v4             | Works without changes                                       |
-| Lit       | css-vars                | Shadow DOM compatibility — utility CSS can't cross boundaries |
-| Alpine    | tailwind-v4 or unocss   | Both pair cleanly with HTML-first patterns                  |

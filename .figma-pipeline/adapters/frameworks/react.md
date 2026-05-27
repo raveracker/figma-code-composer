@@ -57,10 +57,10 @@ export const {{Name}} = forwardRef<HTMLDivElement, {{Name}}Props>(
 | `tailwind-v3`          | `className`, no prefix unless configured                        |
 | `unocss`               | `className`                                                    |
 | `css-modules`          | `import styles from "./{{Name}}.module.css"`; `styles.root`    |
-| `css-vars`/`plain-css` | Global classes referenced as plain strings                     |
+| `css-vars`             | Global classes referenced as plain strings                     |
 | `vanilla-extract`      | `import { root } from "./{{Name}}.css"; <div className={root}>`|
 | `panda`                | `css()` from `styled-system/css`                               |
-| `stitches`             | `styled("div", { … })` factory                                 |
+| `styled-components`    | `styled.div\`…\`` template with `theme` accessed via `${({ theme }) => …}` |
 
 ## Story idiom
 ```tsx
