@@ -25,6 +25,12 @@ You are the **component writer**. Given a slice `{ components[], tokens, intent,
 - `tokens`: token dict (read-only — token-builder owns writing).
 - `intent`: `create` or `update`.
 - `configSnapshot`: frozen `{ framework, frameworkVariant, language, cssSystem, designMethodology, designSystemName, designSystemThemeName }`.
+- `priorReuseHints[]` (OPTIONAL — only when `config.knowledgeGraph.enabled == true`): ledger entries from `fcc kg:query`, sorted by similarity. Each is `{ id, similarity, filePath, summary, tokensUsed, composes, props }`. Use these to:
+  - **Reuse prop shapes**: if a hint's `props` schema matches the design intent, prefer its prop names/types over inventing new ones.
+  - **Compose existing components**: if a hint's `id` is a strong match for a sub-region, `composes` it instead of duplicating.
+  - **Read on demand** via your `Read` tool when you decide a hint is worth following. Never load all hint sources speculatively.
+- `reusedComposes[]` (OPTIONAL — see `protocols/figma-manifest.md` § Implications for component-builder): hard-resolved instance references handed to you by the coordinator. Each is `{ instanceNodeId, mainComponentId, ledgerId, filePath, exportName, propsFromOverrides }`. **You MUST NOT create a new file for any `ledgerId` listed here.** Emit an `import { <exportName> } from "<resolved import path>"` and a JSX/template call passing `propsFromOverrides`. The import path resolves from the writing file's directory to `filePath` (use `path.relative` semantics + the framework's import-extension convention).
+- `routing` (OPTIONAL): `{ tier: "trivial"|"moderate"|"complex"|"extreme", skills: [...], model: "..." }` from the coordinator's complexity resolution. Load only the listed skills; skip the rest from your default set.
 
 ## Write scope
 
@@ -56,13 +62,25 @@ Before writing any component file, for each `styledProperties[]` entry across al
 7. **Class composition.** Use the framework's idiomatic class composer per adapter (e.g. React + `cva` from `class-variance-authority`, Vue + `:class` arrays, Svelte + `class:directive`). Never inline `style={{ … }}` for design-system styling.
 8. **TypeScript discipline (when `language: ts`).** Strict types. Public Props interface co-located. No `any`. Use `unknown` + narrowing for genuinely-unknown shapes.
 9. **No mirror-state-in-effects.** Derive inline; never `useState + useEffect` to track a prop.
-10. **Report.** Final message:
+10. **Stage to KG (when enabled).** For every component you wrote (created or updated), call exactly once via Bash:
+    ```bash
+    npx fcc kg:stage --run-id <runId> --agent component-builder --entry '<json>'
+    ```
+    The `<json>` MUST match the ledger entry schema in `protocols/knowledge-graph.md` § `kind: "component"`:
+    - `composes[]` is an array of `{ id, via }` objects — `via: "instance"` for entries that came in via `reusedComposes[]`, `via: "import"` for components you manually composed.
+    - `figmaNodeId` is the manifest entry's `nodeId` for top-level components; for components built FROM a Figma main (i.e. the `build-main` resolution path), use the main's node ID so future instance lookups dedupe correctly. Set `figmaMainComponentId` to the same value in that case.
+    - `figmaHash` is computed per § Hashing on the canonical manifest slice.
+    - `exportName` MUST match the actual named export in your emitted file.
+    Skip this step entirely when `config.knowledgeGraph.enabled == false`. **Do NOT stage entries for `reusedComposes` items** — they're already in the ledger; staging them again would create a duplicate. A non-zero exit from `fcc kg:stage` is a build failure — surface it in `flags[]` and stop.
+11. **Report.** Final message:
     ```jsonc
     {
       "componentsCreated": [{ "name": "ProductCtaBar", "layer": "molecule", "path": "..." }],
       "componentsUpdated": [],
+      "componentsReused": [{ "name": "Button", "fromHintId": "Button", "similarity": 0.91 }],
       "barrelsTouched": ["src/components/molecules/index.ts"],
       "skipped": [{ "name": "BrokenThing", "reason": "unbound styled property" }],
+      "kgStaged": ["ProductCtaBar"],
       "flags": ["ProductCtaBar.paddingX was unbound (14px)"]
     }
     ```

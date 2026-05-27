@@ -32,8 +32,15 @@ You may write/edit ONLY files under `config.tokens.outputDir/**`. Any other writ
 ## Protocol
 
 1. **Read full config.** Re-read `.figma-pipeline/config.json` for `tokens.*` keys (output paths, naming convention, prefix) and `cssSystem.config` (CSS-system-specific options like Tailwind v4 `prefix`).
-2. **Existing-token snapshot.** Glob `config.tokens.outputDir` and parse current token names. Diff against the manifest's `tokens` dict to compute added / modified / removed.
-3. **Block on `unbound`.** If any value is null/missing, refuse to emit that token and add to flags. The coordinator escalates.
+2. **Read prior tokenSet from KG (when enabled).** Call `npx fcc kg:query --kind tokenSet --strategy <tokenStrategy> --output-dir <outputDir> --top-k 1`. If a prior `tokenSet` entry exists, load its `tokens[]` array. This is the lineage: every prior token's `name`, `figmaVariableId`, `tokenHash`, and `emittedAs`. Skip this step when `config.knowledgeGraph.enabled == false` — fall through to disk-only diffing.
+3. **Per-token diff.** For each variable in the incoming manifest, compute its `tokenHash = sha256({ name, type, modes-sorted })`:
+   - **Match against prior**: name match AND `tokenHash` match → **unchanged**, skip emission for this token.
+   - **Name match, hash differ** → **modified**, re-emit.
+   - **Name not in prior** → **added**, emit.
+   - **In prior but not in incoming** → **removed**, emit a delete-token directive (per CSS-system adapter) and record in flags.
+   The unchanged-skip is the per-token reuse win — it's also the data backing `complexity.signals.tokenReuseRatio = unchangedCount / incomingTotal`.
+4. **Existing-token snapshot (sanity check).** Glob `config.tokens.outputDir` and parse current emitted token names. Cross-check against the KG's `emittedAs` field — if disk drifted from the ledger (someone hand-edited the token file), record an ambiguity `{ issue: "token output drifted from ledger", blocking: false }` and prefer the disk state for unchanged tokens.
+5. **Block on `unbound`.** If any value is null/missing, refuse to emit that token and add to flags. The coordinator escalates.
 4. **Emit per strategy.**
 
    | `tokens.strategy`         | Output                                                                 |
@@ -54,7 +61,12 @@ You may write/edit ONLY files under `config.tokens.outputDir/**`. Any other writ
    - For renames, require both old + new in the input; if only one side present → flag and skip.
 8. **Tailwind-specific safety (when `cssSystem.name` starts with `tailwind-`).** If `config.cssSystem.config.extendTailwindMergePath` is set, append the new token group entries to that file (`extendTailwindMerge` config). Otherwise emit a flag: "register the new token group in tailwind-merge to avoid silent class stripping."
 9. **Validate.** After write, run the CSS-system's parser-light check if available (e.g. `npx postcss <file> --no-map` for CSS systems). Report syntax errors per-file with line numbers; do not abort other files.
-10. **Report.** Final message:
+10. **Stage to KG (when enabled).** Emit ONE `kind: "tokenSet"` entry **with the full per-token manifest** (not just a count). The entry's `tokens[]` MUST include every token in the resolved set (unchanged + modified + added — not just what you emitted this run); this is what next run's diff reads against. Call once via Bash:
+    ```bash
+    npx fcc kg:stage --run-id <runId> --agent token-builder --entry '<json>'
+    ```
+    `<json>` matches the schema in `protocols/knowledge-graph.md` § `kind: "tokenSet"`. The entry's `id` is `"tokens@<tokenStrategy>@<outputDir>"` — stable across runs so the latest entry replaces (not appends) the previous one. Each `tokens[]` record carries `name`, `figmaVariableId`, `type`, `defaultValue`, `modes`, `emittedAs`, `emittedIn`, `tokenHash`. Skip the entire step when `config.knowledgeGraph.enabled == false`. Non-zero exit → flag and stop.
+11. **Report.** Final message:
     ```jsonc
     {
       "addedTokens": ["--app-color-surface-brand-primary"],
@@ -62,6 +74,7 @@ You may write/edit ONLY files under `config.tokens.outputDir/**`. Any other writ
       "removedTokens": [],
       "skipped": [{ "token": "color/surface/missing", "reason": "value null" }],
       "filesWritten": ["src/styles/tokens/primitives.css", "..."],
+      "kgStaged": true,
       "flags": []
     }
     ```

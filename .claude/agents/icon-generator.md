@@ -57,12 +57,18 @@ Any other write → abort + report.
    - Svelte: `.svelte` with `<script lang="ts">` props.
 6. **Barrel.** After write, regenerate `<config.icons.outputDir>/<config.icons.barrelFile>` re-exporting every icon alphabetically.
 7. **Update flow.** On `intent: "update"` + `existsOnDisk: true`: diff fillModel + viewBox; patch the file.
-8. **Report.** Final message:
+8. **Stage to KG (when enabled).** For every icon you wrote, call once via Bash:
+    ```bash
+    npx fcc kg:stage --run-id <runId> --agent icon-generator --entry '<json>'
+    ```
+    `<json>` matches the ledger entry schema in `protocols/knowledge-graph.md` § Ledger entry schema with `kind: "icon"`, `composes: []`, `props: []`, summary like `"<dataName> icon, <fillModel>, viewBox <viewBox>"`. Skip when `config.knowledgeGraph.enabled == false`. Non-zero exit → flag and stop.
+9. **Report.** Final message:
     ```jsonc
     {
       "iconsCreated": [{ "name": "ChevronRight", "path": "src/icons/ChevronRight.tsx", "designSystemNative": false }],
       "iconsUpdated": [],
       "barrelTouched": "src/icons/index.ts",
+      "kgStaged": ["ChevronRight"],
       "flags": []
     }
     ```
