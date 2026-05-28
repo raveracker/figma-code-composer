@@ -28,7 +28,7 @@ Steps:
 6. **CSS choice** — present the CSS-system options per `.claude/agents/wizard.md` § Step 4.
 7. **Derive paths** — ask the user to confirm or override the path defaults.
 8. **Stories + Tests** — Storybook yes/no; unit-test framework (vitest/jest/karma); E2E enabled toggle (Playwright is set automatically — never asked). Per § Step 5.5.
-8.5. **Output-structure details** — token file layout (split/combined/framework-native), prefix, naming; story/test layouts; icon fill model + barrel. Skip questions whose values came back high-confidence from the detector. Per § Step 5.6.
+8.5. **Output-structure details** — token file layout (split/combined/framework-native), prefix, naming; story layout; **unit-test layout AND E2E location (Q-e2e-location: co-located default / `e2e/` / `tests/e2e/` / custom)**; icon fill model + barrel. Skip questions whose values came back high-confidence from the detector — including **token prefix when the detector found an existing `--hk-`-style convention** (use it, don't impose a new one). Per § Step 5.6.
 9. **Tools** — multi-select; toggle `tools.claudeCode` / `tools.cursor` / `tools.codexCli`.
 10. **Compose + validate** — write `.figma-pipeline/config.json`; validate against the schema (use `npx ajv-cli validate` if available; else structural check).
 11. **Install / strip skills** — apply the install + per-tool surface pass per `.figma-pipeline/protocols/skills.md` § _Resolution algorithm — Wizard (install phase)_:
