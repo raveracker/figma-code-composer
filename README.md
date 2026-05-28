@@ -195,7 +195,13 @@ Available commands (all tools): `figma-build`, `figma-update`, `figma-icons`, `f
 
 - **Claude Code** uses `AskUserQuestion` for the wizard and the `Agent` tool for dispatch. Per-tier model routing (Haiku / Sonnet / Opus) is automatic via `Agent(model=…)`.
 - **Cursor** reads agents from `.cursor/prompts/` and runs MCP through Cursor's Settings → MCP UI. The wizard **hard-gates** on this: it verifies Figma MCP with a low-cost read before writing `config.json`. Model routing is user-selected; the coordinator surfaces a recommended size (`sm`/`md`/`lg`) as a chat prefix.
-- **Codex CLI** wraps every command through `.codex/wrap.sh`, which simulates Claude Code's lifecycle hooks (`pre-command` → cmd → `post-command` → `on-exit`). When the wizard sees `tools.codexCli = true`, it writes `./codex-run` (chmod 0755) at the project root — `./codex-run <cmd>` works from the project root with no source step, no shell-rc edit, no direnv. Per-tier routing passes `--model <openai-id>` via `config.codex.modelMap`.
+- **Codex CLI** runs through `.codex/wrap.sh` (the `./codex-run` wrapper the wizard writes at the project root when `tools.codexCli = true` — chmod 0755, no source step / shell-rc edit / direnv needed). `wrap.sh` fires the same lifecycle hooks (`pre-command` → cmd → `post-command` → `on-exit`) around the build.
+
+  **One key difference from Claude Code:** the installed Codex CLI has **no sub-agent spawner**. Where Claude Code spawns each specialist (`figma-fetcher`, `component-builder`, …) as a separate parallel `Agent` with its own model, `wrap.sh` dispatches the whole pipeline as a **single `codex exec` session** — the coordinator plays each role inline, in sequence, reading `.codex/agents/<name>.md` as guidance. Two consequences:
+  - **One model per run, not per specialist.** `config.codex.modelMap` resolves the tier to a single model passed via `codex exec --model <id>` (when your Codex CLI exposes the flag; else the global default in `~/.codex/config.toml`). The complexity tier still picks the skill set + the extreme-tier review pass — only the per-specialist model split is unavailable.
+  - **Quote the Figma URL** — `?` and `&` break unquoted in zsh: `./codex-run figma-build 'https://figma.com/design/…?node-id=…'`.
+
+  > Note: earlier scaffold builds assumed a `codex run-agent <name>` subcommand — no released Codex CLI provides it. `wrap.sh` uses `codex exec`; update if you hit "unexpected argument".
 
 ---
 
