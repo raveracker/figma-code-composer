@@ -327,13 +327,13 @@ The only thing your agents shell out to. Never bundled into your app.
 | `fcc kg:query --slice <path> --top-k 5`             | figma-coordinator        | RAG retrieval — similarity-based component hints        |
 | `fcc kg:query --kind component --figma-node-id <id>`| figma-coordinator        | Instance lookup for cross-screen reuse                  |
 | `fcc kg:stage --run-id … --agent … --entry <json>`  | each builder             | Append a ledger delta (parallel-safe, per-agent file)   |
-| `fcc kg:merge --run-id …`                           | figma-coordinator        | Atomic merge of staged deltas (flock-protected)         |
+| `fcc kg:merge --run-id …`                           | figma-coordinator        | Atomic merge of staged deltas (lockfile-protected, upsert-by-id) |
 | `fcc kg:verify`                                     | figma-coordinator + you  | Check ledger entries still match the filesystem         |
-| `fcc kg:repair --prune-orphans`                     | you                      | Remove orphaned entries (after confirm; archived)       |
+| `fcc kg:repair --prune-orphans`                     | you                      | Remove orphaned entries (after confirm; archived to `.deleted.jsonl`) |
 | `fcc kg:rebuild`                                    | you                      | Rebuild `graph.json` + embeddings from `ledger.jsonl`   |
 | `fcc handover --run-id … --manifest <path>`         | figma-coordinator        | Emit handover Markdown                                  |
 
-Full spec: [`protocols/cli.md`](.figma-pipeline/protocols/cli.md).
+All subcommands are implemented as of v0.1.0 (stdlib-only — local JSON embeddings instead of sqlite-vec, atomic `wx` lockfile instead of flock). Full spec + implementation notes: [`protocols/cli.md`](.figma-pipeline/protocols/cli.md).
 
 ---
 

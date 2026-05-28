@@ -1,6 +1,11 @@
 # `figma-code-composer` CLI surface (v1.0)
 
-> Authoritative spec for the `fcc` binary. Stubbed subcommands in this build print "not yet implemented" and exit 0; tracking issues link to where impl will land. Production builds will implement every subcommand here.
+> Authoritative spec for the `fcc` binary. As of v0.1.0 **every subcommand below is implemented** in `bin/figma-code-composer.js` — `init`, `doctor`, `complexity`, `kg:query`, `kg:stage`, `kg:merge`, `kg:rebuild`, `kg:verify`, `kg:repair`, `handover`.
+
+> **Implementation notes (stdlib-only, zero npm dependencies):**
+> - **Embeddings** — the spec describes `embeddings.sqlite` (sqlite-vec). The shipped build uses `embeddings.json` with a **local bag-of-words term-frequency vector + cosine similarity** computed in pure Node. This keeps the package dependency-free and makes `kg:query` work offline with no API keys. The exact-match instance-reuse path (`kg:query --figma-node-id`) — the load-bearing reuse mechanism — is an exact ledger lookup and does not depend on embeddings at all. Semantic RAG (`--slice`) uses the local vectors; quality is lower than a neural embedding but sufficient for "is there a similar prior component?" hints. Swapping in `openai`/`voyage` providers (opt-in, network) is a future additive change.
+> - **Lock** — the spec says `flock(2)`. Node has no built-in flock, so `kg:merge` / `kg:repair` use an **atomic `open(…, "wx")` lockfile** at `<storeDir>/ledger.lock` with a 30s timeout. Same single-writer guarantee; portable across platforms.
+> - **Merge is upsert-by-id** — re-staging an entry with an existing `id` (tokenSets, rebuilt components) replaces it and preserves the original `createdAt`.
 
 The CLI is shipped exclusively via the npm package — consumer projects never import from it. Agents (Claude Code, Cursor, Codex) drive the CLI via `Bash` tool calls. The binary name is `figma-code-composer`; the short alias is `fcc`.
 
