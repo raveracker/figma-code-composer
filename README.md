@@ -34,6 +34,8 @@ That copies `.claude/`, `.cursor/`, `.codex/`, `.figma-pipeline/`, `CLAUDE.md`, 
 
 Before running `/init-figma-compose` you need to have **Figma MCP connected** in your AI tool of choice. **Graphify** and **RTK** are optional but recommended — they're both external user-level tools the pipeline benefits from.
 
+> **Using more than one tool?** Unlike `/init-figma-compose` (which you run **once** for the whole repo — see [Quickstart](#quickstart)), these prerequisites are **per-tool**. Figma MCP lives in each tool's own config (Claude Code's `.mcp.json` / Cursor's Settings → MCP / Codex's `/plugins`), and RTK / Graphify register into each tool's own config dir. So if you use Claude Code + Cursor + Codex (or any combination), **set up Figma MCP — and RTK / Graphify if you want them — individually in each tool you'll build from.** Setting them up in Claude Code does not carry over to Cursor or Codex.
+
 ### Required — Figma MCP
 
 Connects your AI tool to your Figma files. The wizard's Step 2 hard-gates on this: without a reachable Figma MCP, `config.json` is never written. Pick the tool you use:
