@@ -1,4 +1,5 @@
 ---
+owner: figma-pipeline
 description: "Supporting rule — Per-agent write scope. Backs rule 1 (allowlist) and rule 2 (manifest single writer) at the per-role level so Cursor doesn't role-bleed when running specialists sequentially."
 alwaysApply: true
 ---

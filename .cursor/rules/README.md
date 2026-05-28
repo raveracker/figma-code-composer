@@ -28,3 +28,17 @@ Each rule below maps to one CLAUDE.md binding rule (or supports it). All `*.mdc`
 ## Editing rules
 
 Hand-edits are fine. The `description` frontmatter field is what Cursor uses to decide when to surface the rule — be explicit. Use `alwaysApply: true` for behavioural rules that must fire every turn; use `globs: [...]` for rules tied to specific file paths.
+
+## Ownership — what `npx figma-code-composer --force` overwrites
+
+Every scaffold-shipped rule carries `owner: figma-pipeline` in its frontmatter. On a re-scaffold (update), the scaffolder:
+
+- **Overwrites** rules tagged `owner: figma-pipeline` (they're ours — you get the upstream version) and creates any rule that doesn't exist yet.
+- **Never overwrites** a `.mdc` without that tag — rules you added, or scaffold rules you've *forked*.
+
+So there are two ways to keep a customized rule across updates:
+
+1. **Fork it** — edit the rule AND delete its `owner: figma-pipeline` line. It's now yours; the scaffolder leaves it alone forever. (You stop getting upstream changes to it — that's the trade.)
+2. **`--skip cursor-rules`** — blunt override that keeps the entire `.cursor/rules/` dir untouched (even scaffold-owned rules), while the rest of `.cursor` still updates.
+
+If you want both your edit AND the upstream change to a scaffold-owned rule, keep the tag, let `--force` overwrite, and re-apply your hunk with `git checkout -p` (see README § Updating).

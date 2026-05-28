@@ -311,11 +311,20 @@ function copyEntry(source, target, dryRun, excludeAbsDirs = []) {
   const parent = dirname(target);
   if (!pathExists(parent)) mkdirSync(parent, { recursive: true });
   const opts = { recursive: true, errorOnExist: false, force: true };
-  if (excludeAbsDirs.length) {
-    // Skip the excluded subdir(s) so the rest of the tool surface still updates
-    // while a consumer-customized subdir (e.g. .cursor/rules) is left untouched.
-    opts.filter = (src) => !excludeAbsDirs.some(d => src === d || src.startsWith(d + "/"));
-  }
+  opts.filter = (src, dest) => {
+    // 1. --skip <subpath>: leave a consumer-customized subdir entirely untouched.
+    if (excludeAbsDirs.some(d => src === d || src.startsWith(d + "/"))) return false;
+    // 2. Owner-guard for Cursor rules: a scaffold-shipped rule carries
+    //    `owner: figma-pipeline` in its frontmatter. On re-scaffold we overwrite
+    //    those (they're ours) and any rule that doesn't exist yet, but we NEVER
+    //    overwrite a .mdc the consumer added or forked (no owner tag) — that's
+    //    their file. (Override the whole behavior with `--skip cursor-rules`.)
+    if (src.endsWith(".mdc") && /[/\\]\.cursor[/\\]rules[/\\]/.test(src) && pathExists(dest)) {
+      const cur = readFileSync(dest, "utf8");
+      if (!/(^|\n)owner:\s*figma-pipeline\b/.test(cur)) return false; // consumer-owned → preserve
+    }
+    return true;
+  };
   cpSync(source, target, opts);
 }
 

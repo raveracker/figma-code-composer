@@ -51,8 +51,8 @@ git add -A && git commit -m "snapshot before fcc update"
 
 # 2. Pull the latest scaffold. --skip keeps files you've customized:
 #    claude-md / agents-md → keep your CLAUDE.md / AGENTS.md
-#    cursor-rules          → keep your .cursor/rules/ (rest of .cursor still updates)
-npx figma-code-composer@latest --force --skip claude-md --skip agents-md --skip cursor-rules
+#    cursor-rules          → keep ALL of .cursor/rules/ (blunt; usually unnecessary — see below)
+npx figma-code-composer@latest --force --skip claude-md --skip agents-md
 #   (drop any --skip token for a file you never customized — take the upstream version)
 
 # 3. Re-run the wizard to re-prune skills + regenerate per-tool surfaces.
@@ -61,6 +61,8 @@ npx figma-code-composer@latest --force --skip claude-md --skip agents-md --skip 
 ```
 
 Without `--force`, the scaffolder **detects conflicts and prompts** before overwriting — it won't silently clobber.
+
+**Cursor rules are protected per-file automatically.** Each scaffold-shipped rule carries `owner: figma-pipeline` frontmatter; a re-scaffold overwrites only those, and **never** touches a `.mdc` you added or *forked* (a scaffold rule with the `owner:` line removed). So you rarely need `--skip cursor-rules` — fork the one rule you want to keep instead. See [`.cursor/rules/README.md`](.cursor/rules/README.md) § Ownership.
 
 **`--skip` is all-or-nothing per file.** It keeps your version entirely (and you miss that file's upstream improvements). If you've customized a file AND want the upstream changes, take both via git instead of `--skip`:
 
