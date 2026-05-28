@@ -6,7 +6,7 @@ description: >-
   Preserves Figma variable names (never resolves to values). Classifies nodes
   by layer per the active design methodology. Read/scratch only — never writes
   source code.
-tools: Skill, Read, Glob, Grep, Write, Bash, ToolSearch, mcp__figma__use_figma, mcp__figma__get_design_context, mcp__figma__get_screenshot, mcp__figma__get_metadata, mcp__figma__get_variable_defs, mcp__figma__get_code_connect_map, mcp__figma__get_context_for_code_connect, mcp__figma__get_code_connect_suggestions, mcp__figma__search_design_system
+tools: Skill, Read, Glob, Grep, Write, Bash, ToolSearch, mcp__figma__use_figma, mcp__figma__get_design_context, mcp__figma__get_screenshot, mcp__figma__get_metadata, mcp__figma__get_variable_defs, mcp__figma__get_code_connect_map, mcp__figma__get_context_for_code_connect, mcp__figma__get_code_connect_suggestions, mcp__figma__search_design_system, mcp__plugin_figma_figma__use_figma, mcp__plugin_figma_figma__get_design_context, mcp__plugin_figma_figma__get_screenshot, mcp__plugin_figma_figma__get_metadata, mcp__plugin_figma_figma__get_variable_defs, mcp__plugin_figma_figma__get_code_connect_map, mcp__plugin_figma_figma__get_context_for_code_connect, mcp__plugin_figma_figma__get_code_connect_suggestions, mcp__plugin_figma_figma__search_design_system
 model: sonnet
 ---
 
@@ -15,6 +15,8 @@ model: sonnet
 Single writer of the figma manifest. Every downstream agent treats your output as authoritative read-only input.
 
 Binding: `protocols/figma-manifest.md` (output contract) + `config.json` (runtime). `protocols/skills.md` lists per-stack skills; **`figma-use` is MANDATORY before any `use_figma` tool call — never skip.**
+
+**MCP tool namespace.** The `tools:` allowlist deliberately lists both `mcp__figma__*` (when the user's `.mcp.json` declares the official Figma MCP server with key `figma`) AND `mcp__plugin_figma_figma__*` (when the Figma desktop/plugin auto-registers under `plugin_figma_figma`). Use whichever set is exposed at runtime — both call the same underlying API. The wizard's Step 2 hard-gate confirms one of the two is reachable before `config.json` is written.
 
 ## Inputs
 

@@ -3,7 +3,7 @@ name: icon-generator
 description: >-
   Generates accessible framework-native icon components from manifest.icons[].
   Single owner of config.icons.outputDir. Branches on configSnapshot.framework.
-tools: Skill, Read, Glob, Grep, Write, Edit, Bash, ToolSearch, mcp__figma__use_figma, mcp__figma__get_design_context, mcp__figma__get_screenshot, mcp__figma__get_metadata, mcp__figma__get_variable_defs
+tools: Skill, Read, Glob, Grep, Write, Edit, Bash, ToolSearch, mcp__figma__use_figma, mcp__figma__get_design_context, mcp__figma__get_screenshot, mcp__figma__get_metadata, mcp__figma__get_variable_defs, mcp__plugin_figma_figma__use_figma, mcp__plugin_figma_figma__get_design_context, mcp__plugin_figma_figma__get_screenshot, mcp__plugin_figma_figma__get_metadata, mcp__plugin_figma_figma__get_variable_defs
 model: haiku
 ---
 
@@ -23,7 +23,7 @@ ONLY `config.icons.outputDir/**` + the icon barrel (`config.icons.outputDir/<con
 
 ## Design-system icon mapping
 
-`designSystemName != "none"` → consult `adapters/design-systems/<designSystemName>.md` § Icon mapping FIRST. Many DS ship their own set (MUI, Chakra, Mantine). For each Figma icon:
+`designSystemName != "none"` → use `adapterExcerpts.designSystem.iconMapping` from the slice when present (coordinator pre-reads). On miss, Read `adapters/design-systems/<designSystemName>.md` § Icon mapping directly. Many DS ship their own set (MUI, Chakra, Mantine). For each Figma icon:
 
 1. DS ships an equivalent (same glyph / name) → emit a re-export instead of a new SVG file.
 2. No equivalent → emit a regular framework-native icon component (per framework adapter) following DS-specific wrapper rules.
@@ -49,7 +49,7 @@ ONLY `config.icons.outputDir/**` + the icon barrel (`config.icons.outputDir/<con
    - Angular: `<kebab-name>.component.ts` standalone, `[size]` `[color]` inputs.
    - Svelte: `.svelte` with `<script lang="ts">` props.
 6. **Barrel** — regenerate `<config.icons.outputDir>/<config.icons.barrelFile>` re-exporting every icon alphabetically.
-7. **Update flow** — `intent: "update"` + `existsOnDisk: true` → diff fillModel + viewBox; patch the file.
+7. **Update flow — write-first discipline.** On `intent: "create"`: emit each icon file in ONE `Write` call. On `intent: "update"` + `existsOnDisk: true`: diff fillModel + viewBox; patch via `Edit`. **Never run formatter probes** — consumer's tooling owns that.
 8. **Stage to KG (when enabled)** — once per icon written:
    ```bash
    npx fcc kg:stage --run-id <runId> --agent icon-generator --entry '<json>'

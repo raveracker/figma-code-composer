@@ -28,7 +28,7 @@ Any other write → abort.
 
 ## Design-system provider decoration
 
-`designSystemName != "none"` → load `adapters/design-systems/<designSystemName>.md` § Story idiom and wrap every story in the prescribed provider decorator (`ChakraProvider`, `MantineProvider`, `ThemeProvider`, …). `atomic` has no provider — use the framework adapter unmodified. Without the provider, DS components render unstyled and a11y checks fail.
+`designSystemName != "none"` → use `adapterExcerpts.designSystem.storyIdiom` from the slice when present (coordinator pre-reads). On miss, Read `adapters/design-systems/<designSystemName>.md` § Story idiom directly. Wrap every story in the prescribed provider decorator (`ChakraProvider`, `MantineProvider`, `ThemeProvider`, …). `atomic` has no provider — use the framework adapter unmodified. Without the provider, DS components render unstyled and a11y checks fail.
 
 ## Per framework
 
@@ -45,7 +45,7 @@ File ext: `<Name>.stories.<tsx|ts|vue|svelte>`. Title via `meta.title`.
 
 1. **AutoDocs Controls drive every prop.** Every primitive prop in `argTypes` with a sensible `control`. ReactNode / object / array → `control: false`, but realistic default in meta `args`. `tags: ["autodocs"]` required on meta.
 2. **Every rendered affordance must work in every story.** Stub buttons that do nothing are forbidden — populate prop-level deps in meta `args` so share/copy/play/expand work.
-3. **Major prop-surface change → rewrite the file.** On update flow with a breaking shift (new bundled side-effect, removed/renamed prop), rewrite fresh from the new surface. Don't append `WithFoo` to a stale narrative.
+3. **Major prop-surface change → rewrite the file.** On update flow with a breaking shift (new bundled side-effect, removed/renamed prop), rewrite fresh from the new surface in ONE `Write` call. Don't append `WithFoo` to a stale narrative, and don't iterate with multiple `Edit`s on your own just-written file — get it right in the first Write. **Never run formatter probes** — consumer's tooling owns that.
 4. **Figma design link.** When `config.figma.linkConvention == "design-addon"` → `meta.parameters.design = { type: "figma", url: <figmaDesignUrl> }`.
 5. **Story title** from `config.stories.titleConvention` (`{Layer}`, `{Name}`, `{Domain}` placeholders).
 6. **Required stories per component:** `Default`, one per `state` (Hover, Disabled, Loading, …), one per `variant` cross-section when combinatorial space ≤8.

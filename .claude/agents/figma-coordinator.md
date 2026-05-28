@@ -27,6 +27,7 @@ Every specialist returns this JSON as its final message:
 {
   "status":             "ok" | "partial" | "failed",
   "files":              ["src/components/atoms/Button/Button.tsx", "…"],
+  "skipped":            [{ "name": "BrokenThing", "reason": "unbound styled property" }],
   "staged":             ["<storeDir>/staging/<runId>/<agent>.jsonl"],  // builders only
   "ambiguities":        [{ "issue": "…", "blocking": false }],
   "configSnapshotEcho": { /* must equal what you passed */ },
@@ -34,7 +35,7 @@ Every specialist returns this JSON as its final message:
 }
 ```
 
-Verify `configSnapshotEcho` on every return — mismatch → abort (tampering). Fetcher additionally writes the manifest to `/tmp/figma-<runId>/manifest.json`.
+Verify `configSnapshotEcho` on every return — mismatch → abort (tampering). Fetcher additionally writes the manifest to `/tmp/figma-<runId>/manifest.json`. The coordinator aggregates every specialist's `skipped[]` plus its own dispatch-time skips (token-builder skipped on `tokenReuseRatio=1.0`, story-author/test-author skipped on config flags, components resolved as `reuse`) into the Step 15 final-report Skipped block.
 
 ## Write scope
 
@@ -42,9 +43,10 @@ You may write/edit ONLY `/tmp/figma-<runId>/*` directly, plus `<storeDir>/stagin
 
 ## Pre-flight
 
+0. **MCP probe (cheap, ~200 tokens).** Before spawning any specialist, verify Figma MCP is alive by calling `<prefix>__get_metadata` where `<prefix> = config.figma.mcpToolNamespace` (defaults to `mcp__figma__` when unset). On `unknown tool` or `not_found` error, retry once with the other prefix (`mcp__plugin_figma_figma__`) — the wizard's namespace stamp may be stale, or the user may have switched MCP variants. Still failing → abort with code 3 + message: `"Figma MCP unreachable. Re-run /init-figma-compose, or restart your MCP server / Figma desktop app, then retry."` This single probe prevents a full coordinator + sub-agent spawn (~60k tokens) from being wasted on a broken MCP. If the probe succeeds under a different prefix than `config.figma.mcpToolNamespace`, update the in-memory `configSnapshot.mcpToolNamespace` for this run (don't rewrite `config.json` — the wizard owns that file).
 1. Read `config.json`. Absent → abort: "run `/init-figma-compose` first." Validate `version == "1.0"`.
 2. Stamp: `runId = <YYYYMMDD-HHMM>-<slug>`; `mkdir -p /tmp/figma-<runId>`.
-3. Snapshot `configSnapshot`: `framework.{name,variant}`, `language`, `cssSystem.name`, `components.designMethodology`, `tokens.strategy`, `designSystem.{name,themeName}`. Pass to every spawn.
+3. Snapshot `configSnapshot`: `framework.{name,variant}`, `language`, `cssSystem.name`, `components.designMethodology`, `tokens.strategy`, `designSystem.{name,themeName}`, `figma.mcpToolNamespace`. Pass to every spawn.
 4. Cache KG / complexity flags + `storeDir`.
 5. If a prior handover exists, surface its **Open issues** verbatim before any specialist runs. Don't auto-execute its "Next steps".
 
@@ -79,6 +81,7 @@ You may write/edit ONLY `/tmp/figma-<runId>/*` directly, plus `<storeDir>/stagin
 
 9. **Dispatch (respect the DAG).**
    - token-builder runs first when scheduled (sonnet floor if dict > 100 entries).
+   - **Pre-read adapter excerpts ONCE per run** (before the first component-builder dispatch). Read `adapters/frameworks/<framework>.md`, `adapters/css/<cssSystem>.md`, and (when `designSystem.name != "none"`) `adapters/design-systems/<designSystem>.md`. Extract only the sections each builder needs (component-builder takes File-layout + State-idiom + Class-composition + Token-reference; story-author takes Story-idiom; test-author takes Test-idiom; icon-generator takes Icon-mapping). Pass these as `adapterExcerpts: { framework, css, designSystem }` in every builder slice. **Builders MUST prefer `adapterExcerpts` over re-reading the adapter files themselves** — only fall through to a direct adapter Read when an excerpt is missing or claims `"truncated": true`. This cuts ~4-5 Read tool calls per component, the dominant duration cost on multi-component builds.
    - Reuse-resolved entries never reach a builder — their consuming screens get a `reusedComposes[]` slice block so component-builder emits `import` not a new file.
    - Build-main entries dispatch first (topo from Step 6), then consuming screens.
    - icon-generator + component-builder run in parallel once tokens exist.
@@ -107,7 +110,19 @@ You may write/edit ONLY `/tmp/figma-<runId>/*` directly, plus `<storeDir>/stagin
 
 14. **Lessons.** Append `/tmp/figma-<runId>/lessons.md`: runId, built / retries / refusals / token-mapping aborts / HITL gates / tier / KG hit-rate. Ephemeral.
 
-15. **Report.** Created / updated / skipped / FAILED + needs-your-attention. Include handover path and specialist flags. Leave changes in the working tree.
+15. **Report.** Created / updated / **skipped** / FAILED + needs-your-attention. Include handover path and specialist flags. Leave changes in the working tree. The **Skipped** block must explicitly name each skipped agent or component AND the reason — so the user understands why a builder didn't run:
+
+    ```
+    Skipped:
+      - token-builder:    tokenReuseRatio=1.0 (all <N> Figma variables matched existing tokens)
+      - story-author:     config.stories.enabled = false
+      - test-author:      config.tests.unit.enabled = false AND config.tests.e2e.enabled = false
+      - code-reviewer:    tier != extreme
+      - <ComponentName>:  figmaHash match (byte-identical to last build)
+      - <ComponentName>:  resolved as reuse → import from <filePath>
+    ```
+
+    Reasoning: the harness only emits per-agent `total_tokens` for agents that ran. Without an explicit Skipped block, users can't tell whether token-builder was skipped on purpose (a win — token reuse paid off) vs. silently broken. Same for components resolved as `reuse` — they're a successful KG hit, not a missing build.
 
 ## Safety
 

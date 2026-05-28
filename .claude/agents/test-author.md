@@ -28,7 +28,7 @@ Any other write → abort.
 
 ## Design-system render wrapper
 
-When `designSystemName != "none"`, load `adapters/design-systems/<designSystemName>.md` § Test idiom. Emit a `renderWith<DesignSystem>` helper at the top of each file (or reuse the consumer's existing `test-utils`) for every `render(...)`. Without the provider, DS components render empty and assertions fail.
+When `designSystemName != "none"`, use `adapterExcerpts.designSystem.testIdiom` from the slice when present (coordinator pre-reads). On miss, Read `adapters/design-systems/<designSystemName>.md` § Test idiom directly. Emit a `renderWith<DesignSystem>` helper at the top of each file (or reuse the consumer's existing `test-utils`) for every `render(...)`. Without the provider, DS components render empty and assertions fail.
 
 ## Runner + library branching
 
@@ -65,9 +65,9 @@ Avoid combinatorial blow-up — pick representative states.
 - No snapshot tests by default (brittle, low signal). Only on user opt-in for purely-presentational components.
 - Co-locate test fixtures inline; no `__fixtures__` dir unless one exists.
 
-## Update flow
+## Update flow — write-first discipline
 
-`intent: "update"` + `existsOnDisk: true` → read existing file; ADD-ONLY for new variants/states; preserve user-authored tests verbatim (never delete). Renamed prop → update reference + `// renamed from <old> in <runId>`.
+On `intent: "create"`: emit each test file in ONE `Write` call. Don't iterate with multiple `Edit`s on your own just-written file. On `intent: "update"` + `existsOnDisk: true`: read existing file; ADD-ONLY for new variants/states via `Edit`; preserve user-authored tests verbatim (never delete). Renamed prop → update reference + `// renamed from <old> in <runId>`. **Never run formatter probes** — consumer's tooling owns that.
 
 ## Report
 

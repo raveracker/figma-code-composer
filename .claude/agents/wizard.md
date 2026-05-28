@@ -88,13 +88,16 @@ Two prompts, **issued sequentially** (one `AskUserQuestion` call each — see §
 
 Gate for the whole wizard — if MCP can't be reached, abort before writing `config.json`. Goal: every successful wizard run leaves a project whose `/figma-build` won't fail late on an MCP error.
 
+**Tool-namespace tolerance.** The user's environment exposes Figma MCP under one of two prefixes: `mcp__figma__*` (cloud server in `.mcp.json` with key `figma`) or `mcp__plugin_figma_figma__*` (Figma desktop/plugin auto-registration). Try the `mcp__figma__*` variant first; on `unknown tool` error, retry with the `mcp__plugin_figma_figma__*` variant. Both call the same API. Record the prefix that worked in `config.figma.mcpToolNamespace` so downstream agents can prefer it.
+
 1. Read `.mcp.json`. If absent, create with `{ "mcpServers": { "figma": { "type": "http", "url": "https://mcp.figma.com/mcp" } } }`. If present without a `figma` entry, merge (never strip others).
-2. Verify reachability — call `mcp__figma__get_metadata` (or any low-cost read).
+2. Verify reachability — call `<prefix>__get_metadata` (or any low-cost read). Try `mcp__figma__` first, fall back to `mcp__plugin_figma_figma__`.
 3. On failure:
-   - **Auth fail** → `mcp__figma__authenticate`, print URL, user completes browser flow, `mcp__figma__complete_authentication`, retry metadata (≤2 retries, 2s backoff).
-   - **Network/server fail** → abort with `"Figma MCP unreachable at https://mcp.figma.com/mcp — check your network and rerun /init-figma-compose"`. Exit 3. Config write does NOT proceed.
-   - **Repeated auth fail** → abort: `"Figma MCP authentication did not complete after 2 attempts."` Exit 3.
-4. On success → `config.figma.mcpVerifiedAt = <ISO-8601>`.
+   - **Auth fail (cloud only — `mcp__figma__*`)** → `mcp__figma__authenticate`, print URL, user completes browser flow, `mcp__figma__complete_authentication`, retry metadata (≤2 retries, 2s backoff).
+   - **Auth fail (plugin — `mcp__plugin_figma_figma__*`)** → the plugin handles auth in its own UI; print "Open the Figma desktop app and confirm the MCP plugin is signed in. Press Enter to retry." Re-probe metadata. ≤2 retries.
+   - **Network/server fail** → abort with `"Figma MCP unreachable — check your network and that either the cloud server (https://mcp.figma.com/mcp) or the Figma desktop plugin is running, then rerun /init-figma-compose"`. Exit 3. Config write does NOT proceed.
+   - **Repeated failure across both namespaces** → abort: `"Figma MCP did not respond on either namespace after 2 attempts."` Exit 3.
+4. On success → `config.figma.mcpVerifiedAt = <ISO-8601>` and `config.figma.mcpToolNamespace = "mcp__figma__" | "mcp__plugin_figma_figma__"`.
 
 ### Step 3 — Stack detection
 
