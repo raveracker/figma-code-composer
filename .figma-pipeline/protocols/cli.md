@@ -25,7 +25,27 @@ Every subcommand also accepts `--help` for subcommand-specific usage.
 
 > Quick reference of every subcommand:
 >
-> `init` · `doctor` · `complexity` · `kg:query` · `kg:stage` · `kg:merge` · `kg:rebuild` · `kg:verify` · `kg:repair` · `handover`
+> `init` · `migrate` · `doctor` · `complexity` · `kg:query` · `kg:stage` · `kg:merge` · `kg:rebuild` · `kg:verify` · `kg:repair` · `handover`
+
+### `fcc migrate`
+
+One-time migration for projects scaffolded **before the ownership split** (when `CLAUDE.md` carried the binding rules / repo map / coverage / quick-start inline). Those now live in `.figma-pipeline/PIPELINE.md`, imported via a managed marker block — so the inline copy is redundant.
+
+**Effect:**
+- Detects an old-style `CLAUDE.md` (fingerprint: a `## Binding rules` heading + the rule-1 text, no managed block).
+- Backs it up to `CLAUDE.md.bak`, removes the superseded sections (`## Quick start`, `## Repo map`, `## Binding rules`, `## Coverage`), and ensures the `@.figma-pipeline/PIPELINE.md` managed block is present. Your own sections (anything not in that set) are preserved.
+- `AGENTS.md`: lighter — just ensures the managed pointer block exists.
+- Idempotent: a file that already has the managed block reports "already migrated".
+
+**Flags:**
+
+| Flag             | Effect                                            |
+| ---------------- | ------------------------------------------------- |
+| `--target <dir>` | Project dir (default: cwd)                        |
+| `--dry-run`      | Print the plan (sections to remove); write nothing |
+| `--yes, -y`      | Skip the confirmation prompt                      |
+
+**Exit codes:** `0` migrated (or already-migrated / dry-run) · `1` user declined the prompt.
 
 ### `fcc init [target]`
 

@@ -73,6 +73,8 @@ npx figma-code-composer@latest --force
 git checkout -p -- .figma-pipeline/ .claude/ .cursor/   # 'y' keeps your hunk, 'n' takes upstream
 ```
 
+**Scaffolded before the ownership split?** If your `CLAUDE.md` still has the binding rules inline (older versions copied them in), updating leaves them duplicated with the new `PIPELINE.md` import. Run `npx figma-code-composer migrate` once — it backs up to `CLAUDE.md.bak`, strips the superseded sections (`## Quick start` / `## Repo map` / `## Binding rules` / `## Coverage`), keeps your own sections, and wires the import block. `fcc init` also prints a one-line nudge when it detects this.
+
 One more thing to watch: if a future release bumps the config schema, `--re-detect` surfaces any new required fields and walks you through them.
 
 ---
@@ -393,6 +395,7 @@ The only thing your agents shell out to. Never bundled into your app.
 | Subcommand                                          | Used by                  | Purpose                                                 |
 | --------------------------------------------------- | ------------------------ | ------------------------------------------------------- |
 | `fcc init [target]`                                 | you                      | Scaffold the pipeline into a project                    |
+| `fcc migrate`                                       | you                      | De-dupe a pre-ownership-split CLAUDE.md into the PIPELINE.md import (backs up first) |
 | `fcc doctor`                                        | you                      | Validate config, RTK install, MCP reachability          |
 | `fcc complexity <manifest>`                         | figma-coordinator        | Compute complexity score + tier                         |
 | `fcc kg:query --slice <path> --top-k 5`             | figma-coordinator        | RAG retrieval — similarity-based component hints        |

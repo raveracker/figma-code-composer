@@ -109,6 +109,7 @@ const c = (color, str) => (NO_COLOR ? str : `${COLORS[color]}${str}${COLORS.rese
 // ─── subcommand dispatcher ──────────────────────────────────────────────────
 const KNOWN_SUBCOMMANDS = new Set([
   "init",
+  "migrate",
   "doctor",
   "complexity",
   "kg:query",
@@ -121,6 +122,7 @@ const KNOWN_SUBCOMMANDS = new Set([
 ]);
 
 const SUBCOMMAND_HANDLERS = {
+  migrate:      runMigrate,
   doctor:       runDoctor,
   complexity:   runComplexity,
   "kg:query":   runKgQuery,
@@ -192,6 +194,7 @@ ${c("bold", "figma-code-composer")} (fcc) — Figma-to-code pipeline scaffold + 
 
 ${c("bold", "Subcommands:")}
   init [target]              Scaffold the pipeline into a project (default)
+  migrate                    De-dupe a pre-ownership-split CLAUDE.md into the PIPELINE.md import
   doctor                     Validate config, RTK install, MCP reachability
   complexity <manifest>      Print complexity score for a manifest JSON
   kg:query                   Retrieve top-K prior components for a manifest slice
@@ -556,6 +559,17 @@ async function runInit(argv) {
       console.log(c("yellow", `  ${doc.file}: would ${r.action}`));
     } else {
       console.log(`  ${c("green", "✓")} ${doc.file} (${r.action})`);
+    }
+  }
+
+  // Heads-up for projects scaffolded before the ownership split: an old CLAUDE.md
+  // still carries the binding rules inline, now duplicated with the PIPELINE.md import.
+  const claudeForCheck = join(targetDir, "CLAUDE.md");
+  if (!args.dryRun && existsSync(claudeForCheck)) {
+    const t = readFileSync(claudeForCheck, "utf8");
+    if (t.includes("## Binding rules") && /Write-access allowlist driven by/.test(t)) {
+      console.log(c("yellow", `  ⚠ CLAUDE.md still has the old inline binding rules (now in .figma-pipeline/PIPELINE.md).`));
+      console.log(c("dim",    `     De-dupe with: npx figma-code-composer migrate   (backs up to CLAUDE.md.bak first)`));
     }
   }
 
@@ -1079,6 +1093,86 @@ function runDoctor(args) {
 
   emit(report, true);
   process.exit(report.warnings.length ? 1 : 0);
+}
+
+// ─── fcc migrate [--dry-run] [--yes] ──────────────────────────────────────────
+// One-time migration for projects scaffolded BEFORE the ownership split: old
+// CLAUDE.md carried the binding rules / repo map / coverage / quick-start inline;
+// those now live in .figma-pipeline/PIPELINE.md (imported via a managed block).
+// This de-dupes: backs up CLAUDE.md, removes the superseded scaffold sections,
+// ensures the managed block + @import is present. Safe — always writes a .bak,
+// idempotent, and only strips sections whose headings match the known scaffold set.
+async function runMigrate(args) {
+  const f = flags(args);
+  const targetDir = f.target ? resolve(REPO, f.target) : REPO;
+  const SUPERSEDED = ["## Quick start", "## Repo map", "## Binding rules", "## Coverage"];
+  // Fingerprint of the old scaffold-authored CLAUDE.md (unlikely in a consumer's own file).
+  const isOldScaffoldDoc = (t) =>
+    !t.includes(MANAGED_START) &&
+    t.includes("## Binding rules") &&
+    /Write-access allowlist driven by/.test(t);
+
+  function removeSection(text, heading) {
+    const lines = text.split("\n");
+    const start = lines.findIndex(l => l.trim() === heading);
+    if (start === -1) return text;
+    let end = start + 1;
+    while (end < lines.length && !/^#{1,2}\s/.test(lines[end])) end++;
+    lines.splice(start, end - start);
+    return lines.join("\n").replace(/\n{3,}/g, "\n\n");
+  }
+
+  const results = [];
+
+  // ---- CLAUDE.md ----
+  const claudePath = join(targetDir, "CLAUDE.md");
+  if (existsSync(claudePath)) {
+    const orig = readFileSync(claudePath, "utf8");
+    if (orig.includes(MANAGED_START) && !isOldScaffoldDoc(orig)) {
+      results.push({ file: "CLAUDE.md", action: "already migrated (managed block present)" });
+    } else if (isOldScaffoldDoc(orig)) {
+      let next = orig;
+      const removed = SUPERSEDED.filter(h => next.split("\n").some(l => l.trim() === h));
+      for (const h of removed) next = removeSection(next, h);
+      next = next.trimEnd() + "\n\n" + MANAGED_DOCS["claude-md"].block + "\n";
+      if (f["dry-run"]) {
+        results.push({ file: "CLAUDE.md", action: "would migrate", removeSections: removed, backup: "CLAUDE.md.bak" });
+      } else {
+        if (!f.yes && !f.y) {
+          const rl = createInterface({ input, output });
+          const ans = (await rl.question(`Migrate CLAUDE.md? Removes superseded sections [${removed.join(", ")}], backs up to CLAUDE.md.bak, adds the PIPELINE.md import block. [y/N] `)).trim().toLowerCase();
+          rl.close();
+          if (ans !== "y" && ans !== "yes") { console.log("Declined."); process.exit(1); }
+        }
+        writeFileSync(claudePath + ".bak", orig);
+        writeFileSync(claudePath, next);
+        results.push({ file: "CLAUDE.md", action: "migrated", removedSections: removed, backup: "CLAUDE.md.bak" });
+      }
+    } else {
+      // Consumer's own CLAUDE.md without the block — just ensure the block is present.
+      if (!f["dry-run"]) injectManagedBlock(targetDir, "CLAUDE.md", MANAGED_DOCS["claude-md"].block, false);
+      results.push({ file: "CLAUDE.md", action: f["dry-run"] ? "would add managed block" : "added managed block (no scaffold sections to strip)" });
+    }
+  } else {
+    results.push({ file: "CLAUDE.md", action: "absent — nothing to migrate" });
+  }
+
+  // ---- AGENTS.md: lighter — ensure the managed pointer block exists ----
+  const agentsPath = join(targetDir, "AGENTS.md");
+  if (existsSync(agentsPath)) {
+    const orig = readFileSync(agentsPath, "utf8");
+    if (orig.includes(MANAGED_START)) {
+      results.push({ file: "AGENTS.md", action: "already has managed block" });
+    } else if (!f["dry-run"]) {
+      injectManagedBlock(targetDir, "AGENTS.md", MANAGED_DOCS["agents-md"].block, false);
+      results.push({ file: "AGENTS.md", action: "added managed block" });
+    } else {
+      results.push({ file: "AGENTS.md", action: "would add managed block" });
+    }
+  }
+
+  emit({ migrated: results, note: f["dry-run"] ? "dry run — nothing written" : "review CLAUDE.md.bak if anything looks off" }, true);
+  process.exit(0);
 }
 
 // ─── entry ──────────────────────────────────────────────────────────────────
