@@ -30,6 +30,38 @@ That copies `.claude/`, `.cursor/`, `.codex/`, `.figma-pipeline/`, `CLAUDE.md`, 
 
 ---
 
+## Updating to a newer version
+
+Re-running the scaffolder pulls the latest agents, protocols, adapters, skills, and `fcc` CLI. **Your work is safe by design** — the scaffolder only touches `.claude/` `.cursor/` `.codex/` `.figma-pipeline/` `CLAUDE.md` `AGENTS.md`, and copies *into* those (never mirror-deletes). It never reads or writes your `src/`.
+
+**Never touched** (not in the npm package, so a re-scaffold leaves them alone):
+
+- Your generated components / tokens / icons / stories / tests (they live in your `src/` paths)
+- `.figma-pipeline/config.json` (your wizard answers)
+- `.figma-pipeline/kg/` (knowledge-graph ledger, graph, handovers)
+- `codex-run`, `.codex/config.json` (wizard-generated)
+
+**Refreshed by the update** (with `--force`): the scaffold engine — `.claude/agents/`, hooks, protocols, adapters, `config.schema.json`, the `fcc` CLI, and the `.figma-pipeline/skills/` catalog (restored to the full set, then re-pruned in step 3).
+
+### Recommended flow
+
+```bash
+# 1. Commit first — so anything overwritten is recoverable via `git diff`
+git add -A && git commit -m "snapshot before fcc update"
+
+# 2. Pull the latest scaffold. Keep your own CLAUDE.md / AGENTS.md if you edited them.
+npx figma-code-composer@latest --force --skip claude-md --skip agents-md
+#   (drop the --skip flags if you never customized those two files)
+
+# 3. Re-run the wizard to re-prune skills + regenerate per-tool surfaces.
+#    --re-detect preserves your config.json answers and re-verifies MCP.
+/init-figma-compose --re-detect
+```
+
+Without `--force`, the scaffolder **detects conflicts and prompts** before overwriting — it won't silently clobber. Watch for two things: (1) any scaffold file you hand-edited (a protocol, agent, or hook) is replaced by `--force` — that's why you commit first; (2) if a future release bumps the config schema, `--re-detect` surfaces any new required fields and walks you through them.
+
+---
+
 ## Prerequisites
 
 Before running `/init-figma-compose` you need to have **Figma MCP connected** in your AI tool of choice. **Graphify** and **RTK** are optional but recommended — they're both external user-level tools the pipeline benefits from.
