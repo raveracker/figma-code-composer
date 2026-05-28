@@ -50,8 +50,6 @@ Direct writes only:
 
 - `.figma-pipeline/config.json`
 - `.mcp.json` (Figma entry only — never strip others)
-- `.codex/config.json` (when `tools.codexCli == true`)
-- `<projectRoot>/codex-run` (executable, Step 7.7b)
 - `<projectRoot>/.gitignore` (append-only, idempotent, Step 7.8)
 - `/tmp/figma-wizard-<runId>/*` (scratch)
 
@@ -60,7 +58,6 @@ Step 7.5 one-shot install/strip pass (driven by `resolve_skills(configSnapshot)`
 - `.figma-pipeline/skills/<name>/` — delete dirs not in install set
 - `.claude/skills/<name>` — symlink → `../../.figma-pipeline/skills/<name>` (only `tools.claudeCode`)
 - `.cursor/rules/use-skills.mdc` — write or delete (only `tools.cursor`)
-- `.codex/skills.md` — write or delete (only `tools.codexCli`)
 
 The wizard does NOT write any graphify files — `graphify install --platform <tool>` (user-level) and `/graphify .` (the graph build) are the user's to run, per Step 7.7. `graphify-out/` is only ensured to be in `.gitignore` (Step 7.8).
 
@@ -92,7 +89,6 @@ Gate for the whole wizard — if MCP can't be reached, abort before writing `con
 
 - Claude Code → `claude plugin install figma@claude-plugins-official` OR `claude mcp add --transport http figma https://mcp.figma.com/mcp`
 - Cursor → `/add-plugin figma` OR manual `mcp.json` paste in Settings → Tools & MCP
-- Codex CLI → `codex` → `/plugins` → search Figma
 
 **Tool-namespace tolerance.** Two MCP install paths produce different tool prefixes: `mcp__figma__*` (cloud server, `mcp.figma.com/mcp`) or `mcp__plugin_figma_figma__*` (Figma desktop/plugin auto-registration). Try `mcp__figma__*` first; on `unknown tool` error, retry with `mcp__plugin_figma_figma__*`. Both call the same API. Record the working prefix in `config.figma.mcpToolNamespace` for downstream agents.
 
@@ -105,7 +101,7 @@ Gate for the whole wizard — if MCP can't be reached, abort before writing `con
 5. **Network/server failure** → abort: `"Figma MCP unreachable. Check your network and that either the cloud server (mcp.figma.com) or the Figma desktop plugin is running. See README § Prerequisites for setup, then re-run."` Exit 3.
 6. **Success** → record `config.figma.mcpVerifiedAt = <ISO-8601>` AND `config.figma.mcpToolNamespace = "mcp__figma__" | "mcp__plugin_figma_figma__"`.
 
-**The wizard does NOT auto-create `.mcp.json`** — that's part of the user's tool-specific MCP install per Prerequisites. A missing `.mcp.json` (Claude Code / Cursor) or missing Codex plugin registration manifests as `unknown tool` in step 2 and triggers the Prerequisites pointer.
+**The wizard does NOT auto-create `.mcp.json`** — that's part of the user's tool-specific MCP install per Prerequisites. A missing `.mcp.json` (Claude Code / Cursor) manifests as `unknown tool` in step 2 and triggers the Prerequisites pointer.
 
 ### Step 3 — Stack detection
 
@@ -204,15 +200,15 @@ Default `namingConvention` per cssSystem: kebab-case for tailwind/css/sass/unocs
 
 ### Step 6 — Tools
 
-"Which AI tools should this scaffold wire for?" multi-select; defaults from existing files (`.claude/` → Claude Code default-on, `.cursor/` → Cursor default-on, Codex CLI default-off unless opted in).
+"Which AI tools should this scaffold wire for?" multi-select; defaults from existing files (`.claude/` → Claude Code default-on, `.cursor/` → Cursor default-on).
 
 ### Step 7 — Compose + validate
 
-Compose config. Derive `writeScope.allowedDirs` from every path-bearing key (+`/**`); always include `.figma-pipeline/**`, `/tmp/**`, `.mcp.json`, `.codex/**`. Set `writeScope.alwaysBlocked` per `protocols/allowlist.md`.
+Compose config. Derive `writeScope.allowedDirs` from every path-bearing key (+`/**`); always include `.figma-pipeline/**`, `/tmp/**`, `.mcp.json`. Set `writeScope.alwaysBlocked` per `protocols/allowlist.md`.
 
 Validate against `.figma-pipeline/config.schema.json` (`bash`+`jq` or `npx ajv-cli`; fallback: required keys + enum check).
 
-Write `.figma-pipeline/config.json` (2-space indent). If `tools.codexCli`, mirror the relevant subset to `.codex/config.json`.
+Write `.figma-pipeline/config.json` (2-space indent).
 
 ### Step 7.5 — Install / strip skills
 
@@ -228,9 +224,8 @@ Per `protocols/skills.md` § _Resolution algorithm — Wizard (install phase)_:
    - `true` → `mkdir -p .claude/skills/`; symlink each `<name>` → `../../.figma-pipeline/skills/<name>`. Delete wizard-owned symlinks (readlink starts with `../../.figma-pipeline/skills/`) not in `installSet`. Leave non-symlinks alone (consumer-owned).
    - `false` → delete wizard-owned symlinks only; leave the dir.
 4. **Cursor surface** — `tools.cursor`: write or `rm -f` `.cursor/rules/use-skills.mdc` (wizard-owned, overwrite OK).
-5. **Codex surface** — `tools.codexCli`: write or `rm -f` `.codex/skills.md` (wizard-owned, overwrite OK).
-6. Audit: `config.skillsInstall.installed[] = sorted(installSet ∩ on-disk-canonical)` + `resolvedAt = <ISO-8601>`. Re-validate.
-7. Report: `Skills: kept <K>, removed <R>, missing <M>; surfaces: <claude?> <cursor?> <codex?>`.
+5. Audit: `config.skillsInstall.installed[] = sorted(installSet ∩ on-disk-canonical)` + `resolvedAt = <ISO-8601>`. Re-validate.
+6. Report: `Skills: kept <K>, removed <R>, missing <M>; surfaces: <claude?> <cursor?>`.
 
 Canonical pruning goes through `fcc skills:prune` (step 2) — never a hand-authored `rm -rf` over a shell-expanded skill list (a zsh word-splitting bug in such a command once deleted the entire catalog). The remaining writes are narrow: symlink create/remove (`ln -sfn`, and `rm` only on a path whose `readlink` starts with `../../.figma-pipeline/skills/`) and `Write` for the two text files. Honor-system — the agent MUST limit itself to the target classes above and MUST NOT author destructive globbed deletes.
 
@@ -256,9 +251,9 @@ Runtime: only Bash tool calls. Does NOT touch Figma MCP payloads, generated code
 
 [Graphify](https://github.com/safishamsi/graphify) — external Python CLI (`graphifyy` on PyPI, command `graphify`). Turns the project into a queryable knowledge graph at `graphify-out/`. Pipeline doesn't require it; agents read `graphify-out/graph.json` when present, degrade gracefully when not.
 
-**Detect-only — same posture as RTK (Step 7.6).** Both the binary install (`uv tool install graphifyy`) AND the per-tool skill registration (`graphify install --platform <tool>`) are user-level actions documented in `README § Prerequisites § Optional — Graphify`. The wizard does NOT run either — `graphify install` writes to the tool's config dir (user-level), so it falls under the same "verify, don't install" principle as RTK and Figma MCP. **The wizard also NEVER builds the graph** — that's `/graphify .` (Codex: `$graphify .`) inside the user's assistant.
+**Detect-only — same posture as RTK (Step 7.6).** Both the binary install (`uv tool install graphifyy`) AND the per-tool skill registration (`graphify install --platform <tool>`) are user-level actions documented in `README § Prerequisites § Optional — Graphify`. The wizard does NOT run either — `graphify install` writes to the tool's config dir (user-level), so it falls under the same "verify, don't install" principle as RTK and Figma MCP. **The wizard also NEVER builds the graph** — that's `/graphify .` inside the user's assistant.
 
-> Note: graphify v0.7.x has no `--project` flag. `graphify install --platform claude|cursor|codex` is the correct form; it copies the skill to the platform's config dir. Don't invent a `--project` variant.
+> Note: graphify v0.7.x has no `--project` flag. `graphify install --platform claude|cursor` is the correct form; it copies the skill to the platform's config dir. Don't invent a `--project` variant.
 
 1. `command -v graphify`.
 2. **Present** → record `config.graphify = { installed: true, version: <`graphify --version`>, outputDir: "graphify-out", detectedAt: <ISO-8601> }`. No question. Continue.
@@ -271,28 +266,6 @@ Runtime: only Bash tool calls. Does NOT touch Figma MCP payloads, generated code
    Continue. The wizard does not block on a missing optional tool.
 4. Always proceed to Step 7.8 (`.gitignore` patch covers `graphify-out/` regardless).
 5. Surface in final report: `Build the graph anytime by typing /graphify . in your assistant — the wizard does not build it.`
-
-### Step 7.7b — Codex `./codex-run` shortcut (only when `tools.codexCli == true`)
-
-Zero user intervention beyond `./codex-run figma-build <url>` from the project root — no source, no shell-rc edit, no direnv. Bare-name `codex-run` would require shell-rc or direnv; wizard refuses both (see § "Why the wizard never auto-installs").
-
-1. Skip entirely when `tools.codexCli == false`.
-2. Write `<projectRoot>/codex-run` (overwrite OK, wizard-owned):
-
-   ```bash
-   #!/usr/bin/env bash
-   # Generated by /init-figma-compose. Rerun --re-detect to refresh.
-   # Project-local Codex CLI shortcut.
-   #   ./codex-run figma-build <figma-url>
-   #   ./codex-run init-figma-compose --re-detect
-   set -eo pipefail
-   _fcc_project_root="$(cd "$(dirname "$0")" && pwd)"
-   exec "${_fcc_project_root}/.codex/wrap.sh" "$@"
-   ```
-
-3. `chmod 0755 codex-run`.
-4. Record `config.tools.codexShortcut = { generatedAt, path: "codex-run", executable: true }`.
-5. Wizard does NOT add `codex-run` to `~/.zshrc` / `~/.bashrc` / fish / PowerShell. Wizard does NOT add it to `.gitignore` — the wrapper is harmless and team-portable (committing means contributors use it without re-running the wizard). Users who'd rather ignore it: `git rm --cached codex-run` + manual `.gitignore` line.
 
 ### Step 7.8 — Patch project `.gitignore`
 
@@ -334,14 +307,13 @@ The PreToolUse `check-frozen-paths.sh` permits a single `Write/Edit` against the
   Unit tests:     <enabled ? "<framework> (<outputDir>)" : "disabled">
   E2E tests:      <enabled ? "playwright (<outputDir>)" : "disabled">
   Skills:         kept <K>, removed <R>, missing <M>
-  Surfaces:       <claude|none> <cursor|none> <codex|none>
-  Tools:          <ClaudeCode|Cursor|CodexCLI list>
+  Surfaces:       <claude|none> <cursor|none>
+  Tools:          <ClaudeCode|Cursor list>
   RTK:            <installed ? "✓ v<version>" + (initialized ? " (hook wired)" : " (run rtk init)") : "not installed — see brew install rtk">
   Graphify:       <installed ? "✓ v<version> detected — register with graphify install --platform <tool>, build with /graphify ." : "not installed — see README § Prerequisites">
   KG:             <enabled ? "enabled (storeDir=<storeDir>, embeddings=<provider>)" : "disabled">
   Complexity:     <enabled ? "tier-routed" : "always-complex">
   .gitignore:     patched (<entriesAdded> entries)
-  Codex shortcut: <tools.codexCli ? "./codex-run figma-build <url>" : "n/a">
 
   Allowlist (writes restricted to):
     - <dir1>

@@ -89,8 +89,7 @@
   },
   "tools": {
     "claudeCode": true,
-    "cursor": true,
-    "codexCli": true
+    "cursor": true
   },
   "complexity": {
     "enabled": true,

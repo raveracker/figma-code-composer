@@ -29,17 +29,15 @@ Steps:
 7. **Derive paths** — ask the user to confirm or override the path defaults.
 8. **Stories + Tests** — Storybook yes/no; unit-test framework (vitest/jest/karma); E2E enabled toggle (Playwright is set automatically — never asked). Per § Step 5.5.
 8.5. **Output-structure details** — token file layout (split/combined/framework-native), prefix, naming; story layout; **unit-test layout AND E2E location (Q-e2e-location: co-located default / `e2e/` / `tests/e2e/` / custom)**; icon fill model + barrel. Skip questions whose values came back high-confidence from the detector — including **token prefix when the detector found an existing `--hk-`-style convention** (use it, don't impose a new one). Per § Step 5.6.
-9. **Tools** — multi-select; toggle `tools.claudeCode` / `tools.cursor` / `tools.codexCli`.
+9. **Tools** — multi-select; toggle `tools.claudeCode` / `tools.cursor`.
 10. **Compose + validate** — write `.figma-pipeline/config.json`; validate against the schema (use `npx ajv-cli validate` if available; else structural check).
 11. **Install / strip skills** — apply the install + per-tool surface pass per `.figma-pipeline/protocols/skills.md` § _Resolution algorithm — Wizard (install phase)_:
     a. Prune canonical `.figma-pipeline/skills/<name>/` to the resolved install set via `fcc skills:prune --keep "<installSet>" --json` (the vetted, guarded command) — never a hand-authored `rm -rf` over a shell-expanded list. It refuses to run if the keep-set is empty or disjoint from on-disk (the guard against a full-catalog wipe).
     b. If `tools.claudeCode`: ensure `.claude/skills/<name>` symlinks → `../../.figma-pipeline/skills/<name>` for each name in installSet; remove wizard-owned symlinks not in installSet. Else: remove all wizard-owned symlinks under `.claude/skills/`.
     c. If `tools.cursor`: write `.cursor/rules/use-skills.mdc` from the canonical template. Else: delete it.
-    d. If `tools.codexCli`: write `.codex/skills.md` from the canonical template. Else: delete it.
-    e. Update `config.skillsInstall.installed[]` / `missing[]` / `resolvedAt`.
+    d. Update `config.skillsInstall.installed[]` / `missing[]` / `resolvedAt`.
 11.5. **RTK verify** — `command -v rtk` to detect the optional shell-output compressor. Record `config.rtk = { installed, initialized, version, detectedAt }`. If absent, surface a one-line pointer: `"RTK not installed (optional — ~10–15% side-channel token savings). See README § Prerequisites § Optional — RTK."` Never auto-install. Per § Step 7.6.
 11.6. **Graphify detection** — `command -v graphify`; record `config.graphify = { installed, version, outputDir, detectedAt }`. Detect-only (same as RTK): never install the binary, never run `graphify install`, never build the graph. If absent, surface a one-line pointer: `"Graphify not installed (optional — codebase knowledge graph). See README § Prerequisites § Optional — Graphify."` Registration (`graphify install --platform cursor`) and the build (`/graphify .` in Cursor's agent chat) are the user's to run. Per § Step 7.7.
-11.6b. **Codex `./codex-run` shortcut (only when `tools.codexCli==true`)** — write an executable `<projectRoot>/codex-run` (chmod 0755) that does `exec .codex/wrap.sh "$@"`. User invokes `./codex-run figma-build <url>` — no source, no rc edit. Never touch shell rc. Per § Step 7.7b.
 11.7. **Patch project `.gitignore`** — idempotently append `.figma-pipeline/config.json`, `.figma-pipeline/scratch/`, `/tmp/figma-*/`, `graphify-out/`, `.mcp.json`. Record `config.gitignorePatch`. Per § Step 7.8.
 12. **Report** — print the summary block from `.claude/agents/wizard.md` § Step 8 (includes RTK, Graphify, KG, Complexity, .gitignore lines).
 
@@ -49,12 +47,10 @@ Cursor in agent mode may write only:
 
 - `.figma-pipeline/config.json`
 - `.mcp.json` (merge `figma` only)
-- `.codex/config.json` (when codexCli is enabled)
 - `/tmp/figma-wizard-*` (scratch)
 - `.figma-pipeline/skills/<name>/` — **delete only**, at Step 11(a), via `fcc skills:prune` (never free-form `rm -rf`)
 - `.claude/skills/<name>` — symlink create/delete, at Step 11(b), only when `tools.claudeCode`
 - `.cursor/rules/use-skills.mdc` — write/delete, at Step 11(c)
-- `.codex/skills.md` — write/delete, at Step 11(d)
 - `<projectRoot>/.gitignore` — append-only, at Step 11.7
 - `<projectRoot>/graphify-out/` — written indirectly by the `graphify` binary at Step 11.6
 

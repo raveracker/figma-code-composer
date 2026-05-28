@@ -116,6 +116,6 @@ If a subagent fails:
 
 ## Session-clearing UX
 
-Claude Code, Cursor, and Codex all have their own session model. The handover doesn't try to drive `/clear` — it just makes clearing safe. The coordinator's final user-facing message should always include:
+Claude Code and Cursor both have their own session model. The handover doesn't try to drive `/clear` — it just makes clearing safe. The coordinator's final user-facing message should always include:
 
 > Handover written to `.figma-pipeline/kg/handovers/<runId>.md`. Safe to /clear; the next build will rehydrate from this file + the KG.

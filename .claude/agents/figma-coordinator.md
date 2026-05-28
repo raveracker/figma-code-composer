@@ -81,7 +81,7 @@ You may write/edit ONLY `/tmp/figma-<runId>/*` directly, plus `<storeDir>/stagin
    | complex   | full: `senior-frontend` + `tdd-guide` + `senior-qa` | `lg` | no         |
    | extreme   | full + final `code-reviewer` per component          | `lg` | yes (`lg`) |
 
-   Claude Code size→model: `sm=claude-haiku-4-5`, `md=claude-sonnet-4-6`, `lg=claude-opus-4-7` (pass via `Agent(model=…)`). Cursor/Codex use their mirrors. `config.complexity.model.<tier>` wins if set. `complexity.enabled == false` → tier=`complex`.
+   Claude Code size→model: `sm=claude-haiku-4-5`, `md=claude-sonnet-4-6`, `lg=claude-opus-4-7` (pass via `Agent(model=…)`). Cursor uses its mirror. `config.complexity.model.<tier>` wins if set. `complexity.enabled == false` → tier=`complex`.
 
 5b. **First-build notice.** If KG is enabled but `.figma-pipeline/kg/ledger.jsonl` is absent or empty, surface once: `"First build in this repo — no KG entries yet. After this run, run /graphify . and future /figma-build / /figma-update calls will reuse what was built instead of duplicating."` Don't treat empty KG as an error.
 

@@ -28,7 +28,7 @@ The wizard writes `.figma-pipeline/config.json` (single source of truth) and `.m
 | `.cursor/prompts/`                    | Agent prompts (one per `.claude/agents/<x>.md`).                                         |
 | `.cursor/prompts/commands/`           | Slash-command prompts (`init-figma-compose`, `figma-build`, `figma-update`, `figma-icons`, `figma-tokens`). |
 | `.cursor/settings.json` + `mcp.json`  | Cursor project settings + MCP server entries (Figma + Storybook).                        |
-| `.claude/` + `.codex/`                | Read-only mirrors of the same agents/commands.                                           |
+| `.claude/`                            | Read-only mirror of the same agents/commands.                                            |
 
 ## Binding rules
 

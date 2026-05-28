@@ -8,14 +8,14 @@
   <a href="https://www.npmjs.com/package/figma-code-composer"><img src="https://img.shields.io/badge/npm-figma--code--composer-cb3837.svg?style=flat-square" alt="npm"/></a>
   <a href="https://www.npmjs.com/package/figma-code-composer"><img src="https://img.shields.io/npm/v/figma-code-composer.svg?style=flat-square&label=version&color=blue" alt="version"/></a>
   <a href="./LICENSE"><img src="https://img.shields.io/badge/license-MIT-3da639.svg?style=flat-square" alt="license: MIT"/></a>
-  <a href="#quickstart"><img src="https://img.shields.io/badge/works%20with-Claude%20Code%20%C2%B7%20Cursor%20%C2%B7%20Codex%20CLI-6e40c9.svg?style=flat-square" alt="Claude Code · Cursor · Codex CLI"/></a>
+  <a href="#quickstart"><img src="https://img.shields.io/badge/works%20with-Claude%20Code%20%C2%B7%20Cursor-6e40c9.svg?style=flat-square" alt="Claude Code · Cursor"/></a>
   <a href=".figma-pipeline/skills/"><img src="https://img.shields.io/badge/bundled%20skills-137-orange.svg?style=flat-square" alt="137 bundled skills"/></a>
 </p>
 
 
 **A Figma file walks into your AI tool, fully-typed components walk out.** Drop this scaffold into any frontend repo and a multi-agent pipeline turns Figma designs into design tokens, framework-native components, icons, stories, and tests — with a built-in knowledge graph that **reuses components across screens** instead of building duplicates.
 
-Works in **Claude Code**, **Cursor**, and **Codex CLI** — same agents, three entry points, one config.
+Works in **Claude Code** and **Cursor** — same agents, two entry points, one config.
 
 ---
 
@@ -26,18 +26,18 @@ Works in **Claude Code**, **Cursor**, and **Codex CLI** — same agents, three e
 npx figma-code-composer        # or the short alias: npx fcc
 ```
 
-That copies `.claude/`, `.cursor/`, `.codex/`, and `.figma-pipeline/` into your project, and **injects a managed marker block** into your `CLAUDE.md` / `AGENTS.md` (created if absent) pointing at the scaffold-owned `.figma-pipeline/PIPELINE.md` — so your own instructions in those files are never overwritten. **Nothing is bundled into your application** — your runtime never imports from this package. The CLI runs on demand via `npx`. Optionally pin with `npm i -D figma-code-composer`.
+That copies `.claude/`, `.cursor/`, and `.figma-pipeline/` into your project, and **injects a managed marker block** into your `CLAUDE.md` / `AGENTS.md` (created if absent) pointing at the scaffold-owned `.figma-pipeline/PIPELINE.md` — so your own instructions in those files are never overwritten. **Nothing is bundled into your application** — your runtime never imports from this package. The CLI runs on demand via `npx`. Optionally pin with `npm i -D figma-code-composer`.
 
 ---
 
 ## Updating to a newer version
 
-Re-running the scaffolder pulls the latest agents, protocols, adapters, skills, and `fcc` CLI. **Your work and your authored docs are safe by design** — the scaffolder copies *into* `.claude/` `.cursor/` `.codex/` `.figma-pipeline/` (never mirror-deletes), and for `CLAUDE.md` / `AGENTS.md` it only refreshes a **managed marker block** (your content outside the markers is untouched). It never reads or writes your `src/`.
+Re-running the scaffolder pulls the latest agents, protocols, adapters, skills, and `fcc` CLI. **Your work and your authored docs are safe by design** — the scaffolder copies *into* `.claude/` `.cursor/` `.figma-pipeline/` (never mirror-deletes), and for `CLAUDE.md` / `AGENTS.md` it only refreshes a **managed marker block** (your content outside the markers is untouched). It never reads or writes your `src/`.
 
 **Never touched** (not in the package, or protected by ownership):
 
 - Your generated components / tokens / icons / stories / tests (they live in your `src/` paths)
-- `.figma-pipeline/config.json` (your wizard answers), `.figma-pipeline/kg/` (knowledge graph), `codex-run`, `.codex/config.json`
+- `.figma-pipeline/config.json` (your wizard answers), `.figma-pipeline/kg/` (knowledge graph)
 - Your own content in `CLAUDE.md` / `AGENTS.md` outside the `<!-- figma-code-composer:start … end -->` block
 - Cursor rules you added or *forked* (any `.mdc` without the `owner: figma-pipeline` tag)
 
@@ -84,7 +84,7 @@ One more thing to watch: if a future release bumps the config schema, `--re-dete
 
 Before running `/init-figma-compose` you need to have **Figma MCP connected** in your AI tool of choice. **Graphify** and **RTK** are optional but recommended — they're both external user-level tools the pipeline benefits from.
 
-> **Using more than one tool?** Unlike `/init-figma-compose` (which you run **once** for the whole repo — see [Quickstart](#quickstart)), these prerequisites are **per-tool**. Figma MCP lives in each tool's own config (Claude Code's `.mcp.json` / Cursor's Settings → MCP / Codex's `/plugins`), and RTK / Graphify register into each tool's own config dir. So if you use Claude Code + Cursor + Codex (or any combination), **set up Figma MCP — and RTK / Graphify if you want them — individually in each tool you'll build from.** Setting them up in Claude Code does not carry over to Cursor or Codex.
+> **Using more than one tool?** Unlike `/init-figma-compose` (which you run **once** for the whole repo — see [Quickstart](#quickstart)), these prerequisites are **per-tool**. Figma MCP lives in each tool's own config (Claude Code's `.mcp.json` / Cursor's Settings → MCP), and RTK / Graphify register into each tool's own config dir. So if you use Claude Code + Cursor, **set up Figma MCP — and RTK / Graphify if you want them — individually in each tool you'll build from.** Setting them up in Claude Code does not carry over to Cursor.
 
 ### Required — Figma MCP
 
@@ -139,18 +139,9 @@ In Cursor's agent chat, type:
 }
 ```
 
-#### Codex CLI
-
-```bash
-codex                            # open Codex
-/plugins                         # then run
-```
-
-Search for **Figma** in the plugin list and press Enter to install.
-
 ### Optional — Graphify (`/graphify` codebase knowledge graph)
 
-[Graphify](https://github.com/safishamsi/graphify) turns the project tree into a queryable knowledge graph at `graphify-out/`. Once installed, type `/graphify .` (Codex: `$graphify .`) in your assistant and you get three files:
+[Graphify](https://github.com/safishamsi/graphify) turns the project tree into a queryable knowledge graph at `graphify-out/`. Once installed, type `/graphify .` in your assistant and you get three files:
 
 - `graph.html` — open in any browser, click nodes, filter, search
 - `GRAPH_REPORT.md` — key concepts, surprising connections, suggested questions
@@ -172,7 +163,6 @@ pip install graphifyy
 ```bash
 graphify install --platform claude       # Claude Code
 graphify install --platform cursor       # Cursor
-graphify install --platform codex        # Codex CLI (uses $graphify)
 ```
 
 `graphify install` copies the skill into the tool's config dir (a user-level action — the wizard detects it but doesn't run it for you, same as RTK). `graphify install --help` lists every supported platform.
@@ -204,7 +194,6 @@ cargo install --git https://github.com/rtk-ai/rtk
 ```bash
 rtk init -g                      # Claude Code (default)
 rtk init -g --agent cursor          # Cursor
-rtk init -g --codex              # Codex CLI
 ```
 
 Restart your AI tool after init, then test: `git status` (auto-rewritten to `rtk git status`). Re-running `/init-figma-compose` or `fcc doctor` picks up the new state in `config.rtk`.
@@ -223,9 +212,8 @@ Restart your AI tool after init, then test: `git status` (auto-rewritten to `rtk
 | -------------------- | --------------------------------------------------------------------------- |
 | Claude Code          | `/init-figma-compose`                                                       |
 | Cursor               | `/init-figma-compose` (or "set up figma-pipeline")                          |
-| Codex CLI            | `./.codex/wrap.sh init-figma-compose` (or `./codex-run init-figma-compose`) |
 
-> **Do NOT run the wizard again in each tool.** One run with Claude Code + Cursor + Codex all selected configures all three. Re-running it in another tool just rewrites the same `config.json`. The only reason to run it a second time is to *add* a tool you didn't select the first time (it preserves your existing answers). Verify what's wired with `grep -A3 '"tools"' .figma-pipeline/config.json` — if `claudeCode`, `cursor`, and `codexCli` are all `true`, you're done.
+> **Do NOT run the wizard again in each tool.** One run with Claude Code + Cursor both selected configures both. Re-running it in another tool just rewrites the same `config.json`. The only reason to run it a second time is to *add* a tool you didn't select the first time (it preserves your existing answers). Verify what's wired with `grep -A3 '"tools"' .figma-pipeline/config.json` — if `claudeCode` and `cursor` are both `true`, you're done.
 
 > **Per-tool environment setup is separate** from the wizard. Figma MCP (required) and RTK / Graphify (optional) live in each tool's own config, not in `config.json` — set them up per tool, per the [Prerequisites](#prerequisites). The wizard only *verifies* them.
 
@@ -237,7 +225,6 @@ Once the wizard has run, build from whichever tool you like — they all read th
 | ----------- | ------------------------------ |
 | Claude Code | `/figma-build <url>`           |
 | Cursor      | `/figma-build <url>` (or "build components from `<url>`") |
-| Codex CLI   | `./codex-run figma-build <url>` |
 
 Available commands (all tools): `figma-build`, `figma-update`, `figma-icons`, `figma-tokens`.
 
@@ -245,17 +232,6 @@ Available commands (all tools): `figma-build`, `figma-update`, `figma-icons`, `f
 
 - **Claude Code** runs the wizard **inline in the main thread** (it owns `AskUserQuestion` directly — the wizard is not spawned as a subagent, since a subagent that asks a question can't be resumed for the answer; only the read-only `project-detector` scan is delegated). Build specialists are dispatched via the `Agent` tool, with per-tier model routing (Haiku / Sonnet / Opus) automatic via `Agent(model=…)`.
 - **Cursor** reads agents from `.cursor/prompts/` and runs MCP through Cursor's Settings → MCP UI. The wizard **hard-gates** on this: it verifies Figma MCP with a low-cost read before writing `config.json`. **The whole pipeline runs inline in one chat thread — Cursor has no `Agent`-style spawner, so the coordinator plays every specialist role itself** (unlike Claude Code's per-specialist `Agent(model=…)` spawns). Crucially, it must **never try to launch a specialist as a separate model-pinned agent**: on the **Free plan** that aborts the run with `Named models unavailable — Free plans can only use Auto`. Model routing is user-selected and the coordinator never overrides it — the preference is **plan-aware**: on the **Free plan** model is locked to **Auto** (the pipeline just runs inline on Auto — nothing to set); on a **Paid plan** prefer **Composer 2.5** as default with a **Claude model fallback** for `lg`-size (complex/extreme) runs. See `.cursor/rules/model-preference.mdc`. The coordinator surfaces a recommended size (`sm`/`md`/`lg`) as a chat prefix (informational on Free, actionable on Paid).
-- **Codex CLI** runs through `.codex/wrap.sh` (the `./codex-run` wrapper the wizard writes at the project root when `tools.codexCli = true` — chmod 0755, no source step / shell-rc edit / direnv needed). `wrap.sh` fires the same lifecycle hooks (`pre-command` → cmd → `post-command` → `on-exit`) around the build.
-
-  **One key difference from Claude Code:** the installed Codex CLI has **no sub-agent spawner**. Where Claude Code spawns each specialist (`figma-fetcher`, `component-builder`, …) as a separate parallel `Agent` with its own model, `wrap.sh` dispatches the whole pipeline as a **single `codex exec` session** — the coordinator plays each role inline, in sequence, reading `.codex/agents/<name>.md` as guidance. Two consequences:
-  - **One model per run, not per specialist.** `config.codex.modelMap` resolves the tier to a single model passed via `codex exec --model <id>` (when your Codex CLI exposes the flag; else the global default in `~/.codex/config.toml`). The complexity tier still picks the skill set + the extreme-tier review pass — only the per-specialist model split is unavailable.
-  - **Quote the Figma URL** — `?` and `&` break unquoted in zsh: `./codex-run figma-build 'https://figma.com/design/…?node-id=…'`.
-  - **Two entry points — pick by where you are** (full detail in `.codex/README.md` § _Two ways to run_):
-    - **Plain terminal / script / CI** → `./codex-run figma-build '<url>'`. The wrapper shells out to a nested `codex exec` and the hooks fire automatically.
-    - **Inside an interactive `codex` session** → run the recipe **inline** (ask Codex to follow `.codex/commands/figma-build.md` → `.codex/agents/figma-coordinator.md` in the current session; then run `.codex/hooks/post-command.sh figma-build` for the same validation). This mirrors Cursor's single-thread model and needs no nesting.
-    - **Why two:** a Codex session exports `CODEX_SANDBOX` (e.g. `seatbelt`); a nested `codex exec` launched from there can't start its app-server and dies with `failed to initialize in-process app-server client: Operation not permitted (os error 1)`. No inner flag escapes the parent sandbox — so `wrap.sh` detects it and refuses early, pointing you at the inline path. The inline path has the MCP tools already (it's the same session), so there's nothing to nest.
-
-  > Note: earlier scaffold builds assumed a `codex run-agent <name>` subcommand — no released Codex CLI provides it. `wrap.sh` uses `codex exec`; update if you hit "unexpected argument".
 
 ---
 
@@ -301,7 +277,7 @@ All driven by `.figma-pipeline/config.json`, written by `/init-figma-compose`.
                 └────────────────────┘
 ```
 
-Every agent reads `config.json` + the active protocols under `.figma-pipeline/protocols/`. Builders never write outside their configured output directories (enforced by `check-frozen-paths.sh` in Claude Code, `.cursor/rules/frozen-paths.mdc` in Cursor, `wrap.sh` post-command checks in Codex).
+Every agent reads `config.json` + the active protocols under `.figma-pipeline/protocols/`. Builders never write outside their configured output directories (enforced by `check-frozen-paths.sh` in Claude Code, `.cursor/rules/frozen-paths.mdc` in Cursor).
 
 ---
 
@@ -319,19 +295,17 @@ Every agent reads `config.json` + the active protocols under `.figma-pipeline/pr
 | 6  | Write paths | Components / tokens / icons / stories / tests — defaults per methodology, override anything. |
 | 7  | Stories + tests | Storybook (yes/no), unit framework (Vitest / Jest / Karma), E2E toggle (Playwright is automatic, never asked). |
 | 8  | Output structure | Token layout (split / combined / framework-native), prefix, naming; story/test layout; icon fill model + barrel. |
-| 9  | Tools | Multi-select: Claude Code / Cursor / Codex CLI. |
+| 9  | Tools | Multi-select: Claude Code / Cursor. |
 | 10 | Skill prune | Deletes irrelevant skills; symlinks the rest into each enabled tool's surface. |
 | 11 | RTK detection | Detects optional shell-output compressor. Prints per-tool init commands matched to your `config.tools.*`. **Never auto-installs** ([why](#optional-rtk--graphify-user-level-tools)). |
 | 12 | Graphify detection | Detects the external `graphify` CLI; records status in `config.graphify`. If absent, points at Prerequisites. **Does not install or build** — `graphify install --platform <tool>` and `/graphify .` are yours to run (user-level, like RTK). |
-| 13 | `./codex-run` shortcut | When `tools.codexCli=true`, writes an executable wrapper at the project root. Zero extra intervention beyond `./codex-run <cmd>`. |
-| 14 | `.gitignore` patch | Idempotent append: `.figma-pipeline/config.json`, `.figma-pipeline/scratch/`, `/tmp/figma-*/`, `graphify-out/`, `.mcp.json`. |
-| 15 | Report | Summary + write-allowlist + reminder: *"Build the graph anytime by typing /graphify . in your assistant."* |
+| 13 | `.gitignore` patch | Idempotent append: `.figma-pipeline/config.json`, `.figma-pipeline/scratch/`, `/tmp/figma-*/`, `graphify-out/`, `.mcp.json`. |
+| 14 | Report | Summary + write-allowlist + reminder: *"Build the graph anytime by typing /graphify . in your assistant."* |
 
 Outputs:
 - `.figma-pipeline/config.json` — the contract every agent reads (validated)
 - `.mcp.json` — Figma MCP wiring, proven reachable at wizard time (`config.figma.mcpVerifiedAt`)
 - `<projectRoot>/.gitignore` — patched (one append-only marker block)
-- `<projectRoot>/codex-run` — wrapper executable, only when Codex CLI is enabled
 - `/graphify` skill — registered by you via `graphify install --platform <tool>` (Prerequisites), not the wizard
 
 ---
@@ -372,14 +346,14 @@ Drift handling: `fcc kg:verify` runs before every silent reuse and at end-of-run
 
 `figma-fetcher` scores every manifest 0–100 (node count, variants, depth, unbound values, icon count, token-reuse). The coordinator resolves a tier and picks the **minimum viable** skill set + model:
 
-| Tier      | Skills per builder                                  | Size | Claude Code        | Codex CLI       | Cursor                  | 2nd-pass |
-| --------- | --------------------------------------------------- | ---- | ------------------ | --------------- | ----------------------- | -------- |
-| trivial   | scope-only                                          | `sm` | claude-haiku-4-5   | gpt-4o-mini     | recommendation surfaced | no       |
-| moderate  | + skip `tdd-guide`; `senior-frontend` only          | `md` | claude-sonnet-4-6  | gpt-4o          | recommendation surfaced | no       |
-| complex   | full: `senior-frontend` + `tdd-guide` + `senior-qa` | `lg` | claude-opus-4-7    | o3              | recommendation surfaced | no       |
-| extreme   | full + `code-reviewer` final pass per component     | `lg` | claude-opus-4-7    | o3              | recommendation surfaced | yes      |
+| Tier      | Skills per builder                                  | Size | Claude Code        | Cursor                  | 2nd-pass |
+| --------- | --------------------------------------------------- | ---- | ------------------ | ----------------------- | -------- |
+| trivial   | scope-only                                          | `sm` | claude-haiku-4-5   | recommendation surfaced | no       |
+| moderate  | + skip `tdd-guide`; `senior-frontend` only          | `md` | claude-sonnet-4-6  | recommendation surfaced | no       |
+| complex   | full: `senior-frontend` + `tdd-guide` + `senior-qa` | `lg` | claude-opus-4-7    | recommendation surfaced | no       |
+| extreme   | full + `code-reviewer` final pass per component     | `lg` | claude-opus-4-7    | recommendation surfaced | yes      |
 
-Override per tool: `config.complexity.model.<tier>` (Claude), `config.codex.modelMap.<sm|md|lg>` (Codex), manual in Cursor. Full protocol: [`protocols/complexity.md`](.figma-pipeline/protocols/complexity.md).
+Override per tool: `config.complexity.model.<tier>` (Claude), manual in Cursor. Full protocol: [`protocols/complexity.md`](.figma-pipeline/protocols/complexity.md).
 
 ---
 
@@ -422,7 +396,7 @@ Install instructions for **Figma MCP**, **Graphify**, and **RTK** are in [Prereq
 
 **RTK** — once installed and `rtk init`-ed for your AI tool, it transparently rewrites Bash commands (`git status` → `rtk git status`, `npm test` → `rtk npm test`, etc.) to compress output 60-90% before the model reads it. **Runtime scope:** Bash tool calls only — does NOT touch Figma MCP payloads, generated code, the Anthropic/OpenAI API itself, or Claude Code's built-in `Read`/`Grep`/`Glob` (those bypass the Bash hook). Use `rtk read`/`rtk grep` explicitly if you want compression there. Savings: ~10-15% of side-channel tokens on a typical pipeline run.
 
-**Graphify** — once installed and registered, **you** trigger the graph build by typing `/graphify .` (Codex: `$graphify .`) inside your AI assistant. The wizard never builds the graph itself — that step needs to run inside the assistant where graphify's prompt + Mermaid rendering live. `graphify-out/` is gitignored by the wizard's Step 14 regardless of whether graphify is installed. Skip it if you don't want the codebase indexed; the pipeline runs identically without.
+**Graphify** — once installed and registered, **you** trigger the graph build by typing `/graphify .` inside your AI assistant. The wizard never builds the graph itself — that step needs to run inside the assistant where graphify's prompt + Mermaid rendering live. `graphify-out/` is gitignored by the wizard's Step 14 regardless of whether graphify is installed. Skip it if you don't want the codebase indexed; the pipeline runs identically without.
 
 **Why the wizard doesn't auto-install either** — both modify user-level state (`~/.claude/settings.json`, shell rc files). A per-project init shouldn't reconfigure your whole workstation — you own the install command. The wizard's Steps 7.6 (RTK) and 7.7 (Graphify) detect, offer per-tool init commands matched to `config.tools.*`, and record status in `config.rtk` / `config.graphify` — never run `brew install` or `uv tool install` themselves.
 
@@ -435,7 +409,7 @@ Install instructions for **Figma MCP**, **Graphify**, and **RTK** are in [Prereq
 - **Design systems** — Atomic · Ant Design · Chakra UI · Hero UI · Mantine · Material UI · Radix UI · shadcn/ui · *none / custom*
 - **Methodologies** — Atomic Design · Feature-Sliced · Component-Based Architecture · Flat / custom
 - **Stories** — Storybook (only supported framework) · **Tests** — Vitest / Jest / Karma + Playwright (E2E always)
-- **AI tools** — Claude Code · Cursor · Codex CLI
+- **AI tools** — Claude Code · Cursor
 
 > Design System and Methodology are **mutually exclusive**. Wizard asks DS first; if `none`, asks methodology. Picking a DS sets `designMethodology = "custom"` (Atomic is the bridge — sets methodology to `atomic`).
 
@@ -443,7 +417,7 @@ Install instructions for **Figma MCP**, **Graphify**, and **RTK** are in [Prereq
 
 ## Agents
 
-Eleven agent definitions under `.claude/agents/`, with per-tool pointers under `.cursor/prompts/` and `.codex/agents/`.
+Eleven agent definitions under `.claude/agents/`, with per-tool pointers under `.cursor/prompts/`.
 
 | Agent                | Owns                                                  |
 | -------------------- | ----------------------------------------------------- |
@@ -489,17 +463,17 @@ Full attribution + content hashes: [`skills-lock.json`](./skills-lock.json). Per
 
 ## Tool support matrix
 
-| Capability                                  | Claude Code           | Cursor                             | Codex CLI                          |
-| ------------------------------------------- | --------------------- | ---------------------------------- | ---------------------------------- |
-| `/init-figma-compose` wizard                | ✅ native             | ✅ inline                          | ✅ `wrap.sh` / `./codex-run`       |
-| Multi-agent pipeline                        | ✅ native `Agent` (parallel sub-agents) | ✅ inline | ⚠ one `codex exec` session (roles run inline, sequential) |
-| MCP integration                             | ✅ `.mcp.json`        | ✅ settings UI                     | ✅ `.mcp.json`                     |
-| MCP hard gate at wizard time                | ✅ programmatic auth  | ✅ user-driven + verify             | ✅ user-driven + verify (exit 3 on fail) |
-| Lifecycle hooks                             | ✅ native             | ✅ `alwaysApply` rules             | ✅ via `wrap.sh`                   |
-| Per-call model routing                      | ✅ `Agent(model=…)` per specialist | ⚠ user-selected; never forced (Free → Auto locked; Paid → Composer 2.5 default + Claude fallback); recommendation shown | ⚠ one model for the run (`codex exec --model`; no per-specialist split) |
-| KG / handover / complexity                  | ✅                    | ✅                                 | ✅                                 |
-| Graphify `/graphify` skill registration     | ✅ `--platform claude` | ✅ `--platform cursor`            | ✅ `--platform codex` (`$graphify`) |
-| RTK shell-output compression                | ✅ `rtk init -g`      | ✅ `rtk init --agent cursor`        | ✅ `rtk init -g --codex`           |
+| Capability                                  | Claude Code           | Cursor                             |
+| ------------------------------------------- | --------------------- | ---------------------------------- |
+| `/init-figma-compose` wizard                | ✅ native             | ✅ inline                          |
+| Multi-agent pipeline                        | ✅ native `Agent` (parallel sub-agents) | ✅ inline |
+| MCP integration                             | ✅ `.mcp.json`        | ✅ settings UI                     |
+| MCP hard gate at wizard time                | ✅ programmatic auth  | ✅ user-driven + verify             |
+| Lifecycle hooks                             | ✅ native             | ✅ `alwaysApply` rules             |
+| Per-call model routing                      | ✅ `Agent(model=…)` per specialist | ⚠ user-selected; never forced (Free → Auto locked; Paid → Composer 2.5 default + Claude fallback); recommendation shown |
+| KG / handover / complexity                  | ✅                    | ✅                                 |
+| Graphify `/graphify` skill registration     | ✅ `--platform claude` | ✅ `--platform cursor`            |
+| RTK shell-output compression                | ✅ `rtk init -g`      | ✅ `rtk init --agent cursor`        |
 
 ---
 
@@ -513,12 +487,11 @@ Key sections:
 - `stories`, `tests` — Storybook + unit + E2E
 - `complexity` — tier overrides, model overrides, thresholds
 - `knowledgeGraph` — enabled, storeDir, embeddings provider, retention, visual regression
-- `codex.modelMap` — per-size Codex model IDs (Codex CLI only)
 - `figma.mcpVerifiedAt` — ISO-8601 stamp proving MCP was reachable at wizard time
 - `rtk` — `{ installed, initialized, version, detectedAt }` (read-only)
 - `graphify` — `{ installed, version, outputDir, detectedAt }` (read-only; detect-only, like `rtk`)
 - `gitignorePatch` — `{ appliedAt, entriesAdded }` audit
-- `tools` (+ `tools.codexShortcut` when Codex enabled) — wired AI tools
+- `tools` — wired AI tools
 - `writeScope.allowedDirs` — derived; enforced by `check-frozen-paths.sh`
 
 ---
@@ -534,8 +507,6 @@ Key sections:
 | `.figma-pipeline/kg/`                                | Knowledge graph data (created on first build)                                          |
 | `.claude/agents/` `commands/` `hooks/`               | Claude Code surface                                                                    |
 | `.cursor/prompts/` `rules/`                          | Cursor surface (mirrors of agents + hooks)                                             |
-| `.codex/agents/` `commands/` `hooks/` `wrap.sh`      | Codex CLI surface + lifecycle simulator                                                |
-| `<projectRoot>/codex-run`                            | Executable wrapper, only when Codex CLI enabled                                        |
 | `<projectRoot>/.gitignore`                           | Patched (idempotent marker block) on every wizard run                                  |
 | `<projectRoot>/graphify-out/`                        | Built by you via `/graphify .` — not by the wizard. Gitignored.                        |
 

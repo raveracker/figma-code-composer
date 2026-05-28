@@ -14,12 +14,11 @@ Until `.figma-pipeline/config.json` exists, only these roots are writable:
 
 - `.figma-pipeline/**`
 - `.mcp.json`
-- `.codex/**`
 - `/tmp/**`
 
 ## After `/init-figma-compose`
 
-The wizard composes `writeScope.allowedDirs` from the configured paths (token output, component dirs, icon output, story / test output when not co-located). Plus always: `.figma-pipeline/**`, `.mcp.json`, `.codex/**`, `/tmp/**`.
+The wizard composes `writeScope.allowedDirs` from the configured paths (token output, component dirs, icon output, story / test output when not co-located). Plus always: `.figma-pipeline/**`, `.mcp.json`, `/tmp/**`.
 
 ## Always-blocked
 

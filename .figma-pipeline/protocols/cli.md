@@ -7,7 +7,7 @@
 > - **Lock** — the spec says `flock(2)`. Node has no built-in flock, so `kg:merge` / `kg:repair` use an **atomic `open(…, "wx")` lockfile** at `<storeDir>/ledger.lock` with a 30s timeout. Same single-writer guarantee; portable across platforms.
 > - **Merge is upsert-by-id** — re-staging an entry with an existing `id` (tokenSets, rebuilt components) replaces it and preserves the original `createdAt`.
 
-The CLI is shipped exclusively via the npm package — consumer projects never import from it. Agents (Claude Code, Cursor, Codex) drive the CLI via `Bash` tool calls. The binary name is `figma-code-composer`; the short alias is `fcc`.
+The CLI is shipped exclusively via the npm package — consumer projects never import from it. Agents (Claude Code, Cursor) drive the CLI via `Bash` tool calls. The binary name is `figma-code-composer`; the short alias is `fcc`.
 
 ## Global flags
 
@@ -56,7 +56,7 @@ Scaffold the pipeline into a project. (Default when no subcommand given, for bac
 | Flag                | Effect                                                   |
 | ------------------- | -------------------------------------------------------- |
 | `--target <dir>`    | Target directory (default: positional arg or cwd)        |
-| `--tools <list>`    | Comma-separated: `claude`, `cursor`, `codex` (default: all) |
+| `--tools <list>`    | Comma-separated: `claude`, `cursor` (default: all)       |
 | `--skip <list>`     | Skip extras: `claude-md`, `agents-md`                    |
 | `--force`           | Overwrite existing files                                 |
 | `--dry-run`         | Print plan, write nothing                                |

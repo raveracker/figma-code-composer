@@ -1,6 +1,6 @@
 # .figma-pipeline — runtime configuration root
 
-This directory is the **single source of truth** for the figma-to-code orchestration pipeline. Every agent (Claude Code, Cursor, Codex CLI) reads files here before acting.
+This directory is the **single source of truth** for the figma-to-code orchestration pipeline. Every agent (Claude Code, Cursor) reads files here before acting.
 
 ## Files
 

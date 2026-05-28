@@ -10,7 +10,7 @@ Cursor doesn't natively spawn sub-agents — you run them sequentially in one ch
 
 | Agent                 | May write inside                                                                          |
 | --------------------- | ----------------------------------------------------------------------------------------- |
-| `wizard`              | `.figma-pipeline/config.json`, `.mcp.json`, `.codex/config.json`, `/tmp/figma-wizard-*/*` |
+| `wizard`              | `.figma-pipeline/config.json`, `.mcp.json`, `/tmp/figma-wizard-*/*` |
 | `project-detector`    | _nothing_ — read-only                                                                     |
 | `figma-coordinator`   | `/tmp/figma-<runId>/*` only (scratch, including the per-run `lessons.md`)                  |
 | `figma-fetcher`       | `/tmp/figma-<runId>/manifest.json` + `shot-*.png` + `scratch/*`                            |

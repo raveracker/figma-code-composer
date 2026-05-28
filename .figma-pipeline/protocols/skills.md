@@ -18,9 +18,8 @@ Tools surface skills differently:
 | ---------- | --------------------------------------------------------------------------------------------------- |
 | Claude Code| `.claude/skills/<name>` is a **symlink** the wizard creates at `/init-figma-compose` pointing at canonical. `Skill` tool loads it natively. |
 | Cursor     | Cursor has no native skill loader. `.cursor/rules/use-skills.mdc` (wizard-generated) tells Cursor agents to `@`-reference `.figma-pipeline/skills/<name>/SKILL.md` when needed. |
-| Codex CLI  | Codex has no native skill loader either. `.codex/skills.md` (wizard-generated) is the index Codex agents `Read` to discover and apply a skill.                       |
 
-The per-tool surfaces (`.claude/skills/`, `.cursor/rules/use-skills.mdc`, `.codex/skills.md`) only exist when the corresponding `tools.*` flag is `true` in `config.json`. If the consumer disables a tool later, the surface is removed on the next `/init-figma-compose`.
+The per-tool surfaces (`.claude/skills/`, `.cursor/rules/use-skills.mdc`) only exist when the corresponding `tools.*` flag is `true` in `config.json`. If the consumer disables a tool later, the surface is removed on the next `/init-figma-compose`.
 
 ## Two distinct phases
 
@@ -342,7 +341,6 @@ At `/init-figma-compose` (and on every `--re-detect`):
      - Ensure `.claude/skills/` exists. For every `name` in installSet, ensure `.claude/skills/<name>` is a symlink → `../../.figma-pipeline/skills/<name>`. Remove any `.claude/skills/<name>` that is no longer in installSet OR that is not a symlink the wizard created (leave consumer-owned content untouched if its target is not `../../.figma-pipeline/skills/...`).
      - `tools.claudeCode == false` → `rm -rf .claude/skills/` (only removes wizard-managed symlinks; any non-symlink children are preserved by checking each entry first).
    - `tools.cursor == true`: write `.cursor/rules/use-skills.mdc` (overwrite always — wizard-owned). `tools.cursor == false` → delete the file if present.
-   - `tools.codexCli == true`: write `.codex/skills.md` (overwrite always — wizard-owned). `tools.codexCli == false` → delete the file if present.
 5. Write `config.skillsInstall.installed[] = sorted(installSet ∩ on-disk-under-canonical)` and `config.skillsInstall.resolvedAt = <ISO-8601>` for auditability.
 
 ### Agent (invoke phase)

@@ -27,7 +27,7 @@ What this means in practice:
 The coordinator MUST surface the recommended size as a chat prefix so the user can switch model if they want:
 
 ```
-[fcc routing] tier=complex, recommended size=lg (e.g. Claude Opus 4.7 / GPT-5 / o3).
+[fcc routing] tier=complex, recommended size=lg (e.g. Claude Opus 4.7).
 Current Cursor model will be used — switch in Settings → Models if you want a different size.
 ```
 

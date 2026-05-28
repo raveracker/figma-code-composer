@@ -1,14 +1,13 @@
 {
   "name": "figma-code-composer",
   "version": "0.1.0",
-  "description": "Drop-in, framework-agnostic Figma-to-code multi-agent pipeline scaffold for Claude Code, Cursor, and Codex CLI. Includes a knowledge-graph CLI for cross-run component reuse, complexity-driven routing, and handover-based session optimization.",
+  "description": "Drop-in, framework-agnostic Figma-to-code multi-agent pipeline scaffold for Claude Code and Cursor. Includes a knowledge-graph CLI for cross-run component reuse, complexity-driven routing, and handover-based session optimization.",
   "keywords": [
     "figma",
     "design-system",
     "code-generation",
     "claude-code",
     "cursor",
-    "codex",
     "ai-agents",
     "mcp",
     "tokens",
@@ -37,7 +36,6 @@
     "!.claude/settings.local.json",
     ".cursor/",
     "!.cursor/.cursorignore",
-    ".codex/",
     ".figma-pipeline/",
     "assets/",
     "skills-lock.json",

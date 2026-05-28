@@ -80,21 +80,19 @@ if [[ -r "$CONFIG" ]] && command -v jq >/dev/null 2>&1; then
       exit 2
     fi
   done
-  ALLOWED_GLOBS=("${CFG_GLOBS[@]}" ".figma-pipeline/**" "/tmp/**" ".mcp.json" ".codex/**")
+  ALLOWED_GLOBS=("${CFG_GLOBS[@]}" ".figma-pipeline/**" "/tmp/**" ".mcp.json")
 else
   # Bootstrap allowlist — what the wizard may touch before config.json exists.
   #   .gitignore      — Step 7.8 patch
-  #   codex-run       — Step 7.7b wrapper (when tools.codexCli)
   #   graphify-out/** — never written by the wizard (the user's /graphify . builds
   #                     it); allowed defensively so a stray write isn't blocked.
-  #   .cursor/rules/**, .codex/skills.md — Step 7.5 per-tool skill surfaces.
+  #   .cursor/rules/** — Step 7.5 per-tool skill surfaces.
   # NOTE: graphify is detect-only — the wizard never runs `graphify install`, so
   # no graphify-owned skill paths are in this allowlist.
   ALLOWED_GLOBS=(
-    ".figma-pipeline/**" "/tmp/**" ".mcp.json" ".codex/**"
-    "codex-run"
+    ".figma-pipeline/**" "/tmp/**" ".mcp.json"
     ".gitignore" "graphify-out/**"
-    ".cursor/rules/**" ".codex/skills.md"
+    ".cursor/rules/**"
   )
 fi
 

@@ -12,7 +12,6 @@ Until `.figma-pipeline/config.json` exists, the agent may write only:
 
 - `.figma-pipeline/**`
 - `.mcp.json`
-- `.codex/**`
 - `/tmp/**`
 
 This is enough for `/init-figma-compose` to write the config. Nothing in the target project's source tree is touched.
@@ -28,7 +27,6 @@ The wizard builds `config.writeScope.allowedDirs` by collecting every path-beari
 - `tests.outputDir` (when not `co-located`)
 - `.figma-pipeline/**` always
 - `.mcp.json` always
-- `.codex/**` always
 - `/tmp/**` always
 
 Each entry is converted to a glob with trailing `/**`. The user can hand-edit `config.writeScope.allowedDirs` to add or remove globs after the wizard runs.

@@ -4,12 +4,12 @@
 
 A Figma-driven multi-agent pipeline: Figma file → typed manifest → design tokens → framework-native components → stories + tests + docs.
 
-**Framework-agnostic.** Configure once via `/init-figma-compose`; agents adapt to your stack (React / Vue / Angular / Svelte), CSS system (Tailwind v4/v3, UnoCSS, vanilla CSS-vars, CSS Modules, Sass, vanilla-extract, Panda, styled-components), and **design system** (Atomic, AntD, Chakra, Hero UI, Mantine, MUI, Radix, shadcn, or none). Works in **Claude Code**, **Cursor**, and **Codex CLI** — same agents, three entry points.
+**Framework-agnostic.** Configure once via `/init-figma-compose`; agents adapt to your stack (React / Vue / Angular / Svelte), CSS system (Tailwind v4/v3, UnoCSS, vanilla CSS-vars, CSS Modules, Sass, vanilla-extract, Panda, styled-components), and **design system** (Atomic, AntD, Chakra, Hero UI, Mantine, MUI, Radix, shadcn, or none). Works in **Claude Code** and **Cursor** — same agents, two entry points.
 
 ## Quick start
 
 ```bash
-# 1. Open the project in Claude Code (or Cursor / Codex CLI)
+# 1. Open the project in Claude Code (or Cursor)
 # 2. Run the wizard (ONCE — select all tools you'll use)
 /init-figma-compose
 # 3. Connect Figma MCP when prompted (per-tool — see README § Prerequisites), pick stack + paths
@@ -32,11 +32,10 @@ The wizard writes `.figma-pipeline/config.json` (single source of truth) and ver
 | `.figma-pipeline/adapters/{frameworks,css,design-systems}/<name>.md` | Per-stack code-generation templates                                    |
 | `.claude/{agents,commands,hooks}/`                   | Claude Code surface                                                                    |
 | `.cursor/{prompts,rules}/`                           | Cursor mirrors                                                                         |
-| `.codex/` + `wrap.sh`                                | Codex CLI mirrors + lifecycle simulator                                                |
 
 ## Binding rules
 
-1. **Write-access allowlist driven by `config.json`.** Bootstrap allowlist (before `/init-figma-compose`): `.figma-pipeline/**`, `/tmp/**`, `.mcp.json`, `.codex/**`, `.gitignore`, `codex-run`, `graphify-out/**`, plus the Step 7.5 per-tool skill surfaces (`.cursor/rules/**`, `.codex/skills.md`). After the wizard: configured component / token / icon / story / test paths join the allowlist. Enforced by `check-frozen-paths.sh` PreToolUse hook. Escape hatch: `FP_ALLOW_RESTRICTED_WRITE=1` for owner-driven edits.
+1. **Write-access allowlist driven by `config.json`.** Bootstrap allowlist (before `/init-figma-compose`): `.figma-pipeline/**`, `/tmp/**`, `.mcp.json`, `.gitignore`, `graphify-out/**`, plus the Step 7.5 per-tool skill surfaces (`.cursor/rules/**`). After the wizard: configured component / token / icon / story / test paths join the allowlist. Enforced by `check-frozen-paths.sh` PreToolUse hook. Escape hatch: `FP_ALLOW_RESTRICTED_WRITE=1` for owner-driven edits.
 2. **Manifest is the single source of truth between agents.** `figma-fetcher` is the only writer; everyone else treats it as read-only. See `protocols/figma-manifest.md`.
 3. **Variable names preserved, never resolved.** Tokens hold the raw Figma path. Resolving to hex/rem in the manifest = contract violation.
 4. **Unbound values are flags, not invitations.** No variable binding → manifest records the raw value AND `unbound: true`. Builders MUST stop-and-flag — never invent a token or inline the raw value.
@@ -53,4 +52,4 @@ The wizard writes `.figma-pipeline/config.json` (single source of truth) and ver
 - **Stories** — Storybook (only supported)
 - **Tests** — unit (Vitest / Jest / Karma) + E2E (Playwright always; never asked)
 - **DS vs Methodology** — mutually exclusive. Wizard asks DS first; if `none`, asks methodology. Picking a DS sets `designMethodology = "custom"` (Atomic bridges to `"atomic"`).
-- **Skills** — canonical at `.figma-pipeline/skills/<name>/SKILL.md`. Wizard resolves the active set from stack choices, deletes the rest, then creates per-tool surfaces conditional on `tools.*` (Claude symlinks, Cursor rule, Codex index). Audit in `config.skillsInstall`. See `protocols/skills.md`.
+- **Skills** — canonical at `.figma-pipeline/skills/<name>/SKILL.md`. Wizard resolves the active set from stack choices, deletes the rest, then creates per-tool surfaces conditional on `tools.*` (Claude symlinks, Cursor rule). Audit in `config.skillsInstall`. See `protocols/skills.md`.

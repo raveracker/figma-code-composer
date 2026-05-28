@@ -24,7 +24,7 @@
 //
 // Init flags (all optional):
 //   --target <dir>     Target directory (default: positional arg or cwd)
-//   --tools <list>     Comma-separated: claude,cursor,codex (default: all)
+//   --tools <list>     Comma-separated: claude,cursor (default: all)
 //   --force            Overwrite existing files at target
 //   --skip <list>      Comma-separated paths to skip: claude-md, agents-md, cursor-rules
 //   --dry-run          Show what would happen, write nothing
@@ -48,7 +48,6 @@ const PKG = JSON.parse(readFileSync(join(PACKAGE_ROOT, "package.json"), "utf8"))
 const TOOL_PATHS = {
   claude: [".claude"],
   cursor: [".cursor"],
-  codex: [".codex"],
 };
 const ALWAYS_PATHS = [".figma-pipeline"];
 // CLAUDE.md / AGENTS.md are no longer whole-file copies (that clobbered the
@@ -79,7 +78,7 @@ const MANAGED_DOCS = {
       "## figma-code-composer pipeline",
       "",
       "Binding rules, repo map, and coverage: `.figma-pipeline/PIPELINE.md`.",
-      "Per-tool enforcement: `.claude/hooks/README.md`, `.cursor/rules/README.md`, `.codex/hooks/README.md`.",
+      "Per-tool enforcement: `.claude/hooks/README.md`, `.cursor/rules/README.md`.",
       "<!-- figma-code-composer:end -->",
     ].join("\n"),
   },
@@ -215,7 +214,7 @@ ${c("bold", "Init usage:")}
 
 ${c("bold", "Init options:")}
   --target <dir>     Target directory (default: positional arg or cwd)
-  --tools <list>     Comma-separated: claude,cursor,codex (default: all)
+  --tools <list>     Comma-separated: claude,cursor (default: all)
   --skip <list>      Comma-separated paths to skip: claude-md, agents-md, cursor-rules
   --force            Overwrite existing files at target
   --dry-run          Show what would happen, write nothing
@@ -243,7 +242,6 @@ ${c("bold", "After install:")}
   cd <target> && open in your AI tool of choice
   Claude Code: /init-figma-compose
   Cursor:      type /init-figma-compose in agent chat
-  Codex CLI:   ./.codex/wrap.sh init-figma-compose
 `);
 }
 
@@ -291,18 +289,9 @@ function chmodShellScripts(dir) {
       count += chmodShellScripts(full);
     } else if (entry.isFile() && entry.name.endsWith(".sh")) {
       try { chmodSync(full, 0o755); count++; } catch { /* noop */ }
-    } else if (entry.isFile() && entry.name === "wrap.sh") {
-      try { chmodSync(full, 0o755); count++; } catch { /* noop */ }
     }
   }
   return count;
-}
-
-function ensureWrapShExecutable(targetDir) {
-  const wrap = join(targetDir, ".codex", "wrap.sh");
-  if (pathExists(wrap)) {
-    try { chmodSync(wrap, 0o755); } catch { /* noop */ }
-  }
 }
 
 // Append scaffold-generated paths to the target project's .gitignore so
@@ -448,11 +437,9 @@ async function runInit(argv) {
       console.log(c("bold", "Which AI tools should this scaffold wire for?"));
       const wantClaude = await askYesNo(rl, "  Claude Code (.claude/)?", true);
       const wantCursor = await askYesNo(rl, "  Cursor       (.cursor/)?", true);
-      const wantCodex  = await askYesNo(rl, "  Codex CLI    (.codex/)?", true);
       tools = [];
       if (wantClaude) tools.push("claude");
       if (wantCursor) tools.push("cursor");
-      if (wantCodex)  tools.push("codex");
       if (tools.length === 0) {
         console.error(c("red", "No tools selected — aborting."));
         process.exit(1);
@@ -461,12 +448,12 @@ async function runInit(argv) {
       rl.close();
     }
   } else if (!tools) {
-    tools = ["claude", "cursor", "codex"];
+    tools = ["claude", "cursor"];
   }
 
   for (const t of tools) {
     if (!TOOL_PATHS[t]) {
-      console.error(c("red", `Unknown tool: ${t} (valid: claude, cursor, codex)`));
+      console.error(c("red", `Unknown tool: ${t} (valid: claude, cursor)`));
       process.exit(2);
     }
   }
@@ -533,8 +520,6 @@ async function runInit(argv) {
   if (!args.dryRun) {
     let chmodCount = 0;
     if (tools.includes("claude")) chmodCount += chmodShellScripts(join(targetDir, ".claude", "hooks"));
-    if (tools.includes("codex"))  chmodCount += chmodShellScripts(join(targetDir, ".codex", "hooks"));
-    if (tools.includes("codex"))  ensureWrapShExecutable(targetDir);
     if (chmodCount > 0) {
       console.log(c("dim", `  (made ${chmodCount} shell script(s) executable)`));
     }
@@ -585,9 +570,8 @@ async function runInit(argv) {
   console.log(`  ${c("dim", "2.")} Open the project in your AI tool of choice, then run the wizard:`);
   if (tools.includes("claude")) console.log(`     ${c("cyan", "Claude Code")}  →  /init-figma-compose`);
   if (tools.includes("cursor")) console.log(`     ${c("cyan", "Cursor")}       →  type /init-figma-compose in agent chat`);
-  if (tools.includes("codex"))  console.log(`     ${c("cyan", "Codex CLI")}    →  ./.codex/wrap.sh init-figma-compose`);
   console.log(`  ${c("dim", "3.")} Read ${c("cyan", ".figma-pipeline/PIPELINE.md")} for binding rules + coverage (imported by your CLAUDE.md; AGENTS.md points to it).`);
-  console.log(`  ${c("dim", "4.")} (Optional) install RTK to compress shell-output tokens — the wizard will print the right install + per-tool init commands for your stack (Claude Code / Cursor / Codex). RTK is user-level only; never auto-installed.`);
+  console.log(`  ${c("dim", "4.")} (Optional) install RTK to compress shell-output tokens — the wizard will print the right install + per-tool init commands for your stack (Claude Code / Cursor). RTK is user-level only; never auto-installed.`);
   console.log("");
 }
 

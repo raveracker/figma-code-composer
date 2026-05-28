@@ -29,4 +29,4 @@ The owner unlocks access ONLY when **both** are set in the shell environment:
 Either one alone does **not** unlock it. If a `.env` operation is genuinely
 needed and both are not set, stop and ask the owner — do not work around it.
 
-Mirrors the Claude Code PreToolUse hook `.claude/hooks/check-env-access.sh` and the Codex pre-command hook `.codex/hooks/pre-command.sh` (both block `.env` access with the same dual-key bypass).
+Mirrors the Claude Code PreToolUse hook `.claude/hooks/check-env-access.sh` (blocks `.env` access with the same dual-key bypass).
