@@ -1,6 +1,6 @@
 {
   "name": "figma-code-composer",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "Drop-in, framework-agnostic Figma-to-code multi-agent pipeline scaffold for Claude Code and Cursor. Includes a knowledge-graph CLI for cross-run component reuse, complexity-driven routing, and handover-based session optimization.",
   "keywords": [
     "figma",
@@ -46,7 +46,14 @@
   ],
   "scripts": {
     "test:cli": "node bin/figma-code-composer.js init --dry-run /tmp/fcc-dry-run-test",
-    "validate:config": "npx --yes --offline ajv-cli@5 validate -s .figma-pipeline/config.schema.json -d .figma-pipeline/config.example.json"
+    "validate:config": "npx --yes --offline ajv-cli@5 validate -s .figma-pipeline/config.schema.json -d .figma-pipeline/config.example.json",
+    "changeset": "changeset",
+    "version": "changeset version",
+    "release": "changeset publish"
+  },
+  "devDependencies": {
+    "@changesets/changelog-github": "^0.7.0",
+    "@changesets/cli": "^2.31.0"
   },
   "repository": {
     "type": "git",
