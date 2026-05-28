@@ -6,7 +6,7 @@ alwaysApply: true
 
 # Supporting — Per-agent write scope
 
-Cursor doesn't natively spawn sub-agents — you run them sequentially in one chat thread. To prevent role bleed, respect each agent's declared write scope:
+Cursor doesn't natively spawn sub-agents — you run them sequentially in one chat thread. **Never attempt to launch a specialist (or the coordinator) as a separate model-pinned agent** — that path doesn't exist in Cursor and, on the Free plan, aborts the whole run with `Named models unavailable — Free plans can only use Auto` (see `model-preference.mdc`). Play every role inline on the current model. To prevent role bleed, respect each agent's declared write scope:
 
 | Agent                 | May write inside                                                                          |
 | --------------------- | ----------------------------------------------------------------------------------------- |

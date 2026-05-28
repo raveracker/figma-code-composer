@@ -91,6 +91,10 @@ export function cn(...inputs: ClassValue[]) {
 
 - **No config file**: `tailwind.config.{js,ts,cjs,mjs}` is always blocked. All configuration goes in CSS.
 - **Prefix order**: see above. Grep before declaring done.
-- **Decimal spacing**: `447px` → `max-w-111.75` (default scale takes decimal multipliers natively). Reserve `max-w-[447px]` arbitrary brackets for values that genuinely don't divide cleanly.
+- **Prefer the spacing scale over arbitrary brackets (ALL sizing/spacing utilities).** v4's spacing scale is dynamic — `<utility>-<n>` compiles to `calc(var(--spacing) * n)` for ANY `n`, decimals included — so a raw px value should become a scale utility, not an arbitrary `[…px]` value. Convert with `n = px ÷ baseSpacingPx`, where `baseSpacingPx` is the project's `--spacing` base in px (Tailwind default `0.25rem` = **4px**; read the project's `@theme` in case it's customized — this is project-specific). Applies to `w/h`, `min-/max-w/h`, `p*`, `m*`, `gap*`, `inset/top/right/bottom/left`, `space-*`, `size-*`, etc. Examples (default 4px base, honoring the configured prefix e.g. `tw:`):
+  - `184px` → `w-46` (184 ÷ 4) — **not** `w-[184px]`
+  - `447px` → `max-w-111.75` (447 ÷ 4; decimals are fine)
+  - `14px` → `p-3.5` (14 ÷ 4)
+  Reserve arbitrary `[…px]` brackets ONLY for values that don't divide cleanly into the base (and aren't worth a decimal), or non-spacing one-offs. This holds even when inlining a user-approved unbound value — inline it as the scale utility, not a bracket. (A stray `[184px]` is harmless and a dev can hand-fix it; don't trigger `/figma-update` just for this.)
 - **`tailwind-merge` silent stripping**: unregistered tokens get dropped when collided with built-ins (e.g. setting both `text-foo` and `text-red-500` when `text-foo` isn't registered → only `text-red-500` survives).
 - **Token name collisions across modes**: same name, different value across `:root` / `[data-theme=…]` is correct. Same name DEFINED inside `@theme` twice across files is undefined behaviour — emit only once.

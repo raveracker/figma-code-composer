@@ -68,9 +68,12 @@ Refresh `<iconsOutputDir>/stories/Icons.stories.<ext>`:
   "storiesCreated":      [{ "component": "ProductCtaBar", "path": "src/components/molecules/ProductCtaBar/ProductCtaBar.stories.tsx" }],
   "storiesUpdated":      [],
   "iconStoriesTouched":  "src/icons/stories/Icons.stories.tsx",
+  "toolUses":            22,
   "flags":               []
 }
 ```
+
+`toolUses` = count of tool calls you made this run (for the coordinator's cost ledger — see `figma-coordinator.md` § Specialist return contract).
 
 ## Never
 

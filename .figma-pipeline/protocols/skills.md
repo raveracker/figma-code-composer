@@ -336,7 +336,7 @@ At `/init-figma-compose` (and on every `--re-detect`):
 
 1. Compute `installSet = resolve_skills(configSnapshot)` (no `agent_name` — superset of every agent's load).
 2. Union every per-agent extra into `installSet` so each downstream agent's mandatory skills are on disk.
-3. **Prune canonical**: list directories under `.figma-pipeline/skills/`. For each name NOT in `installSet`, `rm -rf` it. For each name in `installSet` NOT on disk, record it in `config.skillsInstall.missing[]`.
+3. **Prune canonical** — via the vetted `fcc skills:prune --keep "<comma-joined installSet>" --json`, never a hand-authored `rm -rf` over a shell-expanded list. The command deletes only dirs under `.figma-pipeline/skills/` not in the keep-set (each target basename-scoped to that dir), returns `removed[]`/`missing[]`/counts, and syncs `skills-lock.json`. **Safety invariant (enforced, non-bypassable):** the prune deletes nothing and exits non-zero when the keep-set is empty **or** when it is disjoint from the on-disk set (which would delete the whole catalog — the historical failure mode). Record returned `missing[]` in `config.skillsInstall.missing[]`.
 4. **Tool-conditional surfaces** — re-apply each per-tool exposure based on `config.tools.*`:
    - `tools.claudeCode == true`:
      - Ensure `.claude/skills/` exists. For every `name` in installSet, ensure `.claude/skills/<name>` is a symlink → `../../.figma-pipeline/skills/<name>`. Remove any `.claude/skills/<name>` that is no longer in installSet OR that is not a symlink the wizard created (leave consumer-owned content untouched if its target is not `../../.figma-pipeline/skills/...`).

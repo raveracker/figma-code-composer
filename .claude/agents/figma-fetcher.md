@@ -33,6 +33,10 @@ Any other write → abort.
 
 ## Protocol
 
+0. **MCP reachability probe (FIRST action — you own the MCP tools, the coordinator does not).** Before parsing anything, call `get_metadata` once on the target file (cheap, ~200 tokens) using `<prefix> = configSnapshot.figma.mcpToolNamespace` (default `mcp__figma__`). On `unknown tool` / `not_found`, retry once with the alternate prefix `mcp__plugin_figma_figma__` (the stamp may be stale or the user switched MCP variants).
+   - **Both fail** → do NOT continue. Return `{ reachabilityStatus: "fail" }` and exit code 3 so the coordinator aborts the run with a single actionable message — no manifest, no partial work. This is the cheap early-abort that prevents a full pipeline spawn against a dead MCP.
+   - **Succeeds under a different prefix** than `configSnapshot.figma.mcpToolNamespace` → use that prefix for ALL subsequent MCP calls this run and report it back to the coordinator (it carries the correction in-memory; never rewrite `config.json`).
+   - **Succeeds** → set `reachabilityStatus: "ok"` and proceed.
 1. **Parse URL** — extract `fileKey` + `nodeIds`. Normalise nodeId separator (`-` ↔ `:`).
 2. **Pre-call hygiene** — invoke the `figma:figma-use` skill before any `mcp__figma__use_figma` call.
 3. **Metadata + structure** — `mcp__figma__get_metadata` and `mcp__figma__get_design_context` for each node. Walk children.
@@ -82,7 +86,7 @@ Any other write → abort.
     - `tokenReuseRatio` — `0` unless coordinator passes one in (it doesn't in v1.1); coordinator may overwrite after its own KG query.
 
     Compute `score` + `tier` per `protocols/complexity.md` § Score formula + § Tier resolution. Emit the full `complexity` block.
-12. **Emit** — write `/tmp/figma-<runId>/manifest.json`. Final chat message: the manifest as JSON (coordinator gets it both ways).
+12. **Emit** — write `/tmp/figma-<runId>/manifest.json`. Final chat message: the manifest as JSON (coordinator gets it both ways). Alongside it, report your `toolUses` count (number of tool calls you made) as a separate line — NOT inside the manifest (that would violate the manifest contract) — so the coordinator can record it in the run cost ledger. Also report `reachabilityStatus` from step 0.
 
 ## Token efficiency
 

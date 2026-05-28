@@ -19,7 +19,19 @@ REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
 command -v jq >/dev/null 2>&1 || exit 0
 
 # ─── Manifest checks (rules 2/3/4/5/6) ───────────────────────────────────────
-LATEST_MANIFEST=$(ls -t /tmp/figma-*/manifest.json 2>/dev/null | head -1)
+# Pick the newest manifest, but only one produced DURING this wrapper invocation
+# (newer than the start marker). Without this scoping, a failed run that never
+# generated a manifest would report a PREVIOUS, unrelated run's findings as
+# "this run" — a real misattribution bug.
+LATEST_MANIFEST=""
+if [[ -n "${FCC_WRAP_MARKER:-}" && -e "$FCC_WRAP_MARKER" ]]; then
+  while IFS= read -r cand; do
+    [[ -n "$cand" && "$cand" -nt "$FCC_WRAP_MARKER" ]] || continue
+    LATEST_MANIFEST="$cand"; break
+  done < <(ls -t /tmp/figma-*/manifest.json 2>/dev/null)
+else
+  LATEST_MANIFEST=$(ls -t /tmp/figma-*/manifest.json 2>/dev/null | head -1)
+fi
 if [[ -r "$LATEST_MANIFEST" ]]; then
   problems=()
 

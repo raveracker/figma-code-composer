@@ -27,10 +27,20 @@ COMMAND="${1:-help}"
 shift || true
 ARGS=("$@")
 
+# Start marker — lets post-command / on-exit scope to manifests + scratch dirs
+# created DURING this invocation (via `-nt`), instead of reporting a previous,
+# unrelated run's findings as "this run" when the current command fails early.
+WRAP_MARKER="/tmp/fcc-wrap-$$.start"
+: > "$WRAP_MARKER" 2>/dev/null || WRAP_MARKER=""
+export FCC_WRAP_MARKER="$WRAP_MARKER"
+[[ -n "$WRAP_MARKER" ]] && trap 'rm -f "$WRAP_MARKER"' EXIT
+
 run_hook() {
   local script="$1"
   [[ -x "$script" ]] || return 0
-  if ! "$script" "${ARGS[@]}"; then
+  # Pass the command name as $1 (pre-command keys its config-vs-init check on it),
+  # followed by the command args.
+  if ! "$script" "$COMMAND" "${ARGS[@]}"; then
     echo "[codex/wrap] hook failed: $script" >&2
     return 1
   fi
@@ -46,6 +56,26 @@ if [[ ! -r "$CMD_PATH" ]]; then
   echo "[codex/wrap] unknown command: $COMMAND" >&2
   echo "Available commands:" >&2
   ls "$REPO_ROOT/.codex/commands/" 2>/dev/null | sed 's/\.md$//' | sed 's/^/  /' >&2
+  exit 1
+fi
+
+# ---- nested-sandbox guard ---------------------------------------------------
+# Inside any Codex session the sandbox exports CODEX_SANDBOX (e.g. "seatbelt").
+# A nested `codex exec` launched from there cannot initialize its in-process
+# app-server — the OS denies it ("Operation not permitted (os error 1)"), and no
+# inner flag escapes the parent sandbox. Fail fast with a clear fix instead.
+if [[ -n "${CODEX_SANDBOX:-}" ]]; then
+  cat >&2 <<EOF
+[codex/wrap] Refusing to run: detected an active Codex sandbox (CODEX_SANDBOX=${CODEX_SANDBOX}).
+  A nested 'codex exec' can't start its app-server inside the parent sandbox
+  ("failed to initialize in-process app-server client: Operation not permitted").
+  Two fixes:
+    1. Run ./codex-run from a PLAIN terminal (not inside a Codex session), OR
+    2. Run the pipeline INLINE in this session — no wrapper needed. Ask Codex to
+       follow .codex/commands/$COMMAND.md → .codex/agents/figma-coordinator.md here,
+       then run .codex/hooks/post-command.sh $COMMAND afterwards.
+       See .codex/README.md § "Two ways to run".
+EOF
   exit 1
 fi
 
@@ -71,6 +101,14 @@ elif codex run-agent --help >/dev/null 2>&1; then
 else
   echo "[codex/wrap] this Codex CLI has neither 'exec' nor 'run-agent'. Run 'codex --help' to see available commands, or update Codex." >&2
   EXIT_CODE=127
+fi
+
+# Fallback hint: the nested-sandbox guard above keys on CODEX_SANDBOX, but some
+# restricted environments produce the same app-server failure without setting it.
+# If the dispatch failed, point at the most likely cause so the user isn't left
+# with a bare "Operation not permitted (os error 1)".
+if [[ "$EXIT_CODE" -ne 0 && "$EXIT_CODE" -ne 127 ]]; then
+  echo "[codex/wrap] dispatch failed (exit $EXIT_CODE). If the error was 'failed to initialize in-process app-server client' / 'Operation not permitted', you're in a nested or sandboxed environment — either run ./codex-run from a PLAIN terminal, or run the pipeline INLINE in this session (see .codex/README.md § 'Two ways to run')." >&2
 fi
 
 # ---- post-command -----------------------------------------------------------

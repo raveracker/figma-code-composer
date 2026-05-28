@@ -60,6 +60,7 @@ Standard Tailwind classes. No prefix (unless `prefix` is set in the project's ta
 `tailwind-merge` v2.x understands most custom theme extensions automatically. For exotic group names, configure via `extendTailwindMerge` same as v4.
 
 ## Gotchas
+- **Spacing scale is BOUNDED (unlike v4).** v3's default spacing/sizing scale is a fixed set (`0, 0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4, 5, 6, 8, 10, …`), so the v4 trick of `px ÷ 4 → <utility>-<n>` for ANY `n` does **not** hold — `w-46` isn't a default v3 class. So: if the px value maps to an existing scale step (or a `theme.extend.spacing` entry the token-builder added), use that utility; otherwise an arbitrary `w-[184px]` bracket is acceptable in v3 (a dev can hand-fix or the value can be added to `theme.extend.spacing`). Don't trigger `/figma-update` just to tidy a bracket. (Contrast `adapters/css/tailwind-v4.md` § Gotchas, where the dynamic scale makes `w-46` valid.)
 - **`theme` vs `theme.extend`**: `theme` REPLACES Tailwind defaults; `theme.extend` ADDS. Token-builder always uses `extend`.
 - **Content paths**: token-builder must NOT modify the `content` array; that's project-owned.
 - **JIT vs AOT**: v3 is JIT by default. Dynamic class names (`bg-${color}`) DON'T work — emit static class lists only.

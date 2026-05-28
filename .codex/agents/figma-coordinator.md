@@ -1,12 +1,14 @@
 # Codex figma-coordinator
 
-Mirror of `.claude/agents/figma-coordinator.md` — same protocol, write scope, error handling, report format, and the Step-0 MCP probe. See that file for the full pipeline.
+Mirror of `.claude/agents/figma-coordinator.md` — same protocol, write scope, error handling, report format. See that file for the full pipeline.
+
+**MCP reachability (one difference from Claude):** the Claude split — coordinator owns no MCP tools, only the fetcher does — does **not** apply here. Codex runs the whole pipeline in one `codex exec` session that owns the Figma MCP tools, so you probe directly: confirm `config.figma.mcpVerifiedAt` is stamped (else abort code 3, "run init-figma-compose"), then as the **first action of the inline fetch role** call `get_metadata` once (retry the alternate `mcp__plugin_figma_figma__` prefix on `unknown tool`). Both fail → abort the run with `"Figma MCP unreachable. Re-run /init-figma-compose, or restart your MCP server / Figma desktop app, then retry."` before doing any other work.
 
 ## Codex has no sub-agent spawner — it's ONE `codex exec` session
 
 This is the load-bearing difference from Claude Code. Claude Code's coordinator spawns each specialist as a separate `Agent(subagent_type=…)` process with its own context + model. **The installed Codex CLI has no equivalent** — `codex exec "<prompt>"` runs a single agentic session. (Earlier scaffold versions assumed a `codex run-agent <name>` subcommand; no released Codex CLI provides it.)
 
-So under Codex, the WHOLE pipeline runs inside one `codex exec` turn dispatched by `.codex/wrap.sh`. The coordinator does not spawn specialists — it **plays each specialist role itself, in sequence, reading that role's `.codex/agents/<name>.md` as inline guidance**:
+So under Codex, the WHOLE pipeline runs inside **one** agentic turn — whether that turn is the nested `codex exec` dispatched by `.codex/wrap.sh` (plain-terminal / CI entry) **or** the current interactive `codex` session running the recipe inline (the entry to use when you're already inside Codex — `wrap.sh`'s nested `codex exec` can't start inside a Codex sandbox; see `.codex/README.md` § _Two ways to run_). Either way the coordinator does not spawn specialists — it **plays each specialist role itself, in sequence, reading that role's `.codex/agents/<name>.md` as inline guidance**:
 
 | Claude Code                              | Codex CLI (single session)                                                       |
 | ---------------------------------------- | -------------------------------------------------------------------------------- |
@@ -31,4 +33,8 @@ If your Codex CLI exposes no model flag at all, log a note to `/tmp/figma-<runId
 
 ## KG / handover CLI calls
 
-Identical to Claude Code — `npx fcc kg:query`, `kg:stage`, `kg:merge`, `kg:verify`, `handover`, `complexity` all run via Bash from inside the `codex exec` session. Same flags, same exit codes. (All implemented as of fcc v0.1.0 — see `.figma-pipeline/protocols/cli.md`.) The Step-0 MCP probe and the handover-file-exists check from the Claude coordinator apply here too.
+Identical to Claude Code — `npx fcc kg:query`, `kg:stage`, `kg:merge`, `kg:verify`, `handover`, `complexity` all run via Bash from inside the `codex exec` session. Same flags, same exit codes. (All implemented as of fcc v0.1.0 — see `.figma-pipeline/protocols/cli.md`.) The MCP-reachability handling (above — trust `mcpVerifiedAt`, then live `get_metadata` probe at the start of the inline fetch role) and the handover-file-exists check from the Claude coordinator apply here too.
+
+**Running inline (no wrapper):** when this recipe is invoked directly inside an interactive `codex` session — not via `./codex-run`/`wrap.sh` — the lifecycle hooks do NOT fire automatically. After the build completes, run `.codex/hooks/post-command.sh <command>` yourself so the manifest/config/token validators still run. (Under the wrapper this is automatic.)
+
+**Cost ledger (`costs.jsonl`) does NOT apply here.** The Claude coordinator writes one cost line per `Agent` spawn using the per-spawn `total_tokens` the harness returns. Codex runs the whole pipeline in ONE session with **no sub-spawns**, so there is no per-specialist token total to observe. Do **not** write `costs.jsonl` and do **not** fabricate per-role token numbers — you can't measure them. The handover's Cost section degrades gracefully ("No per-specialist cost ledger found"). If you want a rough signal, report the single session's own usage if your runtime surfaces it; otherwise omit the cost table.

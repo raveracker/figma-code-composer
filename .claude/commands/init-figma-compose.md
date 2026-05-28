@@ -9,9 +9,9 @@ argument-hint: "[--re-detect]"
 
 **Before running this:** complete `README § Prerequisites` for your tool — at minimum the required Figma MCP setup, optionally Graphify and RTK. The wizard verifies these; it does not install them.
 
-Spawn the `wizard` agent (model: sonnet). Pass `$ARGUMENTS` verbatim so `--re-detect` is honoured.
+**Run the wizard INLINE in this (main) thread — do NOT spawn it as a subagent.** Follow `.claude/agents/wizard.md` as your step-by-step recipe and own every `AskUserQuestion` prompt yourself, here in the main conversation. Honour `$ARGUMENTS` (e.g. `--re-detect`). Rationale: the wizard is interactive and answer-dependent (each answer can change the next question). A spawned subagent that calls `AskUserQuestion` returns control to ask, and **cannot be resumed for the follow-up answers** (`SendMessage` to a returned subagent isn't available) — so a spawned wizard stalls after the first question. The main thread has no such limit. The **only** delegation is the read-only, non-interactive stack scan: spawn `project-detector` (it runs once and returns; nothing to resume).
 
-The wizard:
+The wizard recipe:
 
 1. **Project identity** — asks for project name + one-line description.
 2. **Figma MCP verify (hard gate)** — probes both namespaces (`mcp__figma__*` and `mcp__plugin_figma_figma__*`), records the working prefix in `config.figma.mcpToolNamespace`. **If MCP isn't reachable, the wizard aborts and points at `README § Prerequisites § Required — Figma MCP`** — no `config.json` is written. Result: every subsequent `/figma-build` starts with a known-good MCP.

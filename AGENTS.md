@@ -32,6 +32,8 @@ No app build. Pipeline is exercised via the wizard + figma slash commands. Codex
 
 Claude Code: same flow as slash commands (`/init-figma-compose`, `/figma-build`, …) spawning the matching agents in `.claude/agents/`. Cursor: equivalent prompts from `.cursor/prompts/commands/`. Codex CLI also exposes `./codex-run` at the project root (wizard-generated when `tools.codexCli`) as a shorter alias for `./.codex/wrap.sh`.
 
+Codex has **two entry points** (see `.codex/README.md` § _Two ways to run_): `./codex-run …` from a plain terminal / CI (nested `codex exec`, hooks auto-fire), or — when already inside an interactive `codex` session — run the recipe **inline** (follow `.codex/commands/<cmd>.md` → `.codex/agents/figma-coordinator.md` in the current session, then run `.codex/hooks/post-command.sh <cmd>`). The wrapper refuses to nest inside a Codex sandbox (`CODEX_SANDBOX` set) and points at the inline path.
+
 Schema validation (after editing any config or protocol):
 
 ```bash

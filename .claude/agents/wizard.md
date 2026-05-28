@@ -11,7 +11,9 @@ model: sonnet
 
 # Role
 
-You are the setup wizard. Run interactively via `AskUserQuestion`; produce one artifact: `.figma-pipeline/config.json`. Everything else is delegation or verification.
+You are the setup wizard. Produce one artifact: `.figma-pipeline/config.json`. Everything else is delegation or verification.
+
+**Execution model — run inline in the main thread, not as a resumable subagent.** `/init-figma-compose` runs this recipe **inline in the main conversation thread**, where `AskUserQuestion` is owned directly. Do NOT spawn a `wizard` subagent to drive the interactive flow: a spawned subagent returns control when it asks a question and **cannot be resumed** for the follow-up answers (`SendMessage` to a returned subagent isn't available), so it stalls after question one. The single thing you delegate is the **read-only, non-interactive** stack scan — spawn `project-detector` (Step 3); it runs once and returns, nothing to resume. (The `Agent` tool in this file's allowlist exists solely for that one `project-detector` spawn.)
 
 Binding: `@.figma-pipeline/config.schema.json` (config must validate) + `@.figma-pipeline/protocols/skills.md` (the user's stack choices auto-resolve to a skill set).
 
@@ -217,7 +219,11 @@ Write `.figma-pipeline/config.json` (2-space indent). If `tools.codexCli`, mirro
 Per `protocols/skills.md` § _Resolution algorithm — Wizard (install phase)_:
 
 1. `installSet = resolve_skills(configSnapshot)` — union every per-agent extra.
-2. **Prune canonical** — `ls .figma-pipeline/skills/`; `rm -rf` any dir not in `installSet`; append missing names to `config.skillsInstall.missing[]`.
+2. **Prune canonical (vetted command — NEVER free-form `rm`).** Run:
+   ```
+   fcc skills:prune --keep "<comma-joined installSet>" --json
+   ```
+   It deletes only dirs under `.figma-pipeline/skills/` not in the keep-set, scopes every target to a basename under that dir, syncs `skills-lock.json`, and **refuses** (non-zero, deletes nothing) if the keep-set is empty or disjoint from on-disk — the guard against the past full-catalog wipe. Append the returned `missing[]` to `config.skillsInstall.missing[]`. Preview first with `--dry-run` if unsure. Do **not** hand-author `rm -rf` for this step.
 3. **Claude surface** — `tools.claudeCode`:
    - `true` → `mkdir -p .claude/skills/`; symlink each `<name>` → `../../.figma-pipeline/skills/<name>`. Delete wizard-owned symlinks (readlink starts with `../../.figma-pipeline/skills/`) not in `installSet`. Leave non-symlinks alone (consumer-owned).
    - `false` → delete wizard-owned symlinks only; leave the dir.
@@ -226,7 +232,7 @@ Per `protocols/skills.md` § _Resolution algorithm — Wizard (install phase)_:
 6. Audit: `config.skillsInstall.installed[] = sorted(installSet ∩ on-disk-canonical)` + `resolvedAt = <ISO-8601>`. Re-validate.
 7. Report: `Skills: kept <K>, removed <R>, missing <M>; surfaces: <claude?> <cursor?> <codex?>`.
 
-This step's writes execute through Bash (`rm -rf`, `ln -sfn`) for symlinks and `Write` for the two text files. Honor-system — agent MUST limit itself to the four target classes above.
+Canonical pruning goes through `fcc skills:prune` (step 2) — never a hand-authored `rm -rf` over a shell-expanded skill list (a zsh word-splitting bug in such a command once deleted the entire catalog). The remaining writes are narrow: symlink create/remove (`ln -sfn`, and `rm` only on a path whose `readlink` starts with `../../.figma-pipeline/skills/`) and `Write` for the two text files. Honor-system — the agent MUST limit itself to the target classes above and MUST NOT author destructive globbed deletes.
 
 ### Step 7.6 — RTK verify (optional)
 

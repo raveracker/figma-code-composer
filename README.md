@@ -48,19 +48,20 @@ Re-running the scaffolder pulls the latest agents, protocols, adapters, skills, 
 ```bash
 # 1. Commit first — so anything overwritten is recoverable via `git diff`
 git add -A && git commit -m "snapshot before fcc update"
-
-# 2. Pull the latest scaffold. With the ownership model below, you rarely need --skip:
+# 2. The scaffolder **detects conflicts and prompts** before overwriting — it won't silently clobber
+npx figma-code-composer@latest
+# 3. Pull the latest scaffold. With the ownership model below, you rarely need --skip:
 #    CLAUDE.md/AGENTS.md → only the managed block is refreshed (your content is kept)
 #    .cursor/rules       → only owner-tagged rules are overwritten (your forks are kept)
 npx figma-code-composer@latest --force
-#   --skip claude-md / agents-md / cursor-rules still available to opt a file out entirely.
-
-# 3. Re-run the wizard to re-prune skills + regenerate per-tool surfaces.
+# 4. --skip claude-md / agents-md / cursor-rules if not required to replace the existing LLM init md files
+npx figma-code-composer@latest --skip |claude-md|agents-md|cursor-rules
+# 5. Re-run the wizard to re-prune skills + regenerate per-tool surfaces.
 #    --re-detect preserves your config.json answers and re-verifies MCP.
 /init-figma-compose --re-detect
 ```
 
-Without `--force`, the scaffolder **detects conflicts and prompts** before overwriting — it won't silently clobber.
+Without `--force`, .
 
 **Cursor rules are protected per-file automatically.** Each scaffold-shipped rule carries `owner: figma-pipeline` frontmatter; a re-scaffold overwrites only those, and **never** touches a `.mdc` you added or *forked* (a scaffold rule with the `owner:` line removed). So you rarely need `--skip cursor-rules` — fork the one rule you want to keep instead. See [`.cursor/rules/README.md`](.cursor/rules/README.md) § Ownership.
 
@@ -242,13 +243,17 @@ Available commands (all tools): `figma-build`, `figma-update`, `figma-icons`, `f
 
 **Per-tool specifics:**
 
-- **Claude Code** uses `AskUserQuestion` for the wizard and the `Agent` tool for dispatch. Per-tier model routing (Haiku / Sonnet / Opus) is automatic via `Agent(model=…)`.
-- **Cursor** reads agents from `.cursor/prompts/` and runs MCP through Cursor's Settings → MCP UI. The wizard **hard-gates** on this: it verifies Figma MCP with a low-cost read before writing `config.json`. Model routing is user-selected and the coordinator never overrides it — the preference is **plan-aware**: on the **Free plan** model selection is locked to **Auto** (the pipeline just runs on Auto — nothing to set); on a **Paid plan** prefer **Composer 2.5** as default with a **Claude model fallback** for `lg`-size (complex/extreme) runs. See `.cursor/rules/model-preference.mdc`. The coordinator surfaces a recommended size (`sm`/`md`/`lg`) as a chat prefix (informational on Free, actionable on Paid).
+- **Claude Code** runs the wizard **inline in the main thread** (it owns `AskUserQuestion` directly — the wizard is not spawned as a subagent, since a subagent that asks a question can't be resumed for the answer; only the read-only `project-detector` scan is delegated). Build specialists are dispatched via the `Agent` tool, with per-tier model routing (Haiku / Sonnet / Opus) automatic via `Agent(model=…)`.
+- **Cursor** reads agents from `.cursor/prompts/` and runs MCP through Cursor's Settings → MCP UI. The wizard **hard-gates** on this: it verifies Figma MCP with a low-cost read before writing `config.json`. **The whole pipeline runs inline in one chat thread — Cursor has no `Agent`-style spawner, so the coordinator plays every specialist role itself** (unlike Claude Code's per-specialist `Agent(model=…)` spawns). Crucially, it must **never try to launch a specialist as a separate model-pinned agent**: on the **Free plan** that aborts the run with `Named models unavailable — Free plans can only use Auto`. Model routing is user-selected and the coordinator never overrides it — the preference is **plan-aware**: on the **Free plan** model is locked to **Auto** (the pipeline just runs inline on Auto — nothing to set); on a **Paid plan** prefer **Composer 2.5** as default with a **Claude model fallback** for `lg`-size (complex/extreme) runs. See `.cursor/rules/model-preference.mdc`. The coordinator surfaces a recommended size (`sm`/`md`/`lg`) as a chat prefix (informational on Free, actionable on Paid).
 - **Codex CLI** runs through `.codex/wrap.sh` (the `./codex-run` wrapper the wizard writes at the project root when `tools.codexCli = true` — chmod 0755, no source step / shell-rc edit / direnv needed). `wrap.sh` fires the same lifecycle hooks (`pre-command` → cmd → `post-command` → `on-exit`) around the build.
 
   **One key difference from Claude Code:** the installed Codex CLI has **no sub-agent spawner**. Where Claude Code spawns each specialist (`figma-fetcher`, `component-builder`, …) as a separate parallel `Agent` with its own model, `wrap.sh` dispatches the whole pipeline as a **single `codex exec` session** — the coordinator plays each role inline, in sequence, reading `.codex/agents/<name>.md` as guidance. Two consequences:
   - **One model per run, not per specialist.** `config.codex.modelMap` resolves the tier to a single model passed via `codex exec --model <id>` (when your Codex CLI exposes the flag; else the global default in `~/.codex/config.toml`). The complexity tier still picks the skill set + the extreme-tier review pass — only the per-specialist model split is unavailable.
   - **Quote the Figma URL** — `?` and `&` break unquoted in zsh: `./codex-run figma-build 'https://figma.com/design/…?node-id=…'`.
+  - **Two entry points — pick by where you are** (full detail in `.codex/README.md` § _Two ways to run_):
+    - **Plain terminal / script / CI** → `./codex-run figma-build '<url>'`. The wrapper shells out to a nested `codex exec` and the hooks fire automatically.
+    - **Inside an interactive `codex` session** → run the recipe **inline** (ask Codex to follow `.codex/commands/figma-build.md` → `.codex/agents/figma-coordinator.md` in the current session; then run `.codex/hooks/post-command.sh figma-build` for the same validation). This mirrors Cursor's single-thread model and needs no nesting.
+    - **Why two:** a Codex session exports `CODEX_SANDBOX` (e.g. `seatbelt`); a nested `codex exec` launched from there can't start its app-server and dies with `failed to initialize in-process app-server client: Operation not permitted (os error 1)`. No inner flag escapes the parent sandbox — so `wrap.sh` detects it and refuses early, pointing you at the inline path. The inline path has the MCP tools already (it's the same session), so there's nothing to nest.
 
   > Note: earlier scaffold builds assumed a `codex run-agent <name>` subcommand — no released Codex CLI provides it. `wrap.sh` uses `codex exec`; update if you hit "unexpected argument".
 

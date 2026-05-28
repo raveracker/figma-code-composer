@@ -20,6 +20,30 @@ Drop-in scaffold for a Figma-driven multi-agent pipeline. Canonical project over
 
 The wizard writes `.figma-pipeline/config.json` (single source of truth) and `.mcp.json` (Figma MCP, **proven reachable** before `config.json` lands — `config.figma.mcpVerifiedAt` stamps it). When `tools.codexCli` is enabled, the wizard also writes `./codex-run` at the project root — an executable wrapper that does `exec .codex/wrap.sh "$@"` (no source step, no rc edit, no direnv). Every agent reads `config.json` before acting.
 
+## Two ways to run: wrapper (nested) vs. inline
+
+`./codex-run` / `./.codex/wrap.sh` shell out to a **nested `codex exec`**. That's the right entry from a **plain terminal, a script, or CI** — the hooks fire automatically around the run. But a nested `codex exec` **cannot start inside an already-running Codex session**: the parent sandbox blocks the child's app-server with `failed to initialize in-process app-server client: Operation not permitted (os error 1)`. `wrap.sh` detects this (the session exports `CODEX_SANDBOX`) and refuses early rather than dumping that raw error.
+
+So when you are **inside an interactive `codex` session**, run the pipeline **inline** instead — the current session already holds the Figma MCP tools, so there is nothing to nest (this mirrors how Cursor runs the pipeline: one thread, no spawner). Ask Codex to follow the recipe directly, e.g.:
+
+> Run figma-build **inline** for `https://www.figma.com/design/…?node-id=…`. Follow `.codex/commands/figma-build.md` → `.codex/agents/figma-coordinator.md` in THIS session. Do NOT call `./codex-run` or `codex exec` — no nesting.
+
+Codex then plays coordinator → fetcher → token/icon/component builders → stories/tests inline, sequentially, exactly as the wrapper's nested session would. Swap the recipe name for `figma-update` / `figma-icons` / `figma-tokens` as needed.
+
+### Inline ≠ no validation — run the hook checks yourself
+
+The lifecycle hooks only fire automatically under `wrap.sh`. Inline, keep the same guardrails by hand:
+
+- **Before:** confirm `.figma-pipeline/config.json` exists and `config.figma.mcpVerifiedAt` is stamped (the coordinator pre-flight already does this) — and that the live MCP probe (fetcher's first action) succeeds.
+- **After:** run `.codex/hooks/post-command.sh figma-build` once — it validates the manifest you just produced (rules 2–6), the config schema (rule 7), and token-file syntax.
+
+### Which entry should I use?
+
+| You are…                                  | Use                                                                  |
+| ----------------------------------------- | ------------------------------------------------------------------- |
+| Plain terminal / script / CI              | `./codex-run figma-build '<url>'` — nested `codex exec`; hooks auto-fire |
+| Inside an interactive `codex` session     | The **inline** recipe above — no nesting; run the post-command hook by hand |
+
 ## Repo map (Codex-relevant)
 
 | Path                                                 | Purpose                                                                                |
@@ -48,7 +72,7 @@ See `CLAUDE.md` § Coverage for the canonical stack/CSS/DS/methodology matrix.
 
 ## Codex-specific notes
 
-- **No native `Agent` spawner.** Unlike Claude Code, the installed Codex CLI has no `run-agent` subcommand — `codex exec "<prompt>"` runs ONE agentic session. So the whole pipeline runs in a single `codex exec` turn (dispatched by `wrap.sh`); the coordinator plays each specialist role inline in sequence, reading `.codex/agents/<x>.md` as guidance rather than spawning sub-processes. One consequence: per-specialist model routing collapses to one model for the run (see `.codex/agents/figma-coordinator.md` § Complexity routing under Codex).
+- **No native `Agent` spawner.** Unlike Claude Code, the installed Codex CLI has no `run-agent` subcommand — `codex exec "<prompt>"` runs ONE agentic session. So the whole pipeline runs in a single agentic turn — either the nested `codex exec` dispatched by `wrap.sh`, or the current interactive session running the recipe inline (see § _Two ways to run_) — and the coordinator plays each specialist role in sequence, reading `.codex/agents/<x>.md` as guidance rather than spawning sub-processes. One consequence: per-specialist model routing collapses to one model for the run (see `.codex/agents/figma-coordinator.md` § Complexity routing under Codex).
 - **No native lifecycle hooks.** `wrap.sh` simulates them via `pre-command.sh` (config sanity + figma URL nudge + `.env` block), `post-command.sh` (manifest + config + token-file validators), and `on-exit.sh` (session summary).
 - **MCP integration via `.mcp.json`** at the repo root (same file Claude Code reads).
 - **`AskUserQuestion` → stdin prompts.** See `.codex/agents/wizard.md` § stdin prompt format.

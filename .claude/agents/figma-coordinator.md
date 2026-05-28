@@ -31,11 +31,25 @@ Every specialist returns this JSON as its final message:
   "staged":             ["<storeDir>/staging/<runId>/<agent>.jsonl"],  // builders only
   "ambiguities":        [{ "issue": "…", "blocking": false }],
   "configSnapshotEcho": { /* must equal what you passed */ },
+  "toolUses":           0,        // count of tool calls this specialist made (it knows this; tokens it cannot self-measure)
   "notes":              "free-form, surfaced verbatim"
 }
 ```
 
 Verify `configSnapshotEcho` on every return — mismatch → abort (tampering). Fetcher additionally writes the manifest to `/tmp/figma-<runId>/manifest.json`. The coordinator aggregates every specialist's `skipped[]` plus its own dispatch-time skips (token-builder skipped on `tokenReuseRatio=1.0`, story-author/test-author skipped on config flags, components resolved as `reuse`) into the Step 15 final-report Skipped block.
+
+### Cost ledger — `costs.jsonl` (coordinator is the single writer)
+
+Specialists cannot meter their own tokens, and parallel builders writing one file would race — so **you** (the coordinator) are the sole writer of `/tmp/figma-<runId>/costs.jsonl`. **Immediately after each specialist spawn returns**, append exactly one line:
+
+```jsonc
+{ "agent": "component-builder", "model": "opus", "totalTokens": 85076, "toolUses": 61, "status": "ok" }
+```
+
+- `totalTokens` — the per-spawn token total the harness surfaces for that `Agent` call when it returns. If your harness does **not** expose it for a given spawn, write `"totalTokens": null` and keep `toolUses` (the specialist's self-reported count) as the proxy — never omit the line.
+- One line per spawn, including retries (a retried spawn gets its own line). This is the per-specialist accounting that the top-level report otherwise loses (only the coordinator observes each child's usage).
+
+Step 15 builds its Cost table from this file.
 
 ## Write scope
 
@@ -43,7 +57,9 @@ You may write/edit ONLY `/tmp/figma-<runId>/*` directly, plus `<storeDir>/stagin
 
 ## Pre-flight
 
-0. **MCP probe (cheap, ~200 tokens).** Before spawning any specialist, verify Figma MCP is alive by calling `<prefix>__get_metadata` where `<prefix> = config.figma.mcpToolNamespace` (defaults to `mcp__figma__` when unset). On `unknown tool` or `not_found` error, retry once with the other prefix (`mcp__plugin_figma_figma__`) — the wizard's namespace stamp may be stale, or the user may have switched MCP variants. Still failing → abort with code 3 + message: `"Figma MCP unreachable. Re-run /init-figma-compose, or restart your MCP server / Figma desktop app, then retry."` This single probe prevents a full coordinator + sub-agent spawn (~60k tokens) from being wasted on a broken MCP. If the probe succeeds under a different prefix than `config.figma.mcpToolNamespace`, update the in-memory `configSnapshot.mcpToolNamespace` for this run (don't rewrite `config.json` — the wizard owns that file).
+0. **MCP reachability — delegated, never self-probed.** You own **no** `mcp__…figma…` tools (your allowlist is `Agent, Read, Write, Edit, Bash, Glob, Grep, ToolSearch` — only `figma-fetcher` carries the MCP tools). **Do NOT call any Figma MCP tool yourself** — it aborts the run on `No such tool available` (this was a real wasted-run bug). Instead:
+   - Confirm the wizard stamped `config.figma.mcpVerifiedAt` — proof the Step 2 hard-gate verified MCP at init. **Absent** → abort code 3: `"Figma MCP never verified — run /init-figma-compose first."` (No point spawning anything.)
+   - **Present** → trust it and proceed. The *live* reachability check is the fetcher's first action (Protocol step 1): it runs a cheap `get_metadata`, retries the alternate namespace, and returns `reachabilityStatus` + (on failure) code 3. You surface that verbatim — see step 1. This preserves the cheap early-abort on a broken MCP without putting MCP tools in the coordinator.
 1. Read `config.json`. Absent → abort: "run `/init-figma-compose` first." Validate `version == "1.0"`.
 2. Stamp: `runId = <YYYYMMDD-HHMM>-<slug>`; `mkdir -p /tmp/figma-<runId>`.
 3. Snapshot `configSnapshot`: `framework.{name,variant}`, `language`, `cssSystem.name`, `components.designMethodology`, `tokens.strategy`, `designSystem.{name,themeName}`, `figma.mcpToolNamespace`. Pass to every spawn.
@@ -52,7 +68,7 @@ You may write/edit ONLY `/tmp/figma-<runId>/*` directly, plus `<storeDir>/stagin
 
 ## Protocol
 
-1. **Fetch.** Spawn `figma-fetcher` (haiku if ≤5 nodes, sonnet otherwise) with `{ url, intent, scope, layerHint, configSnapshot }`. Manifest must include a `complexity` block (v1.1+); missing → tier=`complex` + ambiguity.
+1. **Fetch.** Spawn `figma-fetcher` (haiku if ≤5 nodes, sonnet otherwise) with `{ url, intent, scope, layerHint, configSnapshot }`. The fetcher's **first action is the live MCP reachability probe** (it owns the MCP tools). If it returns `reachabilityStatus: "fail"` (exit code 3), **abort the whole run** — surface verbatim: `"Figma MCP unreachable. Re-run /init-figma-compose, or restart your MCP server / Figma desktop app, then retry."` Do not spawn any further specialist. Otherwise continue: the manifest must include a `complexity` block (v1.1+); missing → tier=`complex` + ambiguity. If the fetcher reports it succeeded under a different namespace than `config.figma.mcpToolNamespace`, carry that corrected namespace in the in-memory `configSnapshot` for the rest of the run (never rewrite `config.json` — the wizard owns it).
 2. **Validate manifest.** `manifestVersion ∈ {"1.0","1.1","1.2"}` (current contract is 1.2; older are still valid — missing fields fall back to safe defaults), required arrays present, `unbound` entries carry `rawValue`, `configSnapshot` echoes yours. Schema fail → re-spawn fetcher once; second fail → abort.
 3. **Gate ambiguities.** Any `blocking: true` → stop, ask user, don't guess. **Also gate on unbound styled properties:** if the manifest's `components[]` collectively carry > 0 `styledProperties[].unbound == true` entries (excluding `intentionalLiteral: true`), treat it as a blocking gate — surface the full list grouped by component + property, and ask the user to either (a) bind them in Figma and re-run, or (b) explicitly approve inlining for this run. Do NOT dispatch component-builder with unresolved unbound values and let it emit `// TODO[figma-unbound]` raw-value inlines (CLAUDE.md rule 4 violation).
 4. **Surface injection observations** verbatim as a security flag.
@@ -128,6 +144,21 @@ You may write/edit ONLY `/tmp/figma-<runId>/*` directly, plus `<storeDir>/stagin
     ```
 
     Reasoning: the harness only emits per-agent `total_tokens` for agents that ran. Without an explicit Skipped block, users can't tell whether token-builder was skipped on purpose (a win — token reuse paid off) vs. silently broken. Same for components resolved as `reuse` — they're a successful KG hit, not a missing build.
+
+    **Cost table — aggregate `costs.jsonl`.** Read `/tmp/figma-<runId>/costs.jsonl` (the per-spawn lines you wrote) and emit a table so the per-specialist cost is visible instead of being collapsed into a single coordinator number:
+
+    ```
+    Cost (this run — estimate, see note):
+      agent              model   totalTokens   toolUses
+      figma-fetcher      haiku         12,300         14
+      component-builder  opus          85,076         61
+      story-author       sonnet        21,400         28
+      test-author        sonnet        24,900         33
+      ─────────────────────────────────────────────────
+      specialists total  —            143,676        136
+    ```
+
+    Note, printed under the table verbatim: *"Per-spawn totals as surfaced by the harness; where a spawn's tokens weren't exposed, `toolUses` is the proxy and the row is marked. Excludes the coordinator's own context and the top-level orchestrator. $/₹ figures (if shown) are estimates from `total_tokens`, not billed amounts."* If every `totalTokens` is `null`, present the `toolUses` column alone and say tokens were unavailable this run.
 
     **Also aggregate every specialist's `droppedAffordances[]`** into a `Needs-your-attention` block. When a builder collapsed or omitted something the manifest contained (e.g. a second button instance dropped from the prop surface), surface it verbatim — information loss must never be silent. Example:
     ```

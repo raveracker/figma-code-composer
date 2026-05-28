@@ -10,6 +10,7 @@
 //   kg:merge                   Coordinator merges staged deltas into the ledger
 //   kg:rebuild                 Rebuild graph.json + embeddings from ledger.jsonl
 //   handover                   Emit handover .md for a run
+//   skills:prune               Guarded prune of .figma-pipeline/skills/ to a keep-set
 //
 // Legacy: invoking without a subcommand defaults to `init` for backward compat.
 //
@@ -119,6 +120,7 @@ const KNOWN_SUBCOMMANDS = new Set([
   "kg:verify",
   "kg:repair",
   "handover",
+  "skills:prune",
 ]);
 
 const SUBCOMMAND_HANDLERS = {
@@ -132,6 +134,7 @@ const SUBCOMMAND_HANDLERS = {
   "kg:verify":  runKgVerify,
   "kg:repair":  runKgRepair,
   handover:     runHandover,
+  "skills:prune": runSkillsPrune,
 };
 
 async function dispatch(argv) {
@@ -204,6 +207,7 @@ ${c("bold", "Subcommands:")}
   kg:verify                  Check ledger entries still match the filesystem
   kg:repair                  User-driven cleanup: prune orphans, rebuild, resolve paths
   handover                   Emit handover .md for a run
+  skills:prune               Guarded prune of .figma-pipeline/skills/ to a --keep set
 
 ${c("bold", "Init usage:")}
   npx figma-code-composer [target] [options]
@@ -1016,6 +1020,29 @@ function runHandover(args) {
 
   const built = runEntries.map(e => `- \`${e.id}\` (${e.kind}) → \`${e.filePath || e.outputDir || "—"}\``).join("\n") || "- (none recorded in ledger for this run)";
   const tokens = runEntries.filter(e => e.kind === "tokenSet").reduce((n, e) => n + (e.tokenCount || 0), 0);
+
+  // Per-specialist cost ledger (coordinator-written, one JSON line per spawn).
+  const costsPath = f.costs || `/tmp/figma-${f["run-id"]}/costs.jsonl`;
+  const costRows = [];
+  if (existsSync(costsPath)) {
+    for (const line of readFileSync(costsPath, "utf8").split("\n")) {
+      const t = line.trim();
+      if (!t) continue;
+      try { costRows.push(JSON.parse(t)); } catch { /* skip malformed cost line */ }
+    }
+  }
+  const costTokens = costRows.reduce((n, r) => n + (Number(r.totalTokens) || 0), 0);
+  const costTools = costRows.reduce((n, r) => n + (Number(r.toolUses) || 0), 0);
+  const fmtNum = (n) => n.toLocaleString("en-US");
+  const costSection = costRows.length
+    ? `Per-specialist totals from \`${costsPath}\` (coordinator-written, one line per spawn). Excludes the coordinator's own context + the top-level orchestrator; \`total_tokens\`-based estimate, not billed.
+
+| agent | model | totalTokens | toolUses |
+| ----- | ----- | ----------: | -------: |
+${costRows.map(r => `| ${r.agent || "—"} | ${r.model || "—"} | ${r.totalTokens == null ? "n/a" : fmtNum(Number(r.totalTokens))} | ${r.toolUses == null ? "—" : r.toolUses} |`).join("\n")}
+| **total** | — | **${fmtNum(costTokens)}** | **${costTools}** |`
+    : "- No per-specialist cost ledger found for this run (costs.jsonl absent).";
+
   const drift = [];
   if (f.verify) {
     for (const e of runEntries) {
@@ -1030,6 +1057,8 @@ status: ${f.failed ? "failed" : drift.length ? "partial" : "ok"}
 manifest: ${f.manifest}
 entriesThisRun: ${runEntries.length}
 tokensThisRun: ${tokens}
+specialistTokensThisRun: ${costTokens}
+specialistToolUsesThisRun: ${costTools}
 ---
 
 # Handover — ${f["run-id"]}
@@ -1037,6 +1066,10 @@ tokensThisRun: ${tokens}
 ## Built this run
 
 ${built}
+
+## Cost (this run — estimate)
+
+${costSection}
 
 ## Open issues
 
@@ -1050,6 +1083,77 @@ ${cfg.knowledgeGraph && cfg.knowledgeGraph.enabled ? "- Run `/graphify .` to ref
   writeFileSync(out, body);
   emit({ handover: relative(REPO, out), entriesThisRun: runEntries.length, drift: drift.length }, f.json);
   process.exit(drift.length ? 1 : 0);
+}
+
+// ─── fcc skills:prune --keep <list> [--dry-run] [--json] ──────────────────────
+// Vetted, guarded replacement for the wizard's old ad-hoc `rm -rf` skill prune
+// (which a zsh word-splitting bug once turned into a full-catalog wipe). Deletes
+// skill dirs under .figma-pipeline/skills/ that are NOT in the keep-set. Guards:
+//   - refuses if --keep is missing/empty (an empty keep-set = delete everything)
+//   - refuses if the keep-set is disjoint from on-disk (= delete the whole
+//     catalog — the exact failure mode that nuked all 137 dirs)
+//   - every target is basename-only, resolved + confirmed under the skills dir;
+//     names with a path separator / relative segment are rejected
+function runSkillsPrune(args) {
+  const f = flags(args);
+  const skillsDir = join(REPO, ".figma-pipeline", "skills");
+  if (!existsSync(skillsDir)) fail(2, "No .figma-pipeline/skills/ directory — nothing to prune.");
+
+  const rawKeep = typeof f.keep === "string" ? f.keep : "";
+  const keep = rawKeep.split(",").map(s => s.trim()).filter(Boolean);
+  if (keep.length === 0) {
+    fail(2, "Refusing to prune: --keep <comma-list> is required and must be non-empty (an empty keep-set would delete every skill).");
+  }
+  for (const name of keep) {
+    if (name.includes("/") || name.includes("\\") || name === "." || name === "..") {
+      fail(2, `Refusing to prune: unsafe keep entry '${name}' (no path separators or relative segments allowed).`);
+    }
+  }
+
+  const onDisk = readdirSync(skillsDir, { withFileTypes: true })
+    .filter(d => d.isDirectory())
+    .map(d => d.name);
+  const keepSet = new Set(keep);
+  const kept = onDisk.filter(n => keepSet.has(n));
+  const remove = onDisk.filter(n => !keepSet.has(n));
+  const missing = keep.filter(n => !onDisk.includes(n));
+
+  // GUARD: keep-set disjoint from on-disk → pruning would wipe the whole catalog.
+  if (onDisk.length > 0 && kept.length === 0) {
+    fail(3, `Refusing to prune: none of the ${keep.length} keep entr${keep.length === 1 ? "y" : "ies"} match any of the ${onDisk.length} on-disk skill dir(s) — pruning would delete the entire catalog. Check the keep-set (likely a resolution bug).`);
+  }
+
+  if (f["dry-run"]) {
+    emit({ dryRun: true, total: onDisk.length, keep: kept.length, remove: remove.length, removeNames: remove, missing }, f.json);
+    process.exit(0);
+  }
+
+  const skillsRoot = resolve(skillsDir);
+  for (const name of remove) {
+    const target = resolve(join(skillsDir, name));
+    if (target !== join(skillsRoot, name) || !target.startsWith(skillsRoot + "/")) {
+      fail(3, `Refusing to delete out-of-scope path: ${target}`);
+    }
+    rmSync(target, { recursive: true, force: true });
+  }
+
+  // Best-effort: keep skills-lock.json in sync with on-disk (per skills.md § Out-of-band).
+  let lockSynced = false;
+  const lockPath = join(REPO, "skills-lock.json");
+  if (existsSync(lockPath)) {
+    try {
+      const lock = JSON.parse(readFileSync(lockPath, "utf8"));
+      if (lock && lock.skills && typeof lock.skills === "object") {
+        const remaining = new Set(kept);
+        lock.skills = Object.fromEntries(Object.entries(lock.skills).filter(([k]) => remaining.has(k)));
+        writeFileSync(lockPath, JSON.stringify(lock, null, 2) + "\n");
+        lockSynced = true;
+      }
+    } catch { /* non-fatal — lock is advisory */ }
+  }
+
+  emit({ pruned: remove.length, kept: kept.length, total: onDisk.length, removed: remove, missing, lockSynced }, f.json);
+  process.exit(0);
 }
 
 // ─── fcc doctor [--explain-output] [--no-write] [--mcp-skip] ──────────────────

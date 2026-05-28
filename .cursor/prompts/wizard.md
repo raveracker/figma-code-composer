@@ -32,7 +32,7 @@ Steps:
 9. **Tools** — multi-select; toggle `tools.claudeCode` / `tools.cursor` / `tools.codexCli`.
 10. **Compose + validate** — write `.figma-pipeline/config.json`; validate against the schema (use `npx ajv-cli validate` if available; else structural check).
 11. **Install / strip skills** — apply the install + per-tool surface pass per `.figma-pipeline/protocols/skills.md` § _Resolution algorithm — Wizard (install phase)_:
-    a. Prune canonical `.figma-pipeline/skills/<name>/` to the resolved install set.
+    a. Prune canonical `.figma-pipeline/skills/<name>/` to the resolved install set via `fcc skills:prune --keep "<installSet>" --json` (the vetted, guarded command) — never a hand-authored `rm -rf` over a shell-expanded list. It refuses to run if the keep-set is empty or disjoint from on-disk (the guard against a full-catalog wipe).
     b. If `tools.claudeCode`: ensure `.claude/skills/<name>` symlinks → `../../.figma-pipeline/skills/<name>` for each name in installSet; remove wizard-owned symlinks not in installSet. Else: remove all wizard-owned symlinks under `.claude/skills/`.
     c. If `tools.cursor`: write `.cursor/rules/use-skills.mdc` from the canonical template. Else: delete it.
     d. If `tools.codexCli`: write `.codex/skills.md` from the canonical template. Else: delete it.
@@ -51,7 +51,7 @@ Cursor in agent mode may write only:
 - `.mcp.json` (merge `figma` only)
 - `.codex/config.json` (when codexCli is enabled)
 - `/tmp/figma-wizard-*` (scratch)
-- `.figma-pipeline/skills/<name>/` — **delete only**, at Step 11(a)
+- `.figma-pipeline/skills/<name>/` — **delete only**, at Step 11(a), via `fcc skills:prune` (never free-form `rm -rf`)
 - `.claude/skills/<name>` — symlink create/delete, at Step 11(b), only when `tools.claudeCode`
 - `.cursor/rules/use-skills.mdc` — write/delete, at Step 11(c)
 - `.codex/skills.md` — write/delete, at Step 11(d)

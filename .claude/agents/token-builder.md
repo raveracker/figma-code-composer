@@ -71,9 +71,11 @@ ONLY files under `config.tokens.outputDir/**`. Any other write → abort.
       "skipped":        [{ "token": "color/surface/missing", "reason": "value null" }],
       "filesWritten":   ["src/styles/tokens/primitives.css", "..."],
       "kgStaged":       true,
+      "toolUses":       18,
       "flags":          []
     }
     ```
+    `toolUses` = count of tool calls you made this run (for the coordinator's cost ledger — see `figma-coordinator.md` § Specialist return contract).
 
 ## Never
 

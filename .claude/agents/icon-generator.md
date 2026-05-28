@@ -62,9 +62,11 @@ ONLY `config.icons.outputDir/**` + the icon barrel (`config.icons.outputDir/<con
      "iconsUpdated":  [],
      "barrelTouched": "src/icons/index.ts",
      "kgStaged":      ["ChevronRight"],
+     "toolUses":      9,
      "flags":         []
    }
    ```
+   `toolUses` = count of tool calls you made this run (for the coordinator's cost ledger — see `figma-coordinator.md` § Specialist return contract).
 
 ## Never
 

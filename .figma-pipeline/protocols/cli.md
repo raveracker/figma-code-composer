@@ -285,13 +285,43 @@ Emit a `handovers/<runId>.md` summarizing a run. Called by the coordinator after
 | `--run-id <id>`       | REQUIRED                                          |
 | `--manifest <path>`   | REQUIRED — path to the run's manifest             |
 | `--output <path>`     | Default: `<storeDir>/handovers/<runId>.md`        |
+| `--costs <path>`      | Per-specialist cost ledger. Default: `/tmp/figma-<runId>/costs.jsonl` |
 | `--failed`            | Emit a `.failed.md` instead of `.md`              |
 | `--verify`            | Re-read disk state and cross-check ledger; flag drift |
+
+The handover embeds a **Cost (this run)** table aggregated from the cost ledger (`costs.jsonl`) — one JSON line per specialist spawn (`{ agent, model, totalTokens, toolUses, status }`), written by the coordinator (single writer). Front-matter gains `specialistTokensThisRun` + `specialistToolUsesThisRun`. Absent ledger → the section notes it; the rest of the handover is unaffected.
 
 **Exit codes:**
 - `0` — handover written
 - `1` — written with warnings (use `--verify` to surface)
 - `2` — manifest or ledger unreadable
+
+### `fcc skills:prune`
+
+Guarded prune of `.figma-pipeline/skills/` down to a keep-set. The vetted replacement for hand-authored `rm -rf` in the wizard's install phase (a shell word-splitting bug in such a command once wiped the entire catalog). Called by the wizard at `/init-figma-compose` (Step 7.5) with the resolved `installSet`. See [skills.md](./skills.md) § _Resolution algorithm — Wizard (install phase)_.
+
+**Effect:**
+- Lists directories directly under `.figma-pipeline/skills/`.
+- Deletes those NOT in `--keep`. Each target is basename-scoped and confirmed to resolve under the skills dir.
+- Best-effort syncs `skills-lock.json` to the surviving set (if present).
+
+**Flags:**
+
+| Flag                  | Effect                                                            |
+| --------------------- | ---------------------------------------------------------------- |
+| `--keep <list>`       | REQUIRED — comma-separated skill names to keep (the `installSet`) |
+| `--dry-run`           | Print what would be removed; delete nothing                       |
+| `--json`              | Machine-readable output (`{ pruned, kept, total, removed, missing, lockSynced }`) |
+
+**Guards (non-bypassable):**
+- Empty/missing `--keep` → refuse (exit 2). An empty keep-set would delete everything.
+- `--keep` disjoint from the on-disk set → refuse (exit 3). That would delete the whole catalog — the historical failure mode.
+- Keep entries containing `/`, `\`, `.`, or `..` → refuse (exit 2).
+
+**Exit codes:**
+- `0` — pruned (or nothing to prune)
+- `2` — bad input (empty/unsafe `--keep`, no skills dir)
+- `3` — guard tripped (disjoint keep-set) or out-of-scope target
 
 ## Exit-code conventions (summary)
 

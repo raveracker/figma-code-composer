@@ -78,9 +78,11 @@ For each `styledProperties[]` entry across all components:
       "skipped":   [{ "name": "BrokenThing", "reason": "unbound styled property" }],
       "kgStaged":  ["ProductCtaBar"],
       "droppedAffordances": [{ "component": "ProductCtaBar", "what": "second CTA button instance", "why": "collapsed into single onAddToCart prop", "reversible": "expose onSecondaryAction prop" }],
+      "toolUses":  61,
       "flags":     ["ProductCtaBar.paddingX was unbound (14px)"]
     }
     ```
+    `toolUses` = count of tool calls you made this run (you can count them; tokens you can't self-measure). The coordinator records it in the cost ledger — see `figma-coordinator.md` § Specialist return contract.
 
     **`droppedAffordances[]` is mandatory when you collapse or omit anything the manifest contained** — a second button instance, a hidden state, an interaction the design showed but you didn't wire to a prop. The PDP-2026 session silently dropped a second button (manifest had "dual button instances" but the prop API only had `onAddToCart`). Information loss must be reported, never silent — the coordinator surfaces it for the user to decide whether to expose another prop.
 
@@ -97,7 +99,7 @@ For each `styledProperties[]` entry across all components:
 
 | `cssSystem.name`    | How to reference a token in code                                       |
 | ------------------- | ---------------------------------------------------------------------- |
-| `tailwind-v4`/`v3`  | Utility class (`bg-surface-brand-primary`) using the configured prefix |
+| `tailwind-v4`/`v3`  | Utility class (`bg-surface-brand-primary`) using the configured prefix. For raw px sizing/spacing, prefer a scale utility over an arbitrary bracket — `184px` → `w-46`, not `w-[184px]` (see `adapters/css/tailwind-v4.md` § Gotchas; v3's bounded scale per `tailwind-v3.md`). |
 | `unocss`            | Same — class names refer to `theme` entries                            |
 | `css-modules`       | `import styles from './X.module.css'`; class names                     |
 | `css-vars`          | Global classes + `var(--…)`                                            |

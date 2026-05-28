@@ -68,6 +68,14 @@ Never emit an import for a package that isn't installed without flagging it — 
 
 Avoid combinatorial blow-up — pick representative states.
 
+## Assert against REAL output, never assumed text
+
+When an assertion depends on text a component **computes or formats** (ratings, currency, dates, pluralization, truncation, casing), derive the expected string from the component's actual code — never from the design value or your own assumption. Read the source first:
+
+- **Reused / composed components** (anything in `composes[]` or rendered as a child you didn't write this run): `Read` that component's source and find its formatter before asserting on its output. Example of the real bug this prevents: a `RatingStars` child emits `` `${rating.toFixed(1)} out of 5 stars` `` → the label is `"4.0 out of 5 stars"`, not `"4 out of 5 stars"`. Asserting the integer form makes the suite fail; the orchestrator then has to hand-fix it.
+- **Prefer structure over exact strings** where the format is incidental: query by `role` + accessible name, `data-testid`, or a stable substring (`/out of 5 stars/`) instead of pinning the full computed string — unless the exact copy *is* the thing under test (static labels, button text).
+- If you cannot read the formatter (source genuinely absent), do **not** guess an exact string — assert presence/role only and add a `flags[]` note that the exact label was unverified.
+
 ## Output discipline
 
 - One `describe(<Name>, …)` per file.
@@ -85,12 +93,16 @@ On `intent: "create"`: emit each test file in ONE `Write` call. Don't iterate wi
 {
   "testsCreated": [{ "component": "ProductCtaBar", "path": "src/components/molecules/ProductCtaBar/ProductCtaBar.test.tsx" }],
   "testsUpdated": [],
+  "toolUses": 33,
   "flags": []
 }
 ```
 
+`toolUses` = count of tool calls you made this run (for the coordinator's cost ledger — see `figma-coordinator.md` § Specialist return contract).
+
 ## Never
 
+- Hardcode a computed/formatted label (rating, currency, plural, date) without reading the component's formatter — derive the exact string from source, or assert by role/substring.
 - Test components whose source file doesn't exist yet.
 - Write stories (story-author owns those).
 - Mock the framework runtime (`react-dom`, `vue`, etc.) — test against real renders.
