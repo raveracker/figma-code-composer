@@ -177,7 +177,7 @@ Same pattern for `tokens.outputDir`, `icons.outputDir`. `stories.outputDir` and 
 ### Step 5.5 — Stories + tests
 
 - **Q-stories** "Generate Storybook stories?" yes/no. Storybook is the only supported framework.
-- **Q-tests-tracks** multi-select: **Unit** (default on) + **E2E** (default off, Playwright always, never asked).
+- **Q-tests-tracks** multi-select: **Unit** (default on) + **E2E** (default off; framework is always Playwright, never asked — but its *location* IS asked, see Q-e2e-location in Step 5.6).
 - If unit selected, **Q-unit-framework**: Vitest (recommended for Vite/Next 15+/Nuxt) · Jest · Karma (Angular-only offer).
 - Neither selected → both `tests.{unit,e2e}.enabled = false`.
 
@@ -188,14 +188,19 @@ Skip any question whose value was returned with `confidence: high` from the dete
 | Question         | Asked when                       | Options                                                                     | Sets                          |
 |------------------|----------------------------------|-----------------------------------------------------------------------------|-------------------------------|
 | Q-token-layout   | `tokens.outputDir` set           | `split` (rec for Tailwind/UnoCSS/CSS-vars) · `combined` · `framework-native` (auto for panda / vanilla-extract / styled-components) | `tokens.fileLayout`           |
-| Q-token-prefix   | `tokens.outputDir` set AND `fileLayout != "framework-native"` | free-text; default `--app-` for CSS-vars, `app-` for JS-token | `tokens.prefix`           |
+| Q-token-prefix   | `tokens.outputDir` set AND `fileLayout != "framework-native"` AND detector's `tokensPrefix == null` | free-text; default `--app-` for CSS-vars, `app-` for JS-token | `tokens.prefix`           |
 | Q-token-naming   | `tokens.outputDir` set           | `kebab-case` (rec CSS-vars/Tailwind) · `camelCase` (rec JS) · `dot.path` · `slash/path` | `tokens.namingConvention` |
 | Q-story-layout   | `stories.enabled`                | `co-located` (rec) · `parallel` (`stories/` mirror)                          | `stories.outputDir`           |
-| Q-test-layout    | `tests.unit.enabled` (E2E always `e2e/`) | `co-located` (rec) · `__tests__/` · `tests/` mirror                  | `tests.unit.outputDir`        |
+| Q-e2e-location   | `tests.e2e.enabled`              | `co-located` (rec — alongside component) · `e2e/` (repo root) · `tests/e2e/` · custom | `tests.e2e.outputDir`         |
+| Q-test-layout    | `tests.unit.enabled`             | `co-located` (rec) · `__tests__/` · `tests/` mirror                          | `tests.unit.outputDir`        |
 | Q-icon-fill      | `icons.outputDir` set            | `mixed` (rec) · `currentColor` only · `literal` only                         | `icons.fillModel`             |
 | Q-icon-barrel    | `icons.outputDir` set (skip when `cssSystem.name == styled-components`) | yes → `"index.ts"`, no → `null`           | `icons.barrelFile`            |
 
 Default `namingConvention` per cssSystem: kebab-case for tailwind/css/sass/unocss; camelCase for vanilla-extract/panda/styled-components.
+
+**Token-prefix detection (Issue from PDP-2026 session).** When `project-detector` returns a non-null `tokensPrefix` (existing repo tokens already use, e.g., `--hk-`), **skip Q-token-prefix entirely and set `config.tokens.prefix` to the detected value.** Do NOT impose a fresh default like `--tw-` over an existing convention — that produced a config/disk mismatch in a prior run. Only ask Q-token-prefix when the project has no existing tokens (greenfield).
+
+**E2E location (Q-e2e-location).** Default **co-located** (alongside the component, matching unit tests) — NOT a hardcoded root `e2e/`. The `tests.e2e.outputDir` is now user-chosen. Also ask `Q-playwright-config-location` ("Where should `playwright.config.ts` live — repo root or a workspace dir?") when `tests.e2e.enabled` and no `playwright.config.*` exists; record under `config.tests.e2e.configPath`.
 
 ### Step 6 — Tools
 

@@ -11,7 +11,7 @@ Drop-in scaffold for a Figma-driven multi-agent code-generation pipeline. Not a 
 | `.figma-pipeline/config.example.json`                 | Reference config — React + Tailwind v4 + Atomic Design.                  |
 | `.figma-pipeline/protocols/`                          | Cross-tool data contracts (manifest, token-strategy, component-layout, allowlist, skills, complexity, knowledge-graph, handover, cli). |
 | `.figma-pipeline/adapters/{frameworks,css,design-systems}/<name>.md` | Per-stack code-gen templates.                             |
-| `.figma-pipeline/skills/`                             | Canonical skill catalog (~130 skills). Tool-neutral; all three tools read via per-tool surfaces. |
+| `.figma-pipeline/skills/`                             | Canonical skill catalog (~137 skills). Tool-neutral; all three tools read via per-tool surfaces. |
 | `.claude/{agents,commands,hooks}/`                    | Claude Code surface (11 agents, 5 commands, 9 hooks). Per-tool skill surface (`.claude/skills/<name>` symlinks → canonical) is wizard-generated at `/init-figma-compose`. |
 | `.cursor/{prompts,rules}/`                            | Cursor mirror (8 `.mdc` rules + 11 agent prompts + 5 slash-command prompts + `rules/README.md` index). |
 | `.codex/{agents,commands,hooks}/` + `wrap.sh`         | Codex CLI mirror + lifecycle simulator.                                  |

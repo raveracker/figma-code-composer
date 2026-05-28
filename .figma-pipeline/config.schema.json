@@ -221,7 +221,7 @@
         },
         "e2e": {
           "type": "object",
-          "description": "E2E tests are always Playwright. The wizard does not ask for a framework choice — only whether E2E is enabled.",
+          "description": "E2E tests are always Playwright. The wizard does not ask for a framework choice — only whether E2E is enabled, and where the specs + config live.",
           "properties": {
             "enabled": { "type": "boolean", "default": false },
             "framework": {
@@ -229,7 +229,15 @@
               "enum": ["playwright"],
               "default": "playwright"
             },
-            "outputDir": { "type": "string", "default": "e2e" }
+            "outputDir": {
+              "type": "string",
+              "default": "co-located",
+              "description": "Where Playwright specs land. 'co-located' = alongside the component (matches unit tests); or a path like 'e2e' / 'tests/e2e'. Set by the wizard's Q-e2e-location. Specs use the component's exact casing + .spec.<ts|tsx> (e.g. ProductCard.spec.tsx)."
+            },
+            "configPath": {
+              "type": "string",
+              "description": "Where playwright.config.ts lives (repo root by default, or a workspace dir in a monorepo). Set by the wizard's Q-playwright-config-location when no playwright.config.* already exists."
+            }
           }
         }
       }

@@ -22,7 +22,7 @@ Binding: `protocols/skills.md` — load skills per stack + agent additions: `sen
 ## Write scope
 
 - Unit/integration tests — co-located with each component (or under `tests.unit.outputDir` when not `co-located`). Only when `tests.unit.enabled`.
-- E2E specs — under `tests.e2e.outputDir` (default `e2e/`). Only when `tests.e2e.enabled`.
+- E2E specs — under `tests.e2e.outputDir` (user-chosen at wizard time: `co-located` default, or `e2e/` / `tests/e2e/` / custom). Only when `tests.e2e.enabled`.
 
 Any other write → abort.
 
@@ -38,7 +38,7 @@ When `designSystemName != "none"`, use `adapterExcerpts.designSystem.testIdiom` 
 | `jest`                 | `describe`/`it` are globals                     | `<Name>.test.<tsx\|ts>`         |
 | `karma`                | Jasmine matchers + globals                      | `<Name>.spec.ts` (Angular norm) |
 
-E2E (when enabled): `import { test, expect } from "@playwright/test"`, file at `<tests.e2e.outputDir>/<Name>.e2e.ts`.
+E2E (when enabled): `import { test, expect } from "@playwright/test"`, file at `<tests.e2e.outputDir>/<Name>.spec.<ts|tsx>`. **Use `<Name>` with the EXACT casing of the component file** — `ProductCard.spec.tsx`, never `product-card.spec.ts`. Match the unit-test sibling's casing + extension convention; don't lowercase or kebab-case. When `tests.e2e.outputDir == "co-located"`, the spec lands in the component's own folder next to `<Name>.test.tsx` and `<Name>.stories.tsx`.
 
 | `tests.unit.testingLibrary`   | Render call                                                       |
 | ----------------------------- | ----------------------------------------------------------------- |
@@ -47,6 +47,16 @@ E2E (when enabled): `import { test, expect } from "@playwright/test"`, file at `
 | `@testing-library/angular`    | `render(Component, { componentInputs: args })`                    |
 | `@testing-library/svelte`     | `render(Component, { props: args })`                              |
 | `none`                        | Smoke test only — render via framework primitive + assert presence |
+
+## Dependency pre-flight (read `package.json` once)
+
+Before writing tests, verify the libraries your imports need are installed in the target package (`packages/<x>/package.json` in a monorepo, else root):
+
+- Unit: `@testing-library/user-event` (don't assume it's a transitive dep of `@testing-library/react` — the PDP-2026 session relied on that and it was flagged). Missing → flag `"add @testing-library/user-event to <package>"` and fall back to `fireEvent` if you must.
+- E2E: `@playwright/test` AND a `playwright.config.*` at `config.tests.e2e.configPath` (or repo root). Missing → flag `"@playwright/test not installed / no playwright.config — run the Playwright setup from README § Prerequisites"` and still write the spec (it'll run once deps land), but mark it in `flags[]`.
+- Node globals (`process`, `__dirname`) in a spec → needs `@types/node`. Missing → flag, or avoid the global (prefer Playwright's own config over `process.env`).
+
+Never emit an import for a package that isn't installed without flagging it — non-compiling test files were a PDP-2026 finding.
 
 ## Mandatory test matrix per component (cap ~7 tests)
 

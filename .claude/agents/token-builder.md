@@ -42,6 +42,7 @@ ONLY files under `config.tokens.outputDir/**`. Any other write → abort.
    The unchanged-skip backs `complexity.signals.tokenReuseRatio = unchangedCount / incomingTotal`.
 4. **Existing-token snapshot (sanity).** Glob `config.tokens.outputDir`; parse current emitted names. Cross-check against KG `emittedAs`. Disk drifted from ledger (hand-edited) → ambiguity `{ issue: "token output drifted from ledger", blocking: false }`; prefer disk for unchanged tokens.
 5. **Block on `unbound`.** Null/missing value → refuse to emit that token + add to flags. Coordinator escalates.
+5b. **Block on prefix mismatch — never silently override.** If `config.tokens.prefix` differs from the prefix actually in use on disk (from Step 4's snapshot — e.g. config says `--tw-` but `primitives.css` uses `--hk-`), do NOT silently emit with the disk prefix. Emit a **blocking** ambiguity: `{ issue: "config.tokens.prefix is '--tw-' but existing tokens in <outputDir> use '--hk-'; which is canonical?", blocking: true }` and stop. The coordinator asks the user to reconcile (update `config.json` to `--hk-`, OR migrate existing tokens to `--tw-`). Picking one silently is a CLAUDE.md safety violation ("never silently reconcile").
 6. **Emit per strategy:**
 
    | `tokens.strategy`         | Output                                                            |

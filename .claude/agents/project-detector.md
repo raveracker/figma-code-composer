@@ -34,6 +34,7 @@ Read-only project inspector. Return one JSON object describing the target projec
   },
   "componentsDirs":     ["src/components"],
   "tokensDir":          "src/styles/tokens|null",
+  "tokensPrefix":       "--hk-|--app-|--tw-|null",  // detected CSS-var prefix in existing token files
   "iconsDir":           "src/components/icons|null",
   "storiesFramework":   "storybook|null",
   "unitTestsFramework": "vitest|jest|karma|null",
@@ -88,6 +89,7 @@ Multiple match (Storybook pulls react + vue, etc.) → pick the one owning more 
 
 - `componentsDirs` — every `src/` dir named `components` / `ui` / `lib/components`, OR containing ≥5 `.tsx`/`.vue`/`.svelte` files. Union.
 - `tokensDir` — `tokens/`, `styles/tokens/`, `styles/design-tokens/`, or any `.css` matching `(primitives|semantic|tokens|theme)\.css`.
+- `tokensPrefix` — grep the detected token files for the first `--<prefix>-` custom-property pattern (`--hk-color-…`, `--app-spacing-…`, `--tw-…`). Return the common leading prefix (`--hk-`, `--app-`, etc.). If tokens use no consistent prefix or `tokensDir` is null → `null`. This is what the wizard uses to default `Q-token-prefix` instead of guessing — critical for matching an existing repo's convention rather than imposing a new one.
 - `iconsDir` — `**/icons/`, `**/svg/`, `**/svgs/`.
 - `storiesFramework` — `.storybook/` present → `storybook`. Histoire/Ladle no longer supported — report `null` + ambiguity if found.
 - `unitTestsFramework` — `vitest` → `vitest`; `jest` → `jest`; `karma` → `karma`; else `null`.

@@ -39,9 +39,11 @@ ONLY files inside the active methodology's component target directories (`atomic
 
 For each `styledProperties[]` entry across all components:
 
-1. `unbound: true` → ABORT this component (record in flags); coordinator escalates.
+1. `unbound: true` → **ABORT this component** (record in `skipped[]` with `reason: "N unbound styled properties — needs Figma variable bindings"`); coordinator escalates as a blocking ambiguity. **You MUST NOT emit the component with the raw value inlined and a `// TODO[figma-unbound]` comment** — that is a CLAUDE.md rule 4 violation ("Unbound values are flags, not invitations… never invent a token or inline the raw value"). Stop-and-flag means stop: do not write the file. If MANY components share a few unbound values, report them all in one `skipped[]` batch so the user can rebind in Figma once and re-run, rather than getting one abort at a time. The ONLY exception: a value the manifest marks `unbound: true` but `intentionalLiteral: true` (e.g. a `0` reset or a `transparent`) — those may be inlined; everything else blocks.
 2. `figmaVariable` set → verify identifier exists in `config.tokens.outputDir`. Missing → ABORT with `flag: "token <name> not emitted yet — re-run /figma-tokens first"`.
 3. Tailwind: verify any custom token-group prefix is registered (`adapters/css/tailwind-v4.md` § Custom token registration). Missing → flag, don't block.
+4. **Dependency audit (read `package.json` ONCE at run start).** For every library the adapter prescribes (`class-variance-authority`/`cva`, `clsx`, `tailwind-merge`, etc.) verify it's in `dependencies` or `devDependencies` of the component's package (`packages/<x>/package.json` in a monorepo, else root). Missing → do NOT emit the import; instead either (a) inline the equivalent without the lib (e.g. plain template-literal class composition instead of `cva`) and flag, or (b) record `flag: "adapter wants cva but it's not installed — run `npm i -D class-variance-authority` or the component falls back to manual class composition"`. **Never import a package that isn't installed** — it produces non-compiling output (the PDP-2026 session shipped a `cva` import with no `cva` dep).
+5. **Symbol audit for composed/imported components.** Before writing any `import { X } from "<path>"` for a sibling/reused component, verify the named export `X` actually exists at `<path>` (read the file or use the `exportName` the coordinator passed in `reusedComposes[]` / `priorReuseHints[]`). Never invent an import — the PDP-2026 session imported `{ Button }` from a file that only exports `ButtonV2`. Mismatch → use the real export name, or flag if no match.
 
 ## Protocol
 
@@ -75,9 +77,12 @@ For each `styledProperties[]` entry across all components:
       "barrelsTouched": ["src/components/molecules/index.ts"],
       "skipped":   [{ "name": "BrokenThing", "reason": "unbound styled property" }],
       "kgStaged":  ["ProductCtaBar"],
+      "droppedAffordances": [{ "component": "ProductCtaBar", "what": "second CTA button instance", "why": "collapsed into single onAddToCart prop", "reversible": "expose onSecondaryAction prop" }],
       "flags":     ["ProductCtaBar.paddingX was unbound (14px)"]
     }
     ```
+
+    **`droppedAffordances[]` is mandatory when you collapse or omit anything the manifest contained** — a second button instance, a hidden state, an interaction the design showed but you didn't wire to a prop. The PDP-2026 session silently dropped a second button (manifest had "dual button instances" but the prop API only had `onAddToCart`). Information loss must be reported, never silent — the coordinator surfaces it for the user to decide whether to expose another prop.
 
 ## Framework branching matrix
 

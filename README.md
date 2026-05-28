@@ -9,7 +9,7 @@
   <a href="https://www.npmjs.com/package/figma-code-composer"><img src="https://img.shields.io/npm/v/figma-code-composer.svg?style=flat-square&label=version&color=blue" alt="version"/></a>
   <a href="./LICENSE"><img src="https://img.shields.io/badge/license-MIT-3da639.svg?style=flat-square" alt="license: MIT"/></a>
   <a href="#quickstart"><img src="https://img.shields.io/badge/works%20with-Claude%20Code%20%C2%B7%20Cursor%20%C2%B7%20Codex%20CLI-6e40c9.svg?style=flat-square" alt="Claude Code · Cursor · Codex CLI"/></a>
-  <a href=".figma-pipeline/skills/"><img src="https://img.shields.io/badge/bundled%20skills-130-orange.svg?style=flat-square" alt="130 bundled skills"/></a>
+  <a href=".figma-pipeline/skills/"><img src="https://img.shields.io/badge/bundled%20skills-137-orange.svg?style=flat-square" alt="137 bundled skills"/></a>
 </p>
 
 
@@ -380,10 +380,10 @@ Eleven agent definitions under `.claude/agents/`, with per-tool pointers under `
 | `tdd-guide`          | Plans the minimum test matrix before tests are written |
 | `code-reviewer`      | Reviews recent code for risk / convention-match       |
 
-Per-stack skill resolution (~130 skills total, auto-pruned at `/init-figma-compose`): see [`protocols/skills.md`](.figma-pipeline/protocols/skills.md) for the resolution table.
+Per-stack skill resolution (~137 skills total, auto-pruned at `/init-figma-compose`): see [`protocols/skills.md`](.figma-pipeline/protocols/skills.md) for the resolution table.
 
 <details>
-<summary><strong>Bundled skill catalog — 130 skills, grouped (click to expand)</strong></summary>
+<summary><strong>Bundled skill catalog — 137 skills, grouped (click to expand)</strong></summary>
 
 | Category | Count | Skills |
 |---|---:|---|
@@ -451,7 +451,7 @@ Key sections:
 | `.figma-pipeline/config.json`                        | Single source of truth — written by `/init-figma-compose` only after the MCP hard gate passes |
 | `.figma-pipeline/protocols/`                         | Tool-neutral data contracts (manifest, knowledge-graph, complexity, handover, cli, skills, allowlist, token-strategy, component-layout) |
 | `.figma-pipeline/adapters/{frameworks,css,design-systems}/` | Per-stack code-generation templates                                              |
-| `.figma-pipeline/skills/`                            | Canonical skill catalog (~130 skills, auto-pruned by the wizard)                       |
+| `.figma-pipeline/skills/`                            | Canonical skill catalog (~137 skills, auto-pruned by the wizard)                       |
 | `.figma-pipeline/kg/`                                | Knowledge graph data (created on first build)                                          |
 | `.claude/agents/` `commands/` `hooks/`               | Claude Code surface                                                                    |
 | `.cursor/prompts/` `rules/`                          | Cursor surface (mirrors of agents + hooks)                                             |
@@ -464,7 +464,7 @@ Key sections:
 
 ## Credits — bundled skills
 
-130 skills under `.figma-pipeline/skills/` curated from the open-source community. Each retains its original `SKILL.md` with attribution preserved. Source repos + content hashes tracked in [`skills-lock.json`](./skills-lock.json). Main contributors: [thebushidocollective/han](https://github.com/thebushidocollective/han) (44), [mindrally/skills](https://github.com/mindrally/skills) (20), [wshobson/agents](https://github.com/wshobson/agents) (10), [analogjs/angular-skills](https://github.com/analogjs/angular-skills) (10), [alirezarezvani/claude-skills](https://github.com/alirezarezvani/claude-skills) (7), plus DS-specific bundles from Material UI, Chakra, Mantine, Hero UI, Next.js, Svelte, Vercel Labs, and Angular core teams. Full attribution in `skills-lock.json`. Open an issue if you'd like a skill renamed, relinked, or removed.
+137 skills under `.figma-pipeline/skills/` curated from the open-source community. Each retains its original `SKILL.md` with attribution preserved. Source repos + content hashes tracked in [`skills-lock.json`](./skills-lock.json). Main contributors: [thebushidocollective/han](https://github.com/thebushidocollective/han) (44), [mindrally/skills](https://github.com/mindrally/skills) (20), [wshobson/agents](https://github.com/wshobson/agents) (10), [analogjs/angular-skills](https://github.com/analogjs/angular-skills) (10), [alirezarezvani/claude-skills](https://github.com/alirezarezvani/claude-skills) (7), plus DS-specific bundles from Material UI, Chakra, Mantine, Hero UI, Next.js, Svelte, Vercel Labs, and Angular core teams. Full attribution in `skills-lock.json`. Open an issue if you'd like a skill renamed, relinked, or removed.
 
 ---
 

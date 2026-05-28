@@ -39,7 +39,7 @@ Verify `configSnapshotEcho` on every return — mismatch → abort (tampering). 
 
 ## Write scope
 
-You may write/edit ONLY `/tmp/figma-<runId>/*` directly, plus `<storeDir>/staging/<runId>/` (via `fcc kg:stage`) and `<storeDir>/handovers/<runId>.md` (via `fcc handover`). Any other write → abort. Never edit `config.json` (wizard-owned).
+You may write/edit ONLY `/tmp/figma-<runId>/*` directly, plus `<storeDir>/staging/<runId>/` (via `fcc kg:stage`) and `<storeDir>/handovers/<runId>.md` (via `fcc handover`, OR directly as the Step 13 fallback when `fcc handover` is a no-op stub). Any other write → abort. Never edit `config.json` (wizard-owned).
 
 ## Pre-flight
 
@@ -54,7 +54,7 @@ You may write/edit ONLY `/tmp/figma-<runId>/*` directly, plus `<storeDir>/stagin
 
 1. **Fetch.** Spawn `figma-fetcher` (haiku if ≤5 nodes, sonnet otherwise) with `{ url, intent, scope, layerHint, configSnapshot }`. Manifest must include a `complexity` block (v1.1+); missing → tier=`complex` + ambiguity.
 2. **Validate manifest.** `manifestVersion ∈ {"1.0","1.1"}`, required arrays present, `unbound` entries carry `rawValue`, `configSnapshot` echoes yours. Schema fail → re-spawn fetcher once; second fail → abort.
-3. **Gate ambiguities.** Any `blocking: true` → stop, ask user, don't guess.
+3. **Gate ambiguities.** Any `blocking: true` → stop, ask user, don't guess. **Also gate on unbound styled properties:** if the manifest's `components[]` collectively carry > 0 `styledProperties[].unbound == true` entries (excluding `intentionalLiteral: true`), treat it as a blocking gate — surface the full list grouped by component + property, and ask the user to either (a) bind them in Figma and re-run, or (b) explicitly approve inlining for this run. Do NOT dispatch component-builder with unresolved unbound values and let it emit `// TODO[figma-unbound]` raw-value inlines (CLAUDE.md rule 4 violation).
 4. **Surface injection observations** verbatim as a security flag.
 5. **Resolve routing** — apply `tierOverrides` to `manifest.complexity.tier`:
 
@@ -66,6 +66,8 @@ You may write/edit ONLY `/tmp/figma-<runId>/*` directly, plus `<storeDir>/stagin
    | extreme   | full + final `code-reviewer` per component          | `lg` | yes (`lg`) |
 
    Claude Code size→model: `sm=claude-haiku-4-5`, `md=claude-sonnet-4-6`, `lg=claude-opus-4-7` (pass via `Agent(model=…)`). Cursor/Codex use their mirrors. `config.complexity.model.<tier>` wins if set. `complexity.enabled == false` → tier=`complex`.
+
+5b. **First-build notice.** If KG is enabled but `.figma-pipeline/kg/ledger.jsonl` is absent or empty, surface once: `"First build in this repo — no KG entries yet. After this run, run /graphify . and future /figma-build / /figma-update calls will reuse what was built instead of duplicating."` Don't treat empty KG as an error.
 
 6. **Resolve component instances (KG-enabled only — load-bearing reuse).** For every `components[]` entry with `componentInstance != null`:
    - `fcc kg:query --kind component --figma-node-id <mainComponentId> --framework <fw> --css-system <css> --top-k 1`. Silent reuse needs all three to match.
@@ -106,7 +108,10 @@ You may write/edit ONLY `/tmp/figma-<runId>/*` directly, plus `<storeDir>/stagin
     | Hard failure after retry    | Mark branch FAILED; continue independent branches.  |
     | KG merge failure            | NO retry. Print staging dir.                        |
 
-13. **Handover.** `fcc handover --run-id <runId> --manifest /tmp/figma-<runId>/manifest.json`. Append `--failed` if any builder failed. Non-zero exit → whole run reports `partial`.
+13. **Handover.** `fcc handover --run-id <runId> --manifest /tmp/figma-<runId>/manifest.json`. Append `--failed` if any builder failed. **Verify the file actually got written** — after the call, confirm `<storeDir>/handovers/<runId>.md` exists and is non-empty. Do NOT trust the exit code alone: `fcc handover` may be a stub in the installed `fcc` version (it prints "not yet implemented" and exits 0 without writing). If the file is missing/empty:
+    - Write the handover yourself to `<storeDir>/handovers/<runId>.md` following `protocols/handover.md` § Front-matter + body schema (you have all the run data — built/updated/skipped/failed lists, open issues, next steps). This is the one case where the coordinator writes the handover directly rather than via the CLI.
+    - Surface a flag: `"fcc handover was a no-op (stub); coordinator wrote the handover directly."`
+    Non-zero exit AND no file written by either path → whole run reports `partial`.
 
 14. **Lessons.** Append `/tmp/figma-<runId>/lessons.md`: runId, built / retries / refusals / token-mapping aborts / HITL gates / tier / KG hit-rate. Ephemeral.
 
@@ -123,6 +128,13 @@ You may write/edit ONLY `/tmp/figma-<runId>/*` directly, plus `<storeDir>/stagin
     ```
 
     Reasoning: the harness only emits per-agent `total_tokens` for agents that ran. Without an explicit Skipped block, users can't tell whether token-builder was skipped on purpose (a win — token reuse paid off) vs. silently broken. Same for components resolved as `reuse` — they're a successful KG hit, not a missing build.
+
+    **Also aggregate every specialist's `droppedAffordances[]`** into a `Needs-your-attention` block. When a builder collapsed or omitted something the manifest contained (e.g. a second button instance dropped from the prop surface), surface it verbatim — information loss must never be silent. Example:
+    ```
+    Needs your attention:
+      - ProductCard dropped the second CTA button instance (collapsed into one onAddToCart prop).
+        To expose it, re-run with a note or add an onSecondaryAction prop.
+    ```
 
 ## Safety
 
