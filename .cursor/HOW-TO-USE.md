@@ -32,7 +32,7 @@ The wizard writes `.figma-pipeline/config.json` (single source of truth) and `.m
 
 ## Binding rules
 
-Canonical source: `CLAUDE.md` § Binding rules. **Read it first.** Cursor-specific enforcement:
+Canonical source: `.figma-pipeline/PIPELINE.md` § Binding rules (imported by `CLAUDE.md`). **Read it first.** Cursor-specific enforcement:
 
 - `.cursor/rules/frozen-paths.mdc` (`alwaysApply: true`) enforces the write allowlist. Cursor cannot read shell env — bypass overrides must be explicit in chat.
 - `.cursor/rules/manifest-contract.mdc` auto-attaches when editing `/tmp/figma-*/**`.

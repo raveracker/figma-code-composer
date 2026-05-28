@@ -35,7 +35,7 @@ The wizard writes `.figma-pipeline/config.json` (single source of truth) and `.m
 
 ## Binding rules
 
-Canonical source: `CLAUDE.md` § Binding rules. **Read it first.** Codex-specific enforcement caveats:
+Canonical source: `.figma-pipeline/PIPELINE.md` § Binding rules (imported by `CLAUDE.md`). **Read it first.** Codex-specific enforcement caveats:
 
 - **Rule 1 (write allowlist)** — Codex does NOT enforce this at the tool layer. `wrap.sh`'s `pre-command.sh` only blocks `.env` access. **Review the working tree after every run.**
 - **Rule 2 (manifest contract)** — `post-command.sh` validates the latest `/tmp/figma-*/manifest.json` after every run.

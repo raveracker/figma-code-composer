@@ -26,22 +26,22 @@ Works in **Claude Code**, **Cursor**, and **Codex CLI** — same agents, three e
 npx figma-code-composer        # or the short alias: npx fcc
 ```
 
-That copies `.claude/`, `.cursor/`, `.codex/`, `.figma-pipeline/`, `CLAUDE.md`, and `AGENTS.md` into your project. **Nothing is bundled into your application** — your runtime never imports from this package. The CLI runs on demand via `npx`. Optionally pin with `npm i -D figma-code-composer`.
+That copies `.claude/`, `.cursor/`, `.codex/`, and `.figma-pipeline/` into your project, and **injects a managed marker block** into your `CLAUDE.md` / `AGENTS.md` (created if absent) pointing at the scaffold-owned `.figma-pipeline/PIPELINE.md` — so your own instructions in those files are never overwritten. **Nothing is bundled into your application** — your runtime never imports from this package. The CLI runs on demand via `npx`. Optionally pin with `npm i -D figma-code-composer`.
 
 ---
 
 ## Updating to a newer version
 
-Re-running the scaffolder pulls the latest agents, protocols, adapters, skills, and `fcc` CLI. **Your work is safe by design** — the scaffolder only touches `.claude/` `.cursor/` `.codex/` `.figma-pipeline/` `CLAUDE.md` `AGENTS.md`, and copies *into* those (never mirror-deletes). It never reads or writes your `src/`.
+Re-running the scaffolder pulls the latest agents, protocols, adapters, skills, and `fcc` CLI. **Your work and your authored docs are safe by design** — the scaffolder copies *into* `.claude/` `.cursor/` `.codex/` `.figma-pipeline/` (never mirror-deletes), and for `CLAUDE.md` / `AGENTS.md` it only refreshes a **managed marker block** (your content outside the markers is untouched). It never reads or writes your `src/`.
 
-**Never touched** (not in the npm package, so a re-scaffold leaves them alone):
+**Never touched** (not in the package, or protected by ownership):
 
 - Your generated components / tokens / icons / stories / tests (they live in your `src/` paths)
-- `.figma-pipeline/config.json` (your wizard answers)
-- `.figma-pipeline/kg/` (knowledge-graph ledger, graph, handovers)
-- `codex-run`, `.codex/config.json` (wizard-generated)
+- `.figma-pipeline/config.json` (your wizard answers), `.figma-pipeline/kg/` (knowledge graph), `codex-run`, `.codex/config.json`
+- Your own content in `CLAUDE.md` / `AGENTS.md` outside the `<!-- figma-code-composer:start … end -->` block
+- Cursor rules you added or *forked* (any `.mdc` without the `owner: figma-pipeline` tag)
 
-**Refreshed by the update** (with `--force`): the scaffold engine — `.claude/agents/`, hooks, protocols, adapters, `config.schema.json`, the `fcc` CLI, and the `.figma-pipeline/skills/` catalog (restored to the full set, then re-pruned in step 3).
+**Refreshed by the update** (with `--force`): the scaffold engine — `.claude/agents/`, hooks, protocols, adapters, `config.schema.json`, the `fcc` CLI, the `.figma-pipeline/skills/` catalog (restored then re-pruned in step 3), `.figma-pipeline/PIPELINE.md` (the binding-rules reference), owner-tagged Cursor rules, and the managed block in your `CLAUDE.md`/`AGENTS.md`.
 
 ### Recommended flow
 
@@ -49,11 +49,11 @@ Re-running the scaffolder pulls the latest agents, protocols, adapters, skills, 
 # 1. Commit first — so anything overwritten is recoverable via `git diff`
 git add -A && git commit -m "snapshot before fcc update"
 
-# 2. Pull the latest scaffold. --skip keeps files you've customized:
-#    claude-md / agents-md → keep your CLAUDE.md / AGENTS.md
-#    cursor-rules          → keep ALL of .cursor/rules/ (blunt; usually unnecessary — see below)
-npx figma-code-composer@latest --force --skip claude-md --skip agents-md
-#   (drop any --skip token for a file you never customized — take the upstream version)
+# 2. Pull the latest scaffold. With the ownership model below, you rarely need --skip:
+#    CLAUDE.md/AGENTS.md → only the managed block is refreshed (your content is kept)
+#    .cursor/rules       → only owner-tagged rules are overwritten (your forks are kept)
+npx figma-code-composer@latest --force
+#   --skip claude-md / agents-md / cursor-rules still available to opt a file out entirely.
 
 # 3. Re-run the wizard to re-prune skills + regenerate per-tool surfaces.
 #    --re-detect preserves your config.json answers and re-verifies MCP.
@@ -64,17 +64,16 @@ Without `--force`, the scaffolder **detects conflicts and prompts** before overw
 
 **Cursor rules are protected per-file automatically.** Each scaffold-shipped rule carries `owner: figma-pipeline` frontmatter; a re-scaffold overwrites only those, and **never** touches a `.mdc` you added or *forked* (a scaffold rule with the `owner:` line removed). So you rarely need `--skip cursor-rules` — fork the one rule you want to keep instead. See [`.cursor/rules/README.md`](.cursor/rules/README.md) § Ownership.
 
-**`--skip` is all-or-nothing per file.** It keeps your version entirely (and you miss that file's upstream improvements). If you've customized a file AND want the upstream changes, take both via git instead of `--skip`:
+**Ownership model (so `CLAUDE.md` / `AGENTS.md` / Cursor rules survive updates):** scaffold content lives in scaffold-owned files (`.figma-pipeline/PIPELINE.md`, the protocols, owner-tagged rules); your docs only *reference* it. A re-scaffold refreshes the scaffold-owned side and the managed marker block, leaving your authored content alone. `--skip` is the blunt opt-out (keeps a whole file, misses its upstream changes).
+
+If you've **hand-edited a scaffold-owned file** (a protocol, agent, hook, or an owner-tagged rule you didn't fork) and want both your edit AND the upstream change, take both via git instead of `--skip`:
 
 ```bash
-# Let --force overwrite, then cherry-pick your edits back hunk-by-hunk:
 npx figma-code-composer@latest --force
-git checkout -p -- CLAUDE.md AGENTS.md .cursor/rules/   # 'y' to keep your hunk, 'n' to take upstream
+git checkout -p -- .figma-pipeline/ .claude/ .cursor/   # 'y' keeps your hunk, 'n' takes upstream
 ```
 
-Two more things to watch: (1) any scaffold file you hand-edited (a protocol, agent, or hook — these have no `--skip` token) is replaced by `--force`, which is why you commit first; (2) if a future release bumps the config schema, `--re-detect` surfaces any new required fields and walks you through them.
-
-> A durable fix for this co-ownership problem (scaffold content vs your edits living in the same files) is planned — separating scaffold-owned content into its own files that your `CLAUDE.md` / `AGENTS.md` import, so updates never touch your authored docs. Until then, `--skip` + `git checkout -p` is the reconciliation path.
+One more thing to watch: if a future release bumps the config schema, `--re-detect` surfaces any new required fields and walks you through them.
 
 ---
 

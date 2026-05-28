@@ -50,10 +50,41 @@ const TOOL_PATHS = {
   codex: [".codex"],
 };
 const ALWAYS_PATHS = [".figma-pipeline"];
-const EXTRA_PATHS = {
-  "claude-md": "CLAUDE.md",
-  "agents-md": "AGENTS.md",
+// CLAUDE.md / AGENTS.md are no longer whole-file copies (that clobbered the
+// consumer's own instructions). Instead a managed marker block — containing
+// just the pointer to the scaffold-owned .figma-pipeline/PIPELINE.md — is
+// injected into the consumer's existing file (created if absent), idempotently.
+// `--skip claude-md` / `--skip agents-md` skip the injection.
+const EXTRA_PATHS = {}; // kept for back-compat; injection replaces whole-file copy
+const MANAGED_DOCS = {
+  "claude-md": {
+    file: "CLAUDE.md",
+    block: [
+      "<!-- figma-code-composer:start — managed block; edit outside the markers freely -->",
+      "## figma-code-composer pipeline",
+      "",
+      "This project uses the figma-code-composer pipeline (`/init-figma-compose`, then `/figma-build <url>` etc.).",
+      "Binding rules, repo map, and coverage live in the scaffold-owned reference — imported here so updates",
+      "refresh them without touching your own instructions:",
+      "",
+      "@.figma-pipeline/PIPELINE.md",
+      "<!-- figma-code-composer:end -->",
+    ].join("\n"),
+  },
+  "agents-md": {
+    file: "AGENTS.md",
+    block: [
+      "<!-- figma-code-composer:start — managed block; edit outside the markers freely -->",
+      "## figma-code-composer pipeline",
+      "",
+      "Binding rules, repo map, and coverage: `.figma-pipeline/PIPELINE.md`.",
+      "Per-tool enforcement: `.claude/hooks/README.md`, `.cursor/rules/README.md`, `.codex/hooks/README.md`.",
+      "<!-- figma-code-composer:end -->",
+    ].join("\n"),
+  },
 };
+const MANAGED_START = "<!-- figma-code-composer:start";
+const MANAGED_END = "<!-- figma-code-composer:end -->";
 // --skip tokens that exclude a SUBPATH within an otherwise-copied tool dir.
 // (EXTRA_PATHS tokens skip a whole top-level file; these skip a nested dir so
 // the rest of the tool surface still updates.) Used for "keep my customized
@@ -301,6 +332,43 @@ function patchGitignore(targetDir, dryRun) {
   return { skipped: false, written: true };
 }
 
+// Inject (or refresh) a managed marker block into a doc file without disturbing
+// the consumer's own content. Create if absent, replace between markers if
+// present, append if the file exists without markers. Idempotent.
+function injectManagedBlock(targetDir, file, block, dryRun) {
+  const path = join(targetDir, file);
+  const exists = pathExists(path);
+  const existing = exists ? readFileSync(path, "utf8") : "";
+  const hasBlock = existing.includes(MANAGED_START);
+
+  if (dryRun) {
+    return { file, action: !exists ? "create" : hasBlock ? "refresh-block" : "append-block", dryRun: true };
+  }
+
+  if (!exists) {
+    writeFileSync(path, block + "\n");
+    return { file, action: "created" };
+  }
+  if (hasBlock) {
+    // Replace everything from the start marker through the end marker.
+    const startIdx = existing.indexOf(MANAGED_START);
+    const endMarkerIdx = existing.indexOf(MANAGED_END, startIdx);
+    if (endMarkerIdx === -1) {
+      // Malformed (start without end) — append a fresh block, leave the rest.
+      appendFileSync(path, "\n" + block + "\n");
+      return { file, action: "appended (prior block was malformed)" };
+    }
+    const endIdx = endMarkerIdx + MANAGED_END.length;
+    const next = existing.slice(0, startIdx) + block + existing.slice(endIdx);
+    if (next !== existing) writeFileSync(path, next);
+    return { file, action: next !== existing ? "refreshed" : "unchanged" };
+  }
+  // File exists, no managed block → append.
+  const sep = existing.endsWith("\n") ? "\n" : "\n\n";
+  appendFileSync(path, sep + block + "\n");
+  return { file, action: "appended" };
+}
+
 // ─── core: copy ─────────────────────────────────────────────────────────────
 function copyEntry(source, target, dryRun, excludeAbsDirs = []) {
   if (dryRun) {
@@ -476,6 +544,21 @@ async function runInit(argv) {
     console.log(`  ${c("green", "✓")} .gitignore patched (scaffold block appended)`);
   }
 
+  // Inject the managed pointer block into CLAUDE.md / AGENTS.md (idempotent),
+  // instead of clobbering files the consumer may have authored. --skip opts out.
+  for (const [token, doc] of Object.entries(MANAGED_DOCS)) {
+    if (skipExtras.includes(token)) {
+      console.log(c("dim", `  ${doc.file}: skipped (--skip ${token})`));
+      continue;
+    }
+    const r = injectManagedBlock(targetDir, doc.file, doc.block, args.dryRun);
+    if (args.dryRun) {
+      console.log(c("yellow", `  ${doc.file}: would ${r.action}`));
+    } else {
+      console.log(`  ${c("green", "✓")} ${doc.file} (${r.action})`);
+    }
+  }
+
   console.log("");
   console.log(c("bold", args.dryRun ? "Dry run complete." : "✅ Scaffold installed."));
   console.log("");
@@ -485,7 +568,7 @@ async function runInit(argv) {
   if (tools.includes("claude")) console.log(`     ${c("cyan", "Claude Code")}  →  /init-figma-compose`);
   if (tools.includes("cursor")) console.log(`     ${c("cyan", "Cursor")}       →  type /init-figma-compose in agent chat`);
   if (tools.includes("codex"))  console.log(`     ${c("cyan", "Codex CLI")}    →  ./.codex/wrap.sh init-figma-compose`);
-  console.log(`  ${c("dim", "3.")} Read ${c("cyan", "CLAUDE.md")} for binding rules, ${c("cyan", "AGENTS.md")} for contributor guidelines.`);
+  console.log(`  ${c("dim", "3.")} Read ${c("cyan", ".figma-pipeline/PIPELINE.md")} for binding rules + coverage (imported by your CLAUDE.md; AGENTS.md points to it).`);
   console.log(`  ${c("dim", "4.")} (Optional) install RTK to compress shell-output tokens — the wizard will print the right install + per-tool init commands for your stack (Claude Code / Cursor / Codex). RTK is user-level only; never auto-installed.`);
   console.log("");
 }

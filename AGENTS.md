@@ -68,7 +68,7 @@ No coverage target. Bar: every affected tool mirror has been opened, edited, and
 
 ## Binding rules
 
-Canonical source: `CLAUDE.md` § Binding rules. **Don't re-state them here — read `CLAUDE.md` first.** Tool-specific enforcement tables:
+Canonical source: **`.figma-pipeline/PIPELINE.md` § Binding rules** (the scaffold-owned reference; `CLAUDE.md` imports it). **Don't re-state them here — read that file first.** Tool-specific enforcement tables:
 
 - Claude Code → `.claude/hooks/` + `.claude/hooks/README.md`
 - Cursor → `.cursor/rules/README.md`
@@ -94,4 +94,4 @@ Canonical source: `CLAUDE.md` § Binding rules. **Don't re-state them here — r
 
 ## Coverage
 
-See `CLAUDE.md` § Coverage for the canonical list of supported frameworks, CSS systems, design systems, methodologies, stories, tests, and skills bundling.
+See `.figma-pipeline/PIPELINE.md` § Coverage for the canonical list of supported frameworks, CSS systems, design systems, methodologies, stories, tests, and skills bundling.
