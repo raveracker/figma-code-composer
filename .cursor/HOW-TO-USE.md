@@ -48,6 +48,7 @@ See `CLAUDE.md` § Coverage for the canonical stack/CSS/DS/methodology matrix.
 - **No native sub-agent spawner.** When a Claude Code agent says `Agent(subagent_type=X)`, run agent X inline in the current chat thread by loading `.cursor/prompts/<x>.md`.
 - **No lifecycle hooks.** `.cursor/rules/*.mdc` (`alwaysApply: true` for the critical ones) substitute. The Claude Code `.claude/hooks/*.sh` scripts do not run in Cursor.
 - **MCP auth is manual.** Verify Figma MCP in Settings → MCP before running the wizard — the wizard hard-gates on a successful read.
+- **Model preference is plan-aware and never forced.** Free plan: selection is locked to **Auto** — leave it; the pipeline runs on Auto. Paid plan: prefer **Composer 2.5** (Settings → Models), fall back to a **Claude model** for `lg`-size (complex/extreme) runs. The coordinator never overrides your selection — see `.cursor/rules/model-preference.mdc`.
 - **`AskUserQuestion` → plain chat.** Where Claude Code uses the tool, Cursor asks the question as normal chat.
 
 The wizard's output (`.figma-pipeline/config.json`) is byte-identical regardless of which tool ran it.

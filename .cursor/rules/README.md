@@ -22,6 +22,8 @@ Each rule below maps to one CLAUDE.md binding rule (or supports it). All `*.mdc`
 | `config-schema.mdc`      | Shape contract for `.figma-pipeline/config.json` — drives the allowlist | Rule 1      |
 | `figma-url-nudge.mdc`    | Routes figma.com URLs to the right slash command (`/figma-build` etc.)  | Rules 1, 2  |
 | `pipeline-roles.mdc`     | Per-agent write scope when running specialists sequentially in Cursor    | Rules 1, 2  |
+| `model-preference.mdc`   | Preferred agent model: Composer 2.5, fallback Claude (advisory — UI applies it) | —     |
+| `use-skills.mdc`         | Skill catalog index (wizard-owned; present when `tools.cursor`)          | —           |
 
 ## Editing rules
 

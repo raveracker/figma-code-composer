@@ -194,7 +194,7 @@ Available commands (all tools): `figma-build`, `figma-update`, `figma-icons`, `f
 **Per-tool specifics:**
 
 - **Claude Code** uses `AskUserQuestion` for the wizard and the `Agent` tool for dispatch. Per-tier model routing (Haiku / Sonnet / Opus) is automatic via `Agent(model=…)`.
-- **Cursor** reads agents from `.cursor/prompts/` and runs MCP through Cursor's Settings → MCP UI. The wizard **hard-gates** on this: it verifies Figma MCP with a low-cost read before writing `config.json`. Model routing is user-selected; the coordinator surfaces a recommended size (`sm`/`md`/`lg`) as a chat prefix.
+- **Cursor** reads agents from `.cursor/prompts/` and runs MCP through Cursor's Settings → MCP UI. The wizard **hard-gates** on this: it verifies Figma MCP with a low-cost read before writing `config.json`. Model routing is user-selected and the coordinator never overrides it — the preference is **plan-aware**: on the **Free plan** model selection is locked to **Auto** (the pipeline just runs on Auto — nothing to set); on a **Paid plan** prefer **Composer 2.5** as default with a **Claude model fallback** for `lg`-size (complex/extreme) runs. See `.cursor/rules/model-preference.mdc`. The coordinator surfaces a recommended size (`sm`/`md`/`lg`) as a chat prefix (informational on Free, actionable on Paid).
 - **Codex CLI** runs through `.codex/wrap.sh` (the `./codex-run` wrapper the wizard writes at the project root when `tools.codexCli = true` — chmod 0755, no source step / shell-rc edit / direnv needed). `wrap.sh` fires the same lifecycle hooks (`pre-command` → cmd → `post-command` → `on-exit`) around the build.
 
   **One key difference from Claude Code:** the installed Codex CLI has **no sub-agent spawner**. Where Claude Code spawns each specialist (`figma-fetcher`, `component-builder`, …) as a separate parallel `Agent` with its own model, `wrap.sh` dispatches the whole pipeline as a **single `codex exec` session** — the coordinator plays each role inline, in sequence, reading `.codex/agents/<name>.md` as guidance. Two consequences:
@@ -441,7 +441,7 @@ Full attribution + content hashes: [`skills-lock.json`](./skills-lock.json). Per
 | MCP integration                             | ✅ `.mcp.json`        | ✅ settings UI                     | ✅ `.mcp.json`                     |
 | MCP hard gate at wizard time                | ✅ programmatic auth  | ✅ user-driven + verify             | ✅ user-driven + verify (exit 3 on fail) |
 | Lifecycle hooks                             | ✅ native             | ✅ `alwaysApply` rules             | ✅ via `wrap.sh`                   |
-| Per-call model routing                      | ✅ `Agent(model=…)` per specialist | ⚠ user-selected; recommendation shown | ⚠ one model for the run (`codex exec --model`; no per-specialist split) |
+| Per-call model routing                      | ✅ `Agent(model=…)` per specialist | ⚠ user-selected; never forced (Free → Auto locked; Paid → Composer 2.5 default + Claude fallback); recommendation shown | ⚠ one model for the run (`codex exec --model`; no per-specialist split) |
 | KG / handover / complexity                  | ✅                    | ✅                                 | ✅                                 |
 | Graphify `/graphify` skill registration     | ✅ `--platform claude` | ✅ `--platform cursor`            | ✅ `--platform codex` (`$graphify`) |
 | RTK shell-output compression                | ✅ `rtk init -g`      | ✅ `rtk init --agent cursor`        | ✅ `rtk init -g --codex`           |

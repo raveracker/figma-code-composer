@@ -94,7 +94,9 @@ The abstract `sm` / `md` / `lg` resolves differently per tool because each tool 
 
 - **Claude Code** — `config.complexity.model.<tier>` accepts any Claude model ID; coordinator passes it via the `Agent` tool's model param.
 - **Codex CLI** — `config.codex.modelMap.<size>` accepts any OpenAI model ID. Codex has no sub-agent spawner: the whole pipeline runs in one `codex exec` session, so the tier resolves to a SINGLE model for the run (the per-specialist split that Claude Code gets is not possible). Passed via `codex exec --model <id>` when the flag exists, else the global default in `~/.codex/config.toml`. The tier still controls the skill set + the extreme-tier review pass.
-- **Cursor** — Cursor agents inherit the user's currently-selected model from the Cursor settings UI; there is no per-call override. The coordinator MUST NOT attempt to set a model and SHOULD surface the size hint as a chat prefix (`[fcc routing] tier=complex, recommended size=lg`) so the user can switch model if they want.
+- **Cursor** — Cursor agents inherit the user's currently-selected model from the Cursor UI; there is no per-call override, and the coordinator MUST NOT attempt to set or change the model. The preference is **plan-aware and advisory** (see `.cursor/rules/model-preference.mdc` + `.cursor/settings.json` `fcc.cursor.model`):
+  - **Free plan** — model selection is locked to **Auto**. Do nothing; the pipeline runs on Auto. The coordinator surfaces the size hint for info but adds no "switch model" nudge.
+  - **Paid plan** — prefer **Composer 2.5** (default), fall back to a **Claude model** for `lg`-size (complex/extreme) runs. The coordinator's `lg` size hint is the signal to switch, if the user wants.
 
 Skill-set overrides are coordinator-only (not user-configurable) — they're a function of correctness, not preference.
 
