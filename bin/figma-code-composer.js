@@ -25,7 +25,7 @@
 //   --target <dir>     Target directory (default: positional arg or cwd)
 //   --tools <list>     Comma-separated: claude,cursor,codex (default: all)
 //   --force            Overwrite existing files at target
-//   --skip <list>      Comma-separated extras to skip: claude-md,agents-md
+//   --skip <list>      Comma-separated paths to skip: claude-md, agents-md, cursor-rules
 //   --dry-run          Show what would happen, write nothing
 //   --yes / -y         Skip prompts; use defaults
 //   --help / -h        This message
@@ -53,6 +53,13 @@ const ALWAYS_PATHS = [".figma-pipeline"];
 const EXTRA_PATHS = {
   "claude-md": "CLAUDE.md",
   "agents-md": "AGENTS.md",
+};
+// --skip tokens that exclude a SUBPATH within an otherwise-copied tool dir.
+// (EXTRA_PATHS tokens skip a whole top-level file; these skip a nested dir so
+// the rest of the tool surface still updates.) Used for "keep my customized
+// Cursor rules" on a re-scaffold.
+const SKIP_SUBPATHS = {
+  "cursor-rules": ".cursor/rules",
 };
 
 const COLORS = {
@@ -171,7 +178,7 @@ ${c("bold", "Init usage:")}
 ${c("bold", "Init options:")}
   --target <dir>     Target directory (default: positional arg or cwd)
   --tools <list>     Comma-separated: claude,cursor,codex (default: all)
-  --skip <list>      Comma-separated extras to skip: claude-md,agents-md
+  --skip <list>      Comma-separated paths to skip: claude-md, agents-md, cursor-rules
   --force            Overwrite existing files at target
   --dry-run          Show what would happen, write nothing
   --yes, -y          Skip prompts; use defaults
@@ -295,14 +302,21 @@ function patchGitignore(targetDir, dryRun) {
 }
 
 // ─── core: copy ─────────────────────────────────────────────────────────────
-function copyEntry(source, target, dryRun) {
+function copyEntry(source, target, dryRun, excludeAbsDirs = []) {
   if (dryRun) {
-    console.log(`  ${c("dim", "→")} ${relative(process.cwd(), target)}`);
+    const note = excludeAbsDirs.length ? ` (excluding ${excludeAbsDirs.map(d => relative(source, d)).join(", ")})` : "";
+    console.log(`  ${c("dim", "→")} ${relative(process.cwd(), target)}${note}`);
     return;
   }
   const parent = dirname(target);
   if (!pathExists(parent)) mkdirSync(parent, { recursive: true });
-  cpSync(source, target, { recursive: true, errorOnExist: false, force: true });
+  const opts = { recursive: true, errorOnExist: false, force: true };
+  if (excludeAbsDirs.length) {
+    // Skip the excluded subdir(s) so the rest of the tool surface still updates
+    // while a consumer-customized subdir (e.g. .cursor/rules) is left untouched.
+    opts.filter = (src) => !excludeAbsDirs.some(d => src === d || src.startsWith(d + "/"));
+  }
+  cpSync(source, target, opts);
 }
 
 function buildPlan(tools, skipExtras) {
@@ -421,9 +435,14 @@ async function runInit(argv) {
       console.warn(c("yellow", `  ⚠ Source missing (skipping): ${entry}`));
       continue;
     }
-    copyEntry(source, target, args.dryRun);
+    // Per-entry subpath exclusions (e.g. --skip cursor-rules keeps the consumer's
+    // .cursor/rules but still updates the rest of .cursor).
+    const excludeAbsDirs = skipExtras
+      .filter(s => SKIP_SUBPATHS[s] && (SKIP_SUBPATHS[s] === entry || SKIP_SUBPATHS[s].startsWith(entry + "/")))
+      .map(s => join(PACKAGE_ROOT, SKIP_SUBPATHS[s]));
+    copyEntry(source, target, args.dryRun, excludeAbsDirs);
     if (!args.dryRun) {
-      console.log(`  ${c("green", "✓")} ${entry}`);
+      console.log(`  ${c("green", "✓")} ${entry}${excludeAbsDirs.length ? c("dim", " (kept your " + excludeAbsDirs.map(d => relative(PACKAGE_ROOT, d)).join(", ") + ")") : ""}`);
     }
   }
 

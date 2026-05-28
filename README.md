@@ -49,16 +49,30 @@ Re-running the scaffolder pulls the latest agents, protocols, adapters, skills, 
 # 1. Commit first — so anything overwritten is recoverable via `git diff`
 git add -A && git commit -m "snapshot before fcc update"
 
-# 2. Pull the latest scaffold. Keep your own CLAUDE.md / AGENTS.md if you edited them.
-npx figma-code-composer@latest --force --skip claude-md --skip agents-md
-#   (drop the --skip flags if you never customized those two files)
+# 2. Pull the latest scaffold. --skip keeps files you've customized:
+#    claude-md / agents-md → keep your CLAUDE.md / AGENTS.md
+#    cursor-rules          → keep your .cursor/rules/ (rest of .cursor still updates)
+npx figma-code-composer@latest --force --skip claude-md --skip agents-md --skip cursor-rules
+#   (drop any --skip token for a file you never customized — take the upstream version)
 
 # 3. Re-run the wizard to re-prune skills + regenerate per-tool surfaces.
 #    --re-detect preserves your config.json answers and re-verifies MCP.
 /init-figma-compose --re-detect
 ```
 
-Without `--force`, the scaffolder **detects conflicts and prompts** before overwriting — it won't silently clobber. Watch for two things: (1) any scaffold file you hand-edited (a protocol, agent, or hook) is replaced by `--force` — that's why you commit first; (2) if a future release bumps the config schema, `--re-detect` surfaces any new required fields and walks you through them.
+Without `--force`, the scaffolder **detects conflicts and prompts** before overwriting — it won't silently clobber.
+
+**`--skip` is all-or-nothing per file.** It keeps your version entirely (and you miss that file's upstream improvements). If you've customized a file AND want the upstream changes, take both via git instead of `--skip`:
+
+```bash
+# Let --force overwrite, then cherry-pick your edits back hunk-by-hunk:
+npx figma-code-composer@latest --force
+git checkout -p -- CLAUDE.md AGENTS.md .cursor/rules/   # 'y' to keep your hunk, 'n' to take upstream
+```
+
+Two more things to watch: (1) any scaffold file you hand-edited (a protocol, agent, or hook — these have no `--skip` token) is replaced by `--force`, which is why you commit first; (2) if a future release bumps the config schema, `--re-detect` surfaces any new required fields and walks you through them.
+
+> A durable fix for this co-ownership problem (scaffold content vs your edits living in the same files) is planned — separating scaffold-owned content into its own files that your `CLAUDE.md` / `AGENTS.md` import, so updates never touch your authored docs. Until then, `--skip` + `git checkout -p` is the reconciliation path.
 
 ---
 
