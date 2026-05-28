@@ -2,6 +2,8 @@
 
 [![npm](https://img.shields.io/badge/npm-figma--code--composer-cb3837.svg?style=flat-square)](https://www.npmjs.com/package/figma-code-composer) [![license: MIT](https://img.shields.io/badge/license-MIT-3da639.svg?style=flat-square)](./LICENSE) [![Claude Code · Cursor · Codex CLI](https://img.shields.io/badge/works%20with-Claude%20Code%20%C2%B7%20Cursor%20%C2%B7%20Codex%20CLI-6e40c9.svg?style=flat-square)](#quickstart)
 
+![figma-code-composer](./assets/hero.png)
+
 **A Figma file walks into your AI tool, fully-typed components walk out.** Drop this scaffold into any frontend repo and a multi-agent pipeline turns Figma designs into design tokens, framework-native components, icons, stories, and tests — with a built-in knowledge graph that **reuses components across screens** instead of building duplicates.
 
 Works in **Claude Code**, **Cursor**, and **Codex CLI** — same agents, three entry points, one config.

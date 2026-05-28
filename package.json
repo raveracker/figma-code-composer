@@ -39,6 +39,8 @@
     "!.cursor/.cursorignore",
     ".codex/",
     ".figma-pipeline/",
+    "assets/",
+    "skills-lock.json",
     "CLAUDE.md",
     "AGENTS.md",
     "LICENSE",
