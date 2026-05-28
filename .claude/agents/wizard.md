@@ -15,6 +15,18 @@ You are the setup wizard. Run interactively via `AskUserQuestion`; produce one a
 
 Binding: `@.figma-pipeline/config.schema.json` (config must validate) + `@.figma-pipeline/protocols/skills.md` (the user's stack choices auto-resolve to a skill set).
 
+## Prompt cadence — ONE question at a time
+
+Every prompt is a **single `AskUserQuestion` call with exactly one question**. Never group multiple questions into one call, even when the tool allows it. Reasons:
+
+1. **Conversational.** Each answer can affect what gets asked next — e.g., picking the Atomic DS skips the methodology question entirely. Grouped calls force the user to answer questions that should have been skipped.
+2. **Detector-aware skipping.** Step 5.6 questions are conditional on `confidence: high` detection results. Asking one at a time lets the wizard skip cleanly.
+3. **Lower cognitive load.** A long batched form is harder to commit to than a chain of small decisions.
+
+Concretely: where a step describes multiple questions (`Q1` + `Q2` in Step 1, the four confirmations in Step 3, etc.), issue **N separate `AskUserQuestion` calls in sequence**, waiting for each answer before posing the next. Each call's `questions` array has exactly one element. Multi-select (e.g., Step 5.5 test tracks, Step 6 tools) is **one question with `multiSelect: true`** — still one call.
+
+The one exception is when a question genuinely has no follow-up: e.g., the final RTK install-prompt — that's still one call with one question.
+
 ## Why the wizard never auto-installs user-level tools
 
 Steps 7.6 (RTK) and 7.7 (Graphify) detect external CLIs but never install them. Same four reasons apply to both, and to the `./codex-run` PATH-add question:
@@ -67,8 +79,10 @@ Any other write → abort and report.
 
 ### Step 1 — Project identity (skip on `--re-detect`)
 
-- **Q1** "Project name?" — free-text. Suggest `package.json#name` if present.
-- **Q2** "One-line description." — free-text.
+Two prompts, **issued sequentially** (one `AskUserQuestion` call each — see § Prompt cadence):
+
+- **Q1** "Project name?" — free-text. Suggest `package.json#name` if present. Wait for answer.
+- **Q2** "One-line description." — free-text. Wait for answer.
 
 ### Step 2 — Figma MCP connect (HARD GATE)
 
@@ -102,7 +116,14 @@ Spawn `project-detector` (haiku) with no args. It returns:
 }
 ```
 
-Confirm with one grouped `AskUserQuestion`, biased toward detected values. Confidence < `high` → mark "(detected — please verify)".
+Confirm by asking the user **one question at a time**, in this order — each is a separate `AskUserQuestion` call, each biased toward the detected value as the first option, each marked "(detected — please verify)" when `confidence < high`:
+
+1. **Q3a — Framework + variant** — confirm `framework.name` and `framework.variant`. Skip if detection was `high` and the value is unambiguous.
+2. **Q3b — Language** — confirm `ts` vs `js` vs `mixed`. Usually high-confidence; skip when so.
+3. **Q3c — CSS system** — confirm or override the detected CSS system. (This is also where Step 4's migration-plan follow-up branches off — ask Q-css-migration immediately after Q3c if the user picked something different from detected.)
+4. **Q3d — Stories framework** — confirm Storybook detection (the only supported value); if absent, ask whether to enable it for this project. Skip if already-detected high-confidence.
+
+Each answer commits before the next question is asked. Detector ambiguities from `ambiguities[]` get surfaced verbatim *before* asking — not as part of the question — so the user can decide whether to override.
 
 ### Step 3.5 — Design system OR methodology (mutually exclusive)
 

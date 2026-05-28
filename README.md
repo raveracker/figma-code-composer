@@ -1,8 +1,17 @@
 # figma-code-composer
 
-[![npm](https://img.shields.io/badge/npm-figma--code--composer-cb3837.svg?style=flat-square)](https://www.npmjs.com/package/figma-code-composer) [![license: MIT](https://img.shields.io/badge/license-MIT-3da639.svg?style=flat-square)](./LICENSE) [![Claude Code · Cursor · Codex CLI](https://img.shields.io/badge/works%20with-Claude%20Code%20%C2%B7%20Cursor%20%C2%B7%20Codex%20CLI-6e40c9.svg?style=flat-square)](#quickstart)
+<p align="center">
+<img src="./assets/hero.png" alt="figma-code-composer" width="500"/>
+</p>
 
-![figma-code-composer](./assets/hero.png)
+<p align="center">
+  <a href="https://www.npmjs.com/package/figma-code-composer"><img src="https://img.shields.io/badge/npm-figma--code--composer-cb3837.svg?style=flat-square" alt="npm"/></a>
+  <a href="https://www.npmjs.com/package/figma-code-composer"><img src="https://img.shields.io/npm/v/figma-code-composer.svg?style=flat-square&label=version&color=blue" alt="version"/></a>
+  <a href="./LICENSE"><img src="https://img.shields.io/badge/license-MIT-3da639.svg?style=flat-square" alt="license: MIT"/></a>
+  <a href="#quickstart"><img src="https://img.shields.io/badge/works%20with-Claude%20Code%20%C2%B7%20Cursor%20%C2%B7%20Codex%20CLI-6e40c9.svg?style=flat-square" alt="Claude Code · Cursor · Codex CLI"/></a>
+  <a href=".figma-pipeline/skills/"><img src="https://img.shields.io/badge/bundled%20skills-130-orange.svg?style=flat-square" alt="130 bundled skills"/></a>
+</p>
+
 
 **A Figma file walks into your AI tool, fully-typed components walk out.** Drop this scaffold into any frontend repo and a multi-agent pipeline turns Figma designs into design tokens, framework-native components, icons, stories, and tests — with a built-in knowledge graph that **reuses components across screens** instead of building duplicates.
 
@@ -259,6 +268,30 @@ Eleven agent definitions under `.claude/agents/`, with per-tool pointers under `
 | `code-reviewer`      | Reviews recent code for risk / convention-match       |
 
 Per-stack skill resolution (~130 skills total, auto-pruned at `/init-figma-compose`): see [`protocols/skills.md`](.figma-pipeline/protocols/skills.md) for the resolution table.
+
+<details>
+<summary><strong>Bundled skill catalog — 130 skills, grouped (click to expand)</strong></summary>
+
+| Category | Count | Skills |
+|---|---:|---|
+| **Framework — Angular** | 13 | `adev-writing-guide`, `angular-component`, `angular-developer`, `angular-di`, `angular-directives`, `angular-forms`, `angular-http`, `angular-new-app`, `angular-routing`, `angular-signals`, `angular-ssr`, `angular-testing`, `angular-tooling` |
+| **Framework — React / Next / Remix** | 11 | `next-best-practices`, `next-cache-components`, `nextjs-react-redux-typescript-cursor-rules`, `nextjs-server-components`, `react-best-practices`, `react-component-architecture`, `react-modernization`, `react-state-management`, `remix`, `vercel-react-best-practices`, `vercel-react-view-transitions` |
+| **Framework — Vue / Nuxt** | 6 | `nuxtjs-vue-typescript`, `vue-best-practices`, `vue-component-patterns`, `vue-composition-api`, `vue-reactivity-system`, `vue-typescript` |
+| **Framework — Svelte** | 2 | `svelte-code-writer`, `svelte-core-bestpractices` |
+| **CSS — Tailwind / UnoCSS** | 9 | `tailwindcss`, `tailwindcss-development`, `tailwind-components`, `tailwind-configuration`, `tailwind-design-system`, `tailwind-performance`, `tailwind-responsive-design`, `tailwind-utility-classes`, `unocss` |
+| **CSS — Other** | 6 | `css`, `frontend-css-patterns`, `postcss-best-practices`, `sass-best-practices`, `scss-best-practices`, `vanilla-extract` |
+| **Design system** | 27 | `ant-design`, `antd`, `atomic-design-atoms`, `atomic-design-fundamentals`, `atomic-design-integration`, `atomic-design-molecules`, `atomic-design-organisms`, `atomic-design-quarks`, `atomic-design-templates`, `chakra-ui-builder`, `chakra-ui-migrate`, `chakra-ui-refactor`, `design-system-patterns`, `heroui-migration`, `heroui-react`, `mantine-combobox`, `mantine-custom-components`, `mantine-form`, `material-ui-nextjs`, `material-ui-styling`, `material-ui-tailwind`, `material-ui-theming`, `radix-ui-design-system`, `shadcn`, `ui-design`, `ui-design-system`, `visual-design-foundations` |
+| **Testing — unit / E2E / stories** | 22 | `e2e-testing-patterns`, `javascript-testing-patterns`, `jest-advanced`, `jest-configuration`, `jest-testing-patterns`, `playwright-bdd-configuration`, `playwright-bdd-gherkin-syntax`, `playwright-bdd-step-definitions`, `playwright-cursor-rules`, `playwright-fixtures-and-hooks`, `playwright-page-object-model`, `playwright-pro`, `playwright-test-architecture`, `storybook-args-controls`, `storybook-component-documentation`, `storybook-configuration`, `storybook-play-functions`, `storybook-story-writing`, `tdd-guide`, `vitest-configuration`, `vitest-performance`, `vitest-testing-patterns` |
+| **TypeScript** | 5 | `typescript`, `typescript-async-patterns`, `typescript-type-system`, `typescript-utility-types`, `zod-schema-validation` |
+| **State management** | 6 | `redux-toolkit`, `zustand-advanced-patterns`, `zustand-middleware`, `zustand-state-management`, `zustand-store-patterns`, `zustand-typescript` |
+| **Figma integration** | 6 | `figma-analyze-frame`, `figma-extract-tokens`, `figma-generate-component`, `figma-integration`, `figma-sync-design-system`, `figma-use` |
+| **Accessibility** | 3 | `a11y-audit`, `accessibility-a11y`, `accessibility-compliance` |
+| **Quality / senior roles** | 3 | `senior-frontend`, `senior-qa`, `senior-security` |
+| **Cross-cutting** | 11 | `component-architecture`, `feature-arch`, `feature-sliced-design`, `modern-javascript-patterns`, `panda-css`, `responsive-design`, `solid`, `solid-react`, `styled-components-best-practices`, `vuejs-typescript-best-practices`, `web-component-design` |
+
+Full attribution + content hashes: [`skills-lock.json`](./skills-lock.json). Per-stack resolution algorithm: [`protocols/skills.md`](.figma-pipeline/protocols/skills.md).
+
+</details>
 
 ---
 

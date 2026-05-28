@@ -10,14 +10,20 @@ Read these first:
 - `.figma-pipeline/protocols/component-layout.md`
 - `.figma-pipeline/protocols/allowlist.md`
 
+## Prompt cadence — ONE question at a time
+
+Every prompt is a single chat question. Wait for the user's reply before posing the next one — even when a step lists multiple things to confirm. Each answer can affect what gets asked next (picking the Atomic DS skips the methodology question; high-confidence detector results skip their confirmation entirely). Never batch multiple questions into a single message.
+
+Concretely: where a step describes multiple questions (`Q1` + `Q2` in Project identity, the four detection confirmations in Stack detection, etc.), issue **N separate chat prompts in sequence**. Multi-select (e.g., test tracks, tools) is one question phrased as "pick any of …" and accepts a comma-separated reply.
+
 ## Protocol (same as `.claude/agents/wizard.md`)
 
 Steps:
 
 1. **Pre-flight** — handle existing `.figma-pipeline/config.json`: ask overwrite vs incremental vs abort.
-2. **Project identity** — ask for `name` + `description`.
+2. **Project identity** — ask `name`, wait for reply, then ask `description`. Two separate prompts.
 3. **Figma MCP connect (HARD GATE)** — verify `.mcp.json` has a `figma` entry. In Cursor, the user manages MCP servers via Settings → MCP. Instruct them to enable the Figma server, then run any low-cost MCP read (e.g., metadata) and ask the user to confirm the result. **If MCP is unreachable, abort the wizard before writing `config.json`.** Per § Step 2 in `.claude/agents/wizard.md`. (Cursor does not expose programmatic auth like Claude Code, so the user owns the connection step.)
-4. **Stack detection** — invoke the `project-detector` workflow inline: run the `Glob`/`Read`/`Grep` checks listed in `.claude/agents/project-detector.md` § Detection rules, then confirm with the user.
+4. **Stack detection** — invoke the `project-detector` workflow inline: run the `Glob`/`Read`/`Grep` checks listed in `.claude/agents/project-detector.md` § Detection rules. Then confirm with the user **one prompt at a time** (Q3a framework, Q3b language, Q3c CSS system, Q3d stories framework — skip any whose detected value was `confidence: high`). See `.claude/agents/wizard.md` § Step 3 for the exact sequence.
 5. **Design system OR methodology** — ask design system first per `.claude/agents/wizard.md` § Step 3.5. If `none`, then ask design methodology. Picking a DS sets `designMethodology = "custom"` automatically (or `atomic` when DS=atomic).
 6. **CSS choice** — present the CSS-system options per `.claude/agents/wizard.md` § Step 4.
 7. **Derive paths** — ask the user to confirm or override the path defaults.
@@ -56,7 +62,7 @@ Any other write → stop and tell the user. The Cursor rule `.cursor/rules/froze
 
 ## Differences from Claude Code
 
-- No `AskUserQuestion` tool — present each question as a normal chat prompt, wait for an explicit answer, and confirm before moving on.
+- No `AskUserQuestion` tool — present each question as a normal chat prompt, wait for an explicit answer, and confirm before moving on. (Aligns naturally with the "one question at a time" cadence above.)
 - No `Agent` tool to spawn `project-detector` as a sub-agent — inline its detection logic.
 - MCP auth is user-driven via Cursor settings — guide the user, don't try to call `mcp__figma__authenticate`.
 

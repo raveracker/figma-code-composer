@@ -45,9 +45,13 @@ Mirror `.claude/agents/wizard.md` § Step 7.6 (RTK detection — Codex init comm
 - On graphify shell-out failure, set `config.graphify.installFailed = true` and continue — non-blocking.
 - On `.gitignore` write failure, exit `5` (filesystem write blocked).
 
+## Prompt cadence — ONE question per stdin round
+
+Every prompt is a single stdin read. Print the question, wait for the line, validate, then move on. Never batch multiple questions into a single block — even when a Claude Code step lists `Q1`/`Q2` (Step 1) or `Q3a`/`Q3b`/`Q3c`/`Q3d` (Step 3), issue them as separate stdin rounds. Codex CLI is inherently sequential via stdin, so this aligns naturally — just don't print all questions up-front.
+
 ## stdin prompt format
 
-For each user question, print:
+For each user question, print one block, read one line:
 
 ```
 [wizard] <question>
@@ -62,6 +66,17 @@ For free-text:
 ```
 [wizard] <question>
 [wizard] >
+```
+
+For multi-select (Step 5.5 test tracks, Step 6 tools):
+
+```
+[wizard] <question>
+[wizard] options (comma-separated, e.g. "1,3"):
+  1) <option>
+  2) <option>
+  3) <option>
+[wizard] choices:
 ```
 
 Accept `q` or `quit` at any prompt to abort (exit 1).
