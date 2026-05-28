@@ -2,19 +2,21 @@
 
 (Renamed from `init`; the wrapper still resolves `.codex/wrap.sh init-figma-compose`.)
 
+**Before running this:** complete `README § Prerequisites` for Codex CLI — at minimum run `codex` → `/plugins` → search Figma to install the Figma MCP plugin. Optionally also install Graphify (`uv tool install graphifyy`) and RTK (`brew install rtk && rtk init -g --codex`). The wizard verifies these; it does not install them.
+
 Dispatch to `.codex/agents/wizard.md`. Pass `$ARGUMENTS` verbatim.
 
 The agent:
 
 1. Asks the user (via stdin) for project name + description.
-2. **Figma MCP gate** — reads `.mcp.json`; if no `figma` server, writes the standard entry and asks the user to confirm the browser auth flow. Then makes one cheap MCP read (`get_metadata`) to prove the connection. **Config.json is not written until this passes.** Exit code 3 if unreachable.
+2. **Figma MCP verify (hard gate)** — probes both namespaces (`mcp__figma__get_metadata` and `mcp__plugin_figma_figma__get_metadata`). On both unknown → exit 3 with pointer to `README § Prerequisites § Required — Figma MCP` for Codex. On auth required → ask user to confirm sign-in in Codex's plugin UI, then re-probe. Records `config.figma.mcpToolNamespace` with the working prefix. **Config.json is not written until this passes.**
 3. Runs the project-detector logic inline (Codex doesn't have a native sub-agent spawner; `.codex/agents/project-detector.md` is the included system prompt for a separate model call).
 4. Asks for methodology + CSS-system choice via stdin.
 5. Derives paths from detector + user confirmation.
-6. Writes `.figma-pipeline/config.json` and (when applicable) updates `.mcp.json`.
+6. Writes `.figma-pipeline/config.json` (no auto-create of `.mcp.json` — Prerequisites owns that).
 7. Validates against `.figma-pipeline/config.schema.json` using `npx -y ajv-cli validate` if available.
-8. **Graphify registration** — detects the external `graphify` CLI. If present, runs `graphify install --project --platform codex` to register the `$graphify` skill in this repo. Does NOT build the graph — the user runs `$graphify .` in Codex after the wizard exits. If absent, prints `uv tool install graphifyy` and continues. Always appends `graphify-out/` + scaffold paths to the target's `.gitignore`. See `.codex/agents/wizard.md` § Step 7.7. (Codex uses `$graphify` instead of `/graphify` per the graphify README.)
-9. **Codex `./codex-run` shortcut** — writes an executable `<projectRoot>/codex-run` (chmod 0755) that wraps `.codex/wrap.sh`. User invokes `./codex-run figma-build <url>` — no source, no rc edit, no direnv. Project-local, team-portable (safe to commit). See `.codex/agents/wizard.md` § Step 7.7b.
+8. **Graphify verify + project-skill registration (optional)** — detects `graphify` on PATH. If present, runs `graphify install --project --platform codex` to register the `$graphify` skill in this repo (project-scoped — writes inside repo). Does NOT build the graph — the user runs `$graphify .` in Codex after the wizard exits. If absent, prints a pointer to `README § Prerequisites § Optional — Graphify`. Always appends `graphify-out/` + scaffold paths to the target's `.gitignore`. (Codex uses `$graphify` instead of `/graphify` per the graphify README.)
+9. **Codex `./codex-run` shortcut** — writes an executable `<projectRoot>/codex-run` (chmod 0755) that wraps `.codex/wrap.sh`. User invokes `./codex-run figma-build <url>` — no source, no rc edit, no direnv. Project-local, team-portable (safe to commit).
 
 Exit codes:
 

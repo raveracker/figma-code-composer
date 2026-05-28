@@ -29,14 +29,14 @@ The one exception is when a question genuinely has no follow-up: e.g., the final
 
 ## Why the wizard never auto-installs user-level tools
 
-Steps 7.6 (RTK) and 7.7 (Graphify) detect external CLIs but never install them. Same four reasons apply to both, and to the `./codex-run` PATH-add question:
+Steps 2 (Figma MCP), 7.6 (RTK), and 7.7 (Graphify binary) detect external state but never install it. Users follow `README § Prerequisites` to set each tool up for their AI tool of choice before running the wizard. Same four reasons apply across all three:
 
 1. **Package manager isn't guaranteed.** Homebrew on macOS, apt/yum on Linux, winget/scoop on Windows. Auto-install would need OS + PM detection + fallbacks.
-2. **First-time installs can prompt interactively** (sudo, Xcode tools) — can't answer from inside an AI chat.
-3. **Touches the user's home dir / shell rc** (`~/.claude/settings.json`, `~/.zshrc`, …). One project's wizard reconfiguring every other project on the machine is a surprising side-effect.
+2. **First-time installs can prompt interactively** (sudo, Xcode tools, browser auth) — can't answer from inside an AI chat.
+3. **Touches the user's home dir / shell rc / tool config** (`~/.claude/settings.json`, `~/.zshrc`, `~/.config/figma-mcp/`, …). One project's wizard reconfiguring every other project on the machine is a surprising side-effect.
 4. **Reversibility.** Auto-install means we own the uninstall story too. We don't.
 
-The wizard detects, prints the right command for the user's enabled tools, and continues regardless.
+The wizard's job is to **verify** what Prerequisites set up, record the result in `config.json`, and point users back at the README when something's missing. The one exception is graphify's **project-scoped** skill registration (Step 7.7's optional action) — that writes inside the repo, not the user's home dir, so the wizard can run it on the user's behalf.
 
 ## Inputs
 
@@ -84,20 +84,28 @@ Two prompts, **issued sequentially** (one `AskUserQuestion` call each — see §
 - **Q1** "Project name?" — free-text. Suggest `package.json#name` if present. Wait for answer.
 - **Q2** "One-line description." — free-text. Wait for answer.
 
-### Step 2 — Figma MCP connect (HARD GATE)
+### Step 2 — Figma MCP verify (HARD GATE)
 
 Gate for the whole wizard — if MCP can't be reached, abort before writing `config.json`. Goal: every successful wizard run leaves a project whose `/figma-build` won't fail late on an MCP error.
 
-**Tool-namespace tolerance.** The user's environment exposes Figma MCP under one of two prefixes: `mcp__figma__*` (cloud server in `.mcp.json` with key `figma`) or `mcp__plugin_figma_figma__*` (Figma desktop/plugin auto-registration). Try the `mcp__figma__*` variant first; on `unknown tool` error, retry with the `mcp__plugin_figma_figma__*` variant. Both call the same API. Record the prefix that worked in `config.figma.mcpToolNamespace` so downstream agents can prefer it.
+**The wizard VERIFIES; it does NOT install or configure Figma MCP.** Users follow `README § Prerequisites § Required — Figma MCP` to set up Figma MCP for their tool before running `/init-figma-compose`:
 
-1. Read `.mcp.json`. If absent, create with `{ "mcpServers": { "figma": { "type": "http", "url": "https://mcp.figma.com/mcp" } } }`. If present without a `figma` entry, merge (never strip others).
-2. Verify reachability — call `<prefix>__get_metadata` (or any low-cost read). Try `mcp__figma__` first, fall back to `mcp__plugin_figma_figma__`.
-3. On failure:
-   - **Auth fail (cloud only — `mcp__figma__*`)** → `mcp__figma__authenticate`, print URL, user completes browser flow, `mcp__figma__complete_authentication`, retry metadata (≤2 retries, 2s backoff).
-   - **Auth fail (plugin — `mcp__plugin_figma_figma__*`)** → the plugin handles auth in its own UI; print "Open the Figma desktop app and confirm the MCP plugin is signed in. Press Enter to retry." Re-probe metadata. ≤2 retries.
-   - **Network/server fail** → abort with `"Figma MCP unreachable — check your network and that either the cloud server (https://mcp.figma.com/mcp) or the Figma desktop plugin is running, then rerun /init-figma-compose"`. Exit 3. Config write does NOT proceed.
-   - **Repeated failure across both namespaces** → abort: `"Figma MCP did not respond on either namespace after 2 attempts."` Exit 3.
-4. On success → `config.figma.mcpVerifiedAt = <ISO-8601>` and `config.figma.mcpToolNamespace = "mcp__figma__" | "mcp__plugin_figma_figma__"`.
+- Claude Code → `claude plugin install figma@claude-plugins-official` OR `claude mcp add --transport http figma https://mcp.figma.com/mcp`
+- Cursor → `/add-plugin figma` OR manual `mcp.json` paste in Settings → Tools & MCP
+- Codex CLI → `codex` → `/plugins` → search Figma
+
+**Tool-namespace tolerance.** Two MCP install paths produce different tool prefixes: `mcp__figma__*` (cloud server, `mcp.figma.com/mcp`) or `mcp__plugin_figma_figma__*` (Figma desktop/plugin auto-registration). Try `mcp__figma__*` first; on `unknown tool` error, retry with `mcp__plugin_figma_figma__*`. Both call the same API. Record the working prefix in `config.figma.mcpToolNamespace` for downstream agents.
+
+**Probe protocol:**
+
+1. Call `<prefix>__get_metadata` (any low-cost read). Try `mcp__figma__` first.
+2. **`unknown tool` / `not_found`** → retry with `mcp__plugin_figma_figma__`. If that also fails → abort: `"Figma MCP not configured. Set it up for your tool per README § Prerequisites § Required — Figma MCP, then re-run /init-figma-compose."` Exit 3. Config write does NOT proceed.
+3. **Auth required (cloud variant, `mcp__figma__*`)** → call `mcp__figma__authenticate`, print the returned URL, wait for the user to complete the browser flow, then `mcp__figma__complete_authentication`. Retry metadata (≤2 retries, 2s backoff). Still failing → abort: `"Figma MCP authentication did not complete. Sign in via the browser flow above and re-run."` Exit 3.
+4. **Auth required (plugin variant)** → the plugin handles auth in its own UI; print `"Open the Figma desktop app and confirm the MCP plugin is signed in, then press Enter to retry."` Re-probe metadata. ≤2 retries. Still failing → abort with the same Prerequisites pointer.
+5. **Network/server failure** → abort: `"Figma MCP unreachable. Check your network and that either the cloud server (mcp.figma.com) or the Figma desktop plugin is running. See README § Prerequisites for setup, then re-run."` Exit 3.
+6. **Success** → record `config.figma.mcpVerifiedAt = <ISO-8601>` AND `config.figma.mcpToolNamespace = "mcp__figma__" | "mcp__plugin_figma_figma__"`.
+
+**The wizard does NOT auto-create `.mcp.json`** — that's part of the user's tool-specific MCP install per Prerequisites. A missing `.mcp.json` (Claude Code / Cursor) or missing Codex plugin registration manifests as `unknown tool` in step 2 and triggers the Prerequisites pointer.
 
 ### Step 3 — Stack detection
 
@@ -217,48 +225,44 @@ Per `protocols/skills.md` § _Resolution algorithm — Wizard (install phase)_:
 
 This step's writes execute through Bash (`rm -rf`, `ln -sfn`) for symlinks and `Write` for the two text files. Honor-system — agent MUST limit itself to the four target classes above.
 
-### Step 7.6 — RTK detection
+### Step 7.6 — RTK verify (optional)
 
-[RTK](https://github.com/rtk-ai/rtk) is an external Rust binary that compresses dev-command output 60–90% before it reaches the AI tool. Detect-only; never auto-install (see § "Why the wizard never auto-installs" at the top of this file).
+[RTK](https://github.com/rtk-ai/rtk) is an external Rust binary that compresses dev-command output 60-90% before it reaches the AI tool. **Detect-only; never auto-install** (see § "Why the wizard never auto-installs" at the top of this file). Full install instructions live in `README § Prerequisites § Optional — RTK`.
 
-Scope: `rtk` binary on user PATH; `rtk init -g` writes a Bash hook to `~/.claude/settings.json` (or per-tool equivalent). User-level only.
+Scope: binary on user PATH; `rtk init -g` writes a Bash hook to `~/.claude/settings.json` (or per-tool equivalent). User-level only.
 
-Runtime: only Bash tool calls. Does NOT touch Figma MCP payloads, generated code, or Claude Code's built-in `Read`/`Grep`/`Glob` (those bypass the Bash hook — use `rtk read`/`rtk grep` explicitly).
+Runtime: only Bash tool calls. Does NOT touch Figma MCP payloads, generated code, or Claude Code's built-in `Read`/`Grep`/`Glob`.
 
 **Flow:**
 
 1. `command -v rtk`. Present → record `{ installed: true, version: <`rtk --version`>, detectedAt: <ISO-8601> }`. Probe user's AI-tool config for the RTK hook → set `initialized`. Continue, no question.
-2. Absent → **Q-rtk-install**: "RTK not installed. See install + init commands for your enabled tools? (You'll run them yourself.)"
-   - **Skip (default)** → record `{ installed: false, detectedAt }`. Continue silently.
-   - **Show** → print, tailored to `config.tools.*`:
-     ```
-     # Install (pick one):
-     brew install rtk                          # macOS / Linux
-     curl -fsSL https://raw.githubusercontent.com/rtk-ai/rtk/refs/heads/master/install.sh | sh
-     cargo install --git https://github.com/rtk-ai/rtk
+2. Absent → record `{ installed: false, detectedAt }` AND print a one-liner:
+   ```
+   RTK not installed (optional — ~10–15% side-channel token savings).
+   See README § Prerequisites § Optional — RTK for install + per-tool init commands.
+   ```
+   Continue silently. The wizard does not block on a missing optional tool, but it surfaces the pointer so users know the upside exists.
 
-     # Init for each tool:
-     rtk init -g                  # Claude Code  (when config.tools.claudeCode)
-     rtk init --agent cursor      # Cursor       (when config.tools.cursor)
-     rtk init -g --codex          # Codex        (when config.tools.codexCli)
-     ```
-     User runs in another terminal, presses Enter. Re-detect. Now present → record installed + version. Still absent → `installed: false`. No retry beyond this.
-
-### Step 7.7 — Graphify registration
+### Step 7.7 — Graphify verify + project-skill registration (optional)
 
 [Graphify](https://github.com/safishamsi/graphify) — external Python CLI (`graphifyy` on PyPI, command `graphify`). Turns the project into a queryable knowledge graph at `graphify-out/`. Pipeline doesn't require it; agents read `graphify-out/graph.json` when present, degrade gracefully when not.
 
-**Critical: the wizard does NOT build the graph.** Graphify builds via the user typing `/graphify .` (Codex: `$graphify .`) inside their AI assistant. The wizard only detects + registers the project-scoped skill so `/graphify` is available in this repo.
+**Two layers:**
 
-1. Detect `command -v graphify`. Also check whether `~/.claude/skills/graphify/SKILL.md` or `.claude/skills/graphify/SKILL.md` already exists (user may have it globally installed from a prior project).
-2. **Absent** → print verbatim and continue (record `{ installed: false, detectedAt }`):
+- **Binary install (user-level)** — `uv tool install graphifyy` / `pipx install graphifyy` / `pip install graphifyy`. Full instructions in `README § Prerequisites § Optional — Graphify`. **The wizard does NOT install the binary.**
+- **Project-scoped skill registration** (this step's optional action) — `graphify install --project --platform <tool>` writes `.claude/skills/graphify/SKILL.md` (etc.) into THIS repo. The wizard CAN run this on the user's behalf because it's project-scoped (no home-dir modification).
+
+**Critical: the wizard NEVER builds the graph.** Graphify builds via the user typing `/graphify .` (Codex: `$graphify .`) inside their AI assistant.
+
+1. `command -v graphify`. Also check whether `~/.claude/skills/graphify/SKILL.md` or `.claude/skills/graphify/SKILL.md` already exists (user may have a global install from a prior project).
+2. **Absent** → record `{ installed: false, detectedAt }` AND print a one-liner:
    ```
-   Graphify is not installed. To enable the /graphify knowledge graph, run ONE of:
-     uv tool install graphifyy        (recommended)
-     pipx install graphifyy
-     pip install graphifyy
-   Then re-run /init-figma-compose, or run `graphify install --project` manually.
+   Graphify not installed (optional — codebase knowledge graph + faster
+   component-builder reuse hints). See README § Prerequisites § Optional —
+   Graphify for install instructions. Then re-run /init-figma-compose, or
+   run `graphify install --project --platform <tool>` manually.
    ```
+   Continue. The wizard does not block on a missing optional tool.
 3. **Present** → ask: "Register `/graphify` as a project-scoped skill in this repo? (Writes `.claude/skills/graphify/SKILL.md` — only needed if you want the skill committed alongside the project; skip if you have it globally.)"
    - **Yes** (default when no global install detected) → run `graphify install --project --platform <claude|cursor|codex>` for each enabled tool. Record `{ installed: true, version, skillScope: "project", outputDir: "graphify-out", registeredAt }`.
    - **No** → record same but `skillScope: "global-or-user-managed"`, `detectedAt` instead of `registeredAt`.

@@ -28,20 +28,21 @@ Any other write → abort.
 
 ## Step 2 hard-gate behavior (Codex CLI specifics)
 
-The Step 2 MCP check is a **hard gate** in Codex too. Sequence:
+The Step 2 MCP check is a **hard gate** in Codex too. The wizard VERIFIES; it does NOT install Figma MCP. Users follow `README § Prerequisites § Required — Figma MCP` for Codex: run `codex`, then `/plugins`, then search Figma. Sequence:
 
-1. Read `.mcp.json` (create with the `figma` entry if absent — never strip others).
-2. Print: `[wizard] Step 2 — Figma MCP connect. Codex CLI cannot drive the browser auth flow; please open https://mcp.figma.com/mcp in your browser and sign in. Press Enter when done.`
-3. Run a low-cost MCP read via the user's normal Codex MCP integration. If it fails, retry once, then exit `3` (Figma MCP unavailable) without writing `config.json`.
-4. On success, set `config.figma.mcpVerifiedAt`.
+1. Try `mcp__figma__get_metadata` (any low-cost read). On `unknown tool` error, retry with `mcp__plugin_figma_figma__get_metadata`.
+2. **Both namespaces unknown** → exit `3` with: `[wizard] Figma MCP not configured. Run \`codex\` → \`/plugins\` → search Figma, then re-run \`./.codex/wrap.sh init-figma-compose\`. See README § Prerequisites.` Config write does NOT proceed.
+3. **Reachable but auth required** → print `[wizard] Figma MCP requires sign-in. The Codex plugin handles auth via its own flow — open Codex's plugin UI and confirm Figma is signed in, then press Enter to retry.` Re-probe (≤2 retries). Still failing → exit 3 with Prerequisites pointer.
+4. **Network failure** → exit 3: `[wizard] Figma MCP unreachable. Check your network and the Codex Figma plugin status. See README § Prerequisites.`
+5. **Success** → set `config.figma.mcpVerifiedAt` AND `config.figma.mcpToolNamespace`.
 
 ## Step 7.6 / 7.7 / 7.7b / 7.8 specifics
 
-Mirror `.claude/agents/wizard.md` § Step 7.6 (RTK detection — Codex init command is `rtk init -g --codex`), § Step 7.7 (graphify project-scoped skill registration via `graphify install --project --platform codex`), § Step 7.7b (codex shortcut wrapper), and § Step 7.8 (.gitignore patch).
+Mirror `.claude/agents/wizard.md` § Step 7.6 (RTK verify), § Step 7.7 (graphify verify + project-scoped registration), § Step 7.7b (codex shortcut wrapper), § Step 7.8 (.gitignore patch). All optional-tool installs are deferred to `README § Prerequisites`.
 
-- RTK detection: `command -v rtk`. If absent, print install + Codex-tailored init: `brew install rtk` (or curl/cargo) + `rtk init -g --codex`. Never run either yourself — RTK modifies user-level config.
-- The wizard NEVER runs `graphify install` without `--project` and NEVER builds the graph itself — the user invokes `$graphify .` in Codex after the wizard exits.
-- Step 7.7b always runs in Codex (since `tools.codexCli == true` is implicit for the Codex wizard). Writes `<projectRoot>/codex-run` (executable wrapper around `.codex/wrap.sh`) and chmods it to 0755. User invokes `./codex-run figma-build <url>` from the project root — no source, no rc edit. **NEVER appends to `~/.zshrc`, `~/.bashrc`, or any shell rc** — the wrapper is project-local on purpose.
+- **RTK verify** (Step 7.6): `command -v rtk`. Absent → print `[wizard] RTK not installed (optional — ~10–15% side-channel token savings). See README § Prerequisites § Optional — RTK for install + Codex init command (\`rtk init -g --codex\`).` Continue. Never install or run `rtk init` yourself.
+- **Graphify** (Step 7.7): the wizard NEVER installs the binary AND NEVER builds the graph itself — `$graphify .` is the user's command inside Codex after the wizard exits. The wizard CAN run `graphify install --project --platform codex` (project-scoped — writes inside repo only) when the binary is on PATH and the user confirms. Absent → point at README § Prerequisites § Optional — Graphify.
+- **Codex shortcut** (Step 7.7b): always runs in Codex (`tools.codexCli == true` is implicit). Writes `<projectRoot>/codex-run` (chmod 0755) — `exec .codex/wrap.sh "$@"`. User invokes `./codex-run figma-build <url>` from project root — no source, no rc edit. **NEVER appends to `~/.zshrc`, `~/.bashrc`, or any shell rc.**
 - On graphify shell-out failure, set `config.graphify.installFailed = true` and continue — non-blocking.
 - On `.gitignore` write failure, exit `5` (filesystem write blocked).
 
