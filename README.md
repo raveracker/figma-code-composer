@@ -151,7 +151,7 @@ cargo install --git https://github.com/rtk-ai/rtk
 
 ```bash
 rtk init -g                      # Claude Code (default)
-rtk init --agent cursor          # Cursor
+rtk init -g --agent cursor          # Cursor
 rtk init -g --codex              # Codex CLI
 ```
 
@@ -163,13 +163,29 @@ Restart your AI tool after init, then test: `git status` (auto-rewritten to `rtk
 
 ## Quickstart
 
-All three tools share the same commands. Run them inside the project after `npx figma-code-composer`:
+### Step 1 — Run the wizard ONCE (not per tool)
 
-| Tool          | Run wizard                                         | Run a build                          |
-| ------------- | -------------------------------------------------- | ------------------------------------ |
-| Claude Code   | `/init-figma-compose`                              | `/figma-build <url>`                 |
-| Cursor        | `/init-figma-compose` (or "set up figma-pipeline") | `/figma-build <url>`                 |
-| Codex CLI     | `./.codex/wrap.sh init-figma-compose` (or `./codex-run init-figma-compose`) | `./codex-run figma-build <url>` |
+`/init-figma-compose` is a **one-time, repo-level** setup. It writes the shared `.figma-pipeline/config.json` plus the per-tool surfaces for **every tool you select in its Tools step**. Run it in whichever tool you happen to be in, and tick all the tools you'll use:
+
+| Run the wizard from… | Command                                                                     |
+| -------------------- | --------------------------------------------------------------------------- |
+| Claude Code          | `/init-figma-compose`                                                       |
+| Cursor               | `/init-figma-compose` (or "set up figma-pipeline")                          |
+| Codex CLI            | `./.codex/wrap.sh init-figma-compose` (or `./codex-run init-figma-compose`) |
+
+> **Do NOT run the wizard again in each tool.** One run with Claude Code + Cursor + Codex all selected configures all three. Re-running it in another tool just rewrites the same `config.json`. The only reason to run it a second time is to *add* a tool you didn't select the first time (it preserves your existing answers). Verify what's wired with `grep -A3 '"tools"' .figma-pipeline/config.json` — if `claudeCode`, `cursor`, and `codexCli` are all `true`, you're done.
+
+> **Per-tool environment setup is separate** from the wizard. Figma MCP (required) and RTK / Graphify (optional) live in each tool's own config, not in `config.json` — set them up per tool, per the [Prerequisites](#prerequisites). The wizard only *verifies* them.
+
+### Step 2 — Build from any tool
+
+Once the wizard has run, build from whichever tool you like — they all read the same `config.json` and produce identical output:
+
+| Tool        | Build command                  |
+| ----------- | ------------------------------ |
+| Claude Code | `/figma-build <url>`           |
+| Cursor      | `/figma-build <url>` (or "build components from `<url>`") |
+| Codex CLI   | `./codex-run figma-build <url>` |
 
 Available commands (all tools): `figma-build`, `figma-update`, `figma-icons`, `figma-tokens`.
 
