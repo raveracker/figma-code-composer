@@ -115,15 +115,15 @@ pipx install graphifyy
 pip install graphifyy
 ```
 
-**Register for your AI tool** (the wizard's Step 7.7 will run `--project` for you when graphify is on PATH; or run manually):
+**Register the `/graphify` skill for your AI tool** (run the line(s) for the tools you use):
 
 ```bash
-graphify install --platform claude       # Claude Code (global skill)
+graphify install --platform claude       # Claude Code
 graphify install --platform cursor       # Cursor
 graphify install --platform codex        # Codex CLI (uses $graphify)
-# or:
-graphify install --project --platform <claude|cursor|codex>   # project-scoped instead of global
 ```
+
+`graphify install` copies the skill into the tool's config dir (a user-level action — the wizard detects it but doesn't run it for you, same as RTK). `graphify install --help` lists every supported platform.
 
 **Build the graph** (you do this inside your assistant chat, not the wizard):
 
@@ -244,7 +244,7 @@ Every agent reads `config.json` + the active protocols under `.figma-pipeline/pr
 | 9  | Tools | Multi-select: Claude Code / Cursor / Codex CLI. |
 | 10 | Skill prune | Deletes irrelevant skills; symlinks the rest into each enabled tool's surface. |
 | 11 | RTK detection | Detects optional shell-output compressor. Prints per-tool init commands matched to your `config.tools.*`. **Never auto-installs** ([why](#optional-rtk--graphify-user-level-tools)). |
-| 12 | Graphify registration | Detects the external `graphify` CLI. If present, runs `graphify install --project --platform <tool>`. **Does not build the graph** — that's `/graphify .` in your assistant. |
+| 12 | Graphify detection | Detects the external `graphify` CLI; records status in `config.graphify`. If absent, points at Prerequisites. **Does not install or build** — `graphify install --platform <tool>` and `/graphify .` are yours to run (user-level, like RTK). |
 | 13 | `./codex-run` shortcut | When `tools.codexCli=true`, writes an executable wrapper at the project root. Zero extra intervention beyond `./codex-run <cmd>`. |
 | 14 | `.gitignore` patch | Idempotent append: `.figma-pipeline/config.json`, `.figma-pipeline/scratch/`, `/tmp/figma-*/`, `graphify-out/`, `.mcp.json`. |
 | 15 | Report | Summary + write-allowlist + reminder: *"Build the graph anytime by typing /graphify . in your assistant."* |
@@ -254,7 +254,7 @@ Outputs:
 - `.mcp.json` — Figma MCP wiring, proven reachable at wizard time (`config.figma.mcpVerifiedAt`)
 - `<projectRoot>/.gitignore` — patched (one append-only marker block)
 - `<projectRoot>/codex-run` — wrapper executable, only when Codex CLI is enabled
-- `.claude/skills/graphify/SKILL.md` (and Cursor / Codex equivalents) — written by `graphify install --project` when graphify is on PATH
+- `/graphify` skill — registered by you via `graphify install --platform <tool>` (Prerequisites), not the wizard
 
 ---
 
@@ -437,7 +437,7 @@ Key sections:
 - `codex.modelMap` — per-size Codex model IDs (Codex CLI only)
 - `figma.mcpVerifiedAt` — ISO-8601 stamp proving MCP was reachable at wizard time
 - `rtk` — `{ installed, initialized, version, detectedAt }` (read-only)
-- `graphify` — `{ installed, version, outputDir, skillScope, registeredAt, installFailed }` (read-only)
+- `graphify` — `{ installed, version, outputDir, detectedAt }` (read-only; detect-only, like `rtk`)
 - `gitignorePatch` — `{ appliedAt, entriesAdded }` audit
 - `tools` (+ `tools.codexShortcut` when Codex enabled) — wired AI tools
 - `writeScope.allowedDirs` — derived; enforced by `check-frozen-paths.sh`

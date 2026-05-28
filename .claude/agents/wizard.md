@@ -36,7 +36,7 @@ Steps 2 (Figma MCP), 7.6 (RTK), and 7.7 (Graphify binary) detect external state 
 3. **Touches the user's home dir / shell rc / tool config** (`~/.claude/settings.json`, `~/.zshrc`, `~/.config/figma-mcp/`, …). One project's wizard reconfiguring every other project on the machine is a surprising side-effect.
 4. **Reversibility.** Auto-install means we own the uninstall story too. We don't.
 
-The wizard's job is to **verify** what Prerequisites set up, record the result in `config.json`, and point users back at the README when something's missing. The one exception is graphify's **project-scoped** skill registration (Step 7.7's optional action) — that writes inside the repo, not the user's home dir, so the wizard can run it on the user's behalf.
+The wizard's job is to **verify** what Prerequisites set up, record the result in `config.json`, and point users back at the README when something's missing. No exceptions — Figma MCP, RTK, and Graphify are all detect-and-record. (`graphify install --platform <tool>` writes to the tool's user-level config dir; there is no repo-scoped `--project` flag in graphify v0.7.x, so it's the user's to run.)
 
 ## Inputs
 
@@ -60,9 +60,7 @@ Step 7.5 one-shot install/strip pass (driven by `resolve_skills(configSnapshot)`
 - `.cursor/rules/use-skills.mdc` — write or delete (only `tools.cursor`)
 - `.codex/skills.md` — write or delete (only `tools.codexCli`)
 
-Indirect (shelled out to the external `graphify` CLI in Step 7.7):
-
-- `.claude/skills/graphify/SKILL.md` and per-tool equivalents — written by `graphify install --project`. Wizard invokes the CLI but doesn't write the files itself. `graphify-out/` itself is built later by the user's `/graphify .`, never by the wizard.
+The wizard does NOT write any graphify files — `graphify install --platform <tool>` (user-level) and `/graphify .` (the graph build) are the user's to run, per Step 7.7. `graphify-out/` is only ensured to be in `.gitignore` (Step 7.8).
 
 Any other write → abort and report.
 
@@ -248,34 +246,25 @@ Runtime: only Bash tool calls. Does NOT touch Figma MCP payloads, generated code
    ```
    Continue silently. The wizard does not block on a missing optional tool, but it surfaces the pointer so users know the upside exists.
 
-### Step 7.7 — Graphify verify + project-skill registration (optional)
+### Step 7.7 — Graphify detection (optional)
 
 [Graphify](https://github.com/safishamsi/graphify) — external Python CLI (`graphifyy` on PyPI, command `graphify`). Turns the project into a queryable knowledge graph at `graphify-out/`. Pipeline doesn't require it; agents read `graphify-out/graph.json` when present, degrade gracefully when not.
 
-**Two layers:**
+**Detect-only — same posture as RTK (Step 7.6).** Both the binary install (`uv tool install graphifyy`) AND the per-tool skill registration (`graphify install --platform <tool>`) are user-level actions documented in `README § Prerequisites § Optional — Graphify`. The wizard does NOT run either — `graphify install` writes to the tool's config dir (user-level), so it falls under the same "verify, don't install" principle as RTK and Figma MCP. **The wizard also NEVER builds the graph** — that's `/graphify .` (Codex: `$graphify .`) inside the user's assistant.
 
-- **Binary install (user-level)** — `uv tool install graphifyy` / `pipx install graphifyy` / `pip install graphifyy`. Full instructions in `README § Prerequisites § Optional — Graphify`. **The wizard does NOT install the binary.**
-- **Project-scoped skill registration** (this step's optional action) — `graphify install --project --platform <tool>` writes `.claude/skills/graphify/SKILL.md` (etc.) into THIS repo. The wizard CAN run this on the user's behalf because it's project-scoped (no home-dir modification).
+> Note: graphify v0.7.x has no `--project` flag. `graphify install --platform claude|cursor|codex` is the correct form; it copies the skill to the platform's config dir. Don't invent a `--project` variant.
 
-**Critical: the wizard NEVER builds the graph.** Graphify builds via the user typing `/graphify .` (Codex: `$graphify .`) inside their AI assistant.
-
-1. `command -v graphify`. Also check whether `~/.claude/skills/graphify/SKILL.md` or `.claude/skills/graphify/SKILL.md` already exists (user may have a global install from a prior project).
-2. **Absent** → record `{ installed: false, detectedAt }` AND print a one-liner:
+1. `command -v graphify`.
+2. **Present** → record `config.graphify = { installed: true, version: <`graphify --version`>, outputDir: "graphify-out", detectedAt: <ISO-8601> }`. No question. Continue.
+3. **Absent** → record `{ installed: false, detectedAt }` AND print a one-liner:
    ```
    Graphify not installed (optional — codebase knowledge graph + faster
    component-builder reuse hints). See README § Prerequisites § Optional —
-   Graphify for install instructions. Then re-run /init-figma-compose, or
-   run `graphify install --project --platform <tool>` manually.
+   Graphify for install + `graphify install --platform <tool>` register steps.
    ```
    Continue. The wizard does not block on a missing optional tool.
-3. **Present** → ask: "Register `/graphify` as a project-scoped skill in this repo? (Writes `.claude/skills/graphify/SKILL.md` — only needed if you want the skill committed alongside the project; skip if you have it globally.)"
-   - **Yes** (default when no global install detected) → run `graphify install --project --platform <claude|cursor|codex>` for each enabled tool. Record `{ installed: true, version, skillScope: "project", outputDir: "graphify-out", registeredAt }`.
-   - **No** → record same but `skillScope: "global-or-user-managed"`, `detectedAt` instead of `registeredAt`.
-   - **Shell failure** → record `installFailed: true, error: <stderr-snippet>`. Non-blocking.
 4. Always proceed to Step 7.8 (`.gitignore` patch covers `graphify-out/` regardless).
 5. Surface in final report: `Build the graph anytime by typing /graphify . in your assistant — the wizard does not build it.`
-
-On `--re-detect`, skip `graphify install --project` if a project skill is already present. User refreshes manually with `--force`.
 
 ### Step 7.7b — Codex `./codex-run` shortcut (only when `tools.codexCli == true`)
 
@@ -342,7 +331,7 @@ The PreToolUse `check-frozen-paths.sh` permits a single `Write/Edit` against the
   Surfaces:       <claude|none> <cursor|none> <codex|none>
   Tools:          <ClaudeCode|Cursor|CodexCLI list>
   RTK:            <installed ? "✓ v<version>" + (initialized ? " (hook wired)" : " (run rtk init)") : "not installed — see brew install rtk">
-  Graphify:       <installed ? (installFailed ? "✓ CLI present, project install failed" : "✓ v<version> (" + skillScope + ")") : "not installed — uv tool install graphifyy">
+  Graphify:       <installed ? "✓ v<version> detected — register with graphify install --platform <tool>, build with /graphify ." : "not installed — see README § Prerequisites">
   KG:             <enabled ? "enabled (storeDir=<storeDir>, embeddings=<provider>)" : "disabled">
   Complexity:     <enabled ? "tier-routed" : "always-complex">
   .gitignore:     patched (<entriesAdded> entries)

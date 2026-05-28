@@ -35,7 +35,7 @@ The wizard writes `.figma-pipeline/config.json` (single source of truth) and `.m
 
 ## Binding rules
 
-1. **Write-access allowlist driven by `config.json`.** Bootstrap allowlist (before `/init-figma-compose`): `.figma-pipeline/**`, `/tmp/**`, `.mcp.json`, `.codex/**`, `.gitignore`, `graphify-out/**`, and the graphify-owned skill dirs (`.claude/skills/graphify/**`, `.cursor/rules/**`, `AGENTS.md`, `.codex/skills.md`). After the wizard: configured component / token / icon / story / test paths join the allowlist. Enforced by `check-frozen-paths.sh` PreToolUse hook. Escape hatch: `FP_ALLOW_RESTRICTED_WRITE=1` for owner-driven edits.
+1. **Write-access allowlist driven by `config.json`.** Bootstrap allowlist (before `/init-figma-compose`): `.figma-pipeline/**`, `/tmp/**`, `.mcp.json`, `.codex/**`, `.gitignore`, `codex-run`, `graphify-out/**`, plus the Step 7.5 per-tool skill surfaces (`.cursor/rules/**`, `.codex/skills.md`). After the wizard: configured component / token / icon / story / test paths join the allowlist. Enforced by `check-frozen-paths.sh` PreToolUse hook. Escape hatch: `FP_ALLOW_RESTRICTED_WRITE=1` for owner-driven edits.
 2. **Manifest is the single source of truth between agents.** `figma-fetcher` is the only writer; everyone else treats it as read-only. See `protocols/figma-manifest.md`.
 3. **Variable names preserved, never resolved.** Tokens hold the raw Figma path. Resolving to hex/rem in the manifest = contract violation.
 4. **Unbound values are flags, not invitations.** No variable binding → manifest records the raw value AND `unbound: true`. Builders MUST stop-and-flag — never invent a token or inline the raw value.

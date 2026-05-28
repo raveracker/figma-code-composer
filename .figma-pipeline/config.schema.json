@@ -473,20 +473,12 @@
     },
     "graphify": {
       "type": "object",
-      "description": "Optional integration with graphify (https://github.com/safishamsi/graphify, PyPI: graphifyy). External Python CLI that builds a queryable knowledge graph at <projectRoot>/graphify-out/ when the user types /graphify . in their AI assistant. The wizard does NOT build the graph — it only detects the CLI and (when present) registers the project-scoped skill via `graphify install --project`. Downstream agents read graph.json for reuse hints and degrade gracefully when absent.",
+      "description": "Optional integration with graphify (https://github.com/safishamsi/graphify, PyPI: graphifyy). External Python CLI that builds a queryable knowledge graph at <projectRoot>/graphify-out/ when the user types /graphify . in their AI assistant. Detect-only: the wizard records whether the CLI is on PATH but never installs it, registers the skill, or builds the graph — those are user-level actions (graphify install --platform <tool>, then /graphify .) documented in README § Prerequisites. Downstream agents read graph.json for reuse hints and degrade gracefully when absent.",
       "properties": {
         "installed": { "type": "boolean", "default": false, "description": "True when the `graphify` CLI is on PATH at wizard time." },
         "version": { "type": "string" },
         "outputDir": { "type": "string", "default": "graphify-out" },
-        "skillScope": {
-          "type": "string",
-          "enum": ["project", "global-or-user-managed"],
-          "description": "How the /graphify skill is wired for this repo. 'project' means the wizard ran `graphify install --project` and committed `.claude/skills/graphify/SKILL.md` (etc.) to the repo. 'global-or-user-managed' means the user's own global install handles /graphify; the wizard left the repo alone."
-        },
-        "registeredAt": { "type": "string", "description": "ISO-8601 of last successful `graphify install --project`." },
-        "installFailed": { "type": "boolean", "default": false },
-        "error": { "type": "string", "description": "Short stderr snippet captured when installFailed=true." },
-        "detectedAt": { "type": "string" }
+        "detectedAt": { "type": "string", "description": "ISO-8601 of the last wizard/doctor detection." }
       }
     },
     "gitignorePatch": {

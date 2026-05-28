@@ -22,7 +22,7 @@ The wizard:
 7. **Tools** — Claude Code / Cursor / Codex CLI multi-select.
 8. **Skills install/strip** — prunes canonical `.figma-pipeline/skills/` to the resolved install set and refreshes per-tool surfaces.
 9. **RTK verify (optional)** — `command -v rtk`. If absent, surfaces a one-line pointer to `README § Prerequisites § Optional — RTK` and continues. Never auto-installs.
-10. **Graphify verify + project-skill registration (optional)** — `command -v graphify`. If present, optionally runs `graphify install --project --platform <tool>` (project-scoped — writes inside the repo). If absent, surfaces a one-line pointer to `README § Prerequisites § Optional — Graphify`. **Never builds the graph** — that's `/graphify .` inside your assistant after the wizard exits.
+10. **Graphify detection (optional)** — `command -v graphify`; records status in `config.graphify`. Detect-only (like RTK): never installs the binary, never runs `graphify install`, never builds the graph. If absent, surfaces a one-line pointer to `README § Prerequisites § Optional — Graphify`. Registration (`graphify install --platform <tool>`) and the build (`/graphify .`) are yours to run.
 11. **Patch target `.gitignore`** — appends the scaffold-generated paths (`.figma-pipeline/config.json`, `graphify-out/`, `/tmp/figma-*/`) so consumers never accidentally commit local-only state. Idempotent.
 
 Final output:

@@ -16,7 +16,7 @@ Drop-in scaffold for a Figma-driven multi-agent pipeline. Canonical project over
 /figma-tokens <figma-url>
 ```
 
-The wizard writes `.figma-pipeline/config.json` (single source of truth) and `.mcp.json` — proven reachable via a low-cost MCP read before `config.json` lands (Cursor users enable Figma MCP in Settings → MCP first). Also patches the project root `.gitignore` (idempotent) and, when `graphify` is on PATH, registers `/graphify` as a Cursor project skill via `graphify install --project --platform cursor`. Every agent reads `config.json` before acting.
+The wizard writes `.figma-pipeline/config.json` (single source of truth) and `.mcp.json` — proven reachable via a low-cost MCP read before `config.json` lands (Cursor users enable Figma MCP in Settings → MCP first). Also patches the project root `.gitignore` (idempotent). Graphify is detect-only — if `graphify` is on PATH the wizard records it; you register the skill yourself with `graphify install --platform cursor` (see README § Prerequisites). Every agent reads `config.json` before acting.
 
 ## Repo map (Cursor-relevant only)
 

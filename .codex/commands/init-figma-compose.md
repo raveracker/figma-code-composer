@@ -15,7 +15,7 @@ The agent:
 5. Derives paths from detector + user confirmation.
 6. Writes `.figma-pipeline/config.json` (no auto-create of `.mcp.json` — Prerequisites owns that).
 7. Validates against `.figma-pipeline/config.schema.json` using `npx -y ajv-cli validate` if available.
-8. **Graphify verify + project-skill registration (optional)** — detects `graphify` on PATH. If present, runs `graphify install --project --platform codex` to register the `$graphify` skill in this repo (project-scoped — writes inside repo). Does NOT build the graph — the user runs `$graphify .` in Codex after the wizard exits. If absent, prints a pointer to `README § Prerequisites § Optional — Graphify`. Always appends `graphify-out/` + scaffold paths to the target's `.gitignore`. (Codex uses `$graphify` instead of `/graphify` per the graphify README.)
+8. **Graphify detection (optional)** — detects `graphify` on PATH; records status in `config.graphify`. Detect-only: never installs the binary, never runs `graphify install`, never builds the graph. If absent, prints a pointer to `README § Prerequisites § Optional — Graphify`. Registration (`graphify install --platform codex`) and the build (`$graphify .` in Codex) are the user's to run. Always appends `graphify-out/` + scaffold paths to the target's `.gitignore`. (Codex uses `$graphify` instead of `/graphify`.)
 9. **Codex `./codex-run` shortcut** — writes an executable `<projectRoot>/codex-run` (chmod 0755) that wraps `.codex/wrap.sh`. User invokes `./codex-run figma-build <url>` — no source, no rc edit, no direnv. Project-local, team-portable (safe to commit).
 
 Exit codes:
