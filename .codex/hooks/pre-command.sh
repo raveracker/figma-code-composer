@@ -31,13 +31,13 @@ for arg in "$@"; do
   if printf '%s' "$arg" | grep -qE 'figma\.com/(design|board|make|proto|file)/'; then
     cat <<'EOF' >&2
 
-📐 Figma URL detected. The right entry points are:
-  codex run figma-build <url> [layerHint]   # NEW components/icons/tokens
-  codex run figma-update <url>              # UPDATE existing
-  codex run figma-icons  <url>              # icons only
-  codex run figma-tokens <url>              # tokens only
+📐 Figma URL detected. The right entry points are (quote the URL — the ? and & break unquoted in zsh):
+  ./codex-run figma-build  '<url>' [layerHint]   # NEW components/icons/tokens
+  ./codex-run figma-update '<url>'               # UPDATE existing
+  ./codex-run figma-icons  '<url>'               # icons only
+  ./codex-run figma-tokens '<url>'               # tokens only
 
-All routes dispatch the figma-coordinator agent.
+All routes dispatch the figma-coordinator agent via `codex exec`.
 EOF
     break
   fi

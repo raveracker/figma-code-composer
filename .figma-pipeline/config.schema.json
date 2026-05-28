@@ -461,7 +461,7 @@
       "properties": {
         "modelMap": {
           "type": "object",
-          "description": "Maps abstract size (sm/md/lg) to a concrete OpenAI model ID. Defaults are conservative; users can pin to any model their Codex CLI version supports. The coordinator passes the resolved ID via `codex run-agent <name> --model <id>`.",
+          "description": "Maps abstract size (sm/md/lg) to a concrete OpenAI model ID. Defaults are conservative; users can pin to any model their Codex CLI version supports. Codex runs the whole pipeline in one `codex exec` session (no sub-agent spawner), so this resolves to a single model for the run — passed via `codex exec --model <id>` when the flag is available, else the global default in ~/.codex/config.toml.",
           "properties": {
             "sm": { "type": "string", "default": "gpt-4o-mini" },
             "md": { "type": "string", "default": "gpt-4o" },

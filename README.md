@@ -431,11 +431,11 @@ Full attribution + content hashes: [`skills-lock.json`](./skills-lock.json). Per
 | Capability                                  | Claude Code           | Cursor                             | Codex CLI                          |
 | ------------------------------------------- | --------------------- | ---------------------------------- | ---------------------------------- |
 | `/init-figma-compose` wizard                | ✅ native             | ✅ inline                          | ✅ `wrap.sh` / `./codex-run`       |
-| Multi-agent pipeline                        | ✅ native `Agent`     | ✅ inline                          | ✅ `codex run-agent`               |
+| Multi-agent pipeline                        | ✅ native `Agent` (parallel sub-agents) | ✅ inline | ⚠ one `codex exec` session (roles run inline, sequential) |
 | MCP integration                             | ✅ `.mcp.json`        | ✅ settings UI                     | ✅ `.mcp.json`                     |
 | MCP hard gate at wizard time                | ✅ programmatic auth  | ✅ user-driven + verify             | ✅ user-driven + verify (exit 3 on fail) |
 | Lifecycle hooks                             | ✅ native             | ✅ `alwaysApply` rules             | ✅ via `wrap.sh`                   |
-| Per-call model routing                      | ✅ `Agent(model=…)`   | ⚠ user-selected; recommendation shown | ✅ `--model`                  |
+| Per-call model routing                      | ✅ `Agent(model=…)` per specialist | ⚠ user-selected; recommendation shown | ⚠ one model for the run (`codex exec --model`; no per-specialist split) |
 | KG / handover / complexity                  | ✅                    | ✅                                 | ✅                                 |
 | Graphify `/graphify` skill registration     | ✅ `--platform claude` | ✅ `--platform cursor`            | ✅ `--platform codex` (`$graphify`) |
 | RTK shell-output compression                | ✅ `rtk init -g`      | ✅ `rtk init --agent cursor`        | ✅ `rtk init -g --codex`           |

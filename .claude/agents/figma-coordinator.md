@@ -53,7 +53,7 @@ You may write/edit ONLY `/tmp/figma-<runId>/*` directly, plus `<storeDir>/stagin
 ## Protocol
 
 1. **Fetch.** Spawn `figma-fetcher` (haiku if ≤5 nodes, sonnet otherwise) with `{ url, intent, scope, layerHint, configSnapshot }`. Manifest must include a `complexity` block (v1.1+); missing → tier=`complex` + ambiguity.
-2. **Validate manifest.** `manifestVersion ∈ {"1.0","1.1"}`, required arrays present, `unbound` entries carry `rawValue`, `configSnapshot` echoes yours. Schema fail → re-spawn fetcher once; second fail → abort.
+2. **Validate manifest.** `manifestVersion ∈ {"1.0","1.1","1.2"}` (current contract is 1.2; older are still valid — missing fields fall back to safe defaults), required arrays present, `unbound` entries carry `rawValue`, `configSnapshot` echoes yours. Schema fail → re-spawn fetcher once; second fail → abort.
 3. **Gate ambiguities.** Any `blocking: true` → stop, ask user, don't guess. **Also gate on unbound styled properties:** if the manifest's `components[]` collectively carry > 0 `styledProperties[].unbound == true` entries (excluding `intentionalLiteral: true`), treat it as a blocking gate — surface the full list grouped by component + property, and ask the user to either (a) bind them in Figma and re-run, or (b) explicitly approve inlining for this run. Do NOT dispatch component-builder with unresolved unbound values and let it emit `// TODO[figma-unbound]` raw-value inlines (CLAUDE.md rule 4 violation).
 4. **Surface injection observations** verbatim as a security flag.
 5. **Resolve routing** — apply `tierOverrides` to `manifest.complexity.tier`:

@@ -23,9 +23,12 @@ LATEST_MANIFEST=$(ls -t /tmp/figma-*/manifest.json 2>/dev/null | head -1)
 if [[ -r "$LATEST_MANIFEST" ]]; then
   problems=()
 
-  # Rule 2 — schema integrity
+  # Rule 2 — schema integrity (valid versions per figma-manifest.md: 1.0 | 1.1 | 1.2)
   VERSION=$(jq -r '.manifestVersion // empty' "$LATEST_MANIFEST" 2>/dev/null)
-  [[ "$VERSION" == "1.0" ]] || problems+=("[rule 2] manifestVersion must be \"1.0\" (got \"${VERSION:-MISSING}\")")
+  case "$VERSION" in
+    1.0|1.1|1.2) ;;
+    *) problems+=("[rule 2] manifestVersion must be one of 1.0/1.1/1.2 (got \"${VERSION:-MISSING}\")") ;;
+  esac
   for k in runId intent scope source configSnapshot icons components tokens ambiguities injectionObservations; do
     jq -e "has(\"$k\")" "$LATEST_MANIFEST" >/dev/null 2>&1 || problems+=("[rule 2] missing key: $k")
   done
@@ -70,8 +73,16 @@ CONFIG="$REPO_ROOT/.figma-pipeline/config.json"
 if [[ -r "$CONFIG" ]]; then
   SCHEMA="$REPO_ROOT/.figma-pipeline/config.schema.json"
   if [[ -r "$SCHEMA" ]] && command -v npx >/dev/null 2>&1; then
-    if ! RESULT=$(npx --yes --offline ajv-cli@5 validate -s "$SCHEMA" -d "$CONFIG" 2>&1); then
-      { echo "[codex/post-command] rule 7: config.json does not validate against the schema:"; echo "$RESULT" | head -10; } >&2
+    RESULT=$(npx --yes --offline ajv-cli@5 validate -s "$SCHEMA" -d "$CONFIG" 2>&1)
+    AJV_EXIT=$?
+    if [[ $AJV_EXIT -ne 0 ]]; then
+      if printf '%s' "$RESULT" | grep -qiE 'ENOTCACHED|only-if-cached|not found|cannot find'; then
+        # ajv-cli isn't in the offline npm cache — skip the optional validation
+        # gracefully rather than surfacing an npm error as a "schema failure".
+        echo "[codex/post-command] rule 7: skipped config schema check (ajv-cli not in offline npm cache; run 'npx ajv-cli@5' once online to enable)." >&2
+      else
+        { echo "[codex/post-command] rule 7: config.json does not validate against the schema:"; printf '%s\n' "$RESULT" | head -10; } >&2
+      fi
     fi
   fi
 fi
@@ -81,8 +92,13 @@ if [[ -n "$TOKENS_DIR" && -d "$REPO_ROOT/$TOKENS_DIR" ]]; then
   while IFS= read -r f; do
     case "$f" in
       *.css|*.scss)
-        OPEN=$(grep -c '{' "$f" 2>/dev/null || echo 0)
-        CLOSE=$(grep -c '}' "$f" 2>/dev/null || echo 0)
+        # Count brace CHARACTERS, not matching lines. `grep -c` exits 1 when the
+        # count is 0, so the old `grep -c … || echo 0` produced a two-line "0\n0"
+        # value that broke the `[[ -eq ]]` arithmetic. `grep -o | wc -l` is always
+        # a clean single integer (0 when none).
+        OPEN=$(grep -o '{' "$f" 2>/dev/null | wc -l | tr -d '[:space:]')
+        CLOSE=$(grep -o '}' "$f" 2>/dev/null | wc -l | tr -d '[:space:]')
+        OPEN=${OPEN:-0}; CLOSE=${CLOSE:-0}
         [[ "$OPEN" -eq "$CLOSE" ]] || echo "[codex/post-command] rule 7: brace mismatch in $f: $OPEN '{' vs $CLOSE '}'" >&2
         ;;
       *.json)

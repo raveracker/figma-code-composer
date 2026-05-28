@@ -93,7 +93,7 @@ The abstract `sm` / `md` / `lg` resolves differently per tool because each tool 
 **Override rules:**
 
 - **Claude Code** — `config.complexity.model.<tier>` accepts any Claude model ID; coordinator passes it via the `Agent` tool's model param.
-- **Codex CLI** — `config.codex.modelMap.<size>` accepts any OpenAI model ID; coordinator passes it via `codex run-agent <name> --model <id>` (or whatever flag the active Codex CLI version exposes — older versions: `-m`; current: `--model`).
+- **Codex CLI** — `config.codex.modelMap.<size>` accepts any OpenAI model ID. Codex has no sub-agent spawner: the whole pipeline runs in one `codex exec` session, so the tier resolves to a SINGLE model for the run (the per-specialist split that Claude Code gets is not possible). Passed via `codex exec --model <id>` when the flag exists, else the global default in `~/.codex/config.toml`. The tier still controls the skill set + the extreme-tier review pass.
 - **Cursor** — Cursor agents inherit the user's currently-selected model from the Cursor settings UI; there is no per-call override. The coordinator MUST NOT attempt to set a model and SHOULD surface the size hint as a chat prefix (`[fcc routing] tier=complex, recommended size=lg`) so the user can switch model if they want.
 
 Skill-set overrides are coordinator-only (not user-configurable) — they're a function of correctness, not preference.

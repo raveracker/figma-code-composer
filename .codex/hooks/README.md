@@ -5,7 +5,7 @@ Codex has no native lifecycle hooks. `.codex/wrap.sh` simulates them by running 
 ## Lifecycle
 
 ```
-codex run <cmd>
+./codex-run <cmd>   (= .codex/wrap.sh <cmd>)
    │
    ├─► pre-command.sh   ──┐
    │                      │  rule 1  (allowlist defaults — refuses without config when cmd ≠ init-figma-compose)
@@ -13,7 +13,7 @@ codex run <cmd>
    │                      │  routing (figma URL nudge → rules 1+2)
    │                      └─►
    ▼
-codex run-agent <cmd>     ◄── the actual work (rules 2-7 enforced inline by the agent)
+codex exec "<prompt>"     ◄── the actual work, ONE agentic session (rules 2-7 enforced inline by the agent)
    │
    ├─► post-command.sh  ──┐
    │                      │  rule 2  (manifest schema integrity)

@@ -48,7 +48,7 @@ See `CLAUDE.md` § Coverage for the canonical stack/CSS/DS/methodology matrix.
 
 ## Codex-specific notes
 
-- **No native `Agent` spawner.** Specialists run as separate `codex run-agent <name>` invocations chained by the coordinator's recipe. `.codex/agents/<x>.md` is each agent's system prompt.
+- **No native `Agent` spawner.** Unlike Claude Code, the installed Codex CLI has no `run-agent` subcommand — `codex exec "<prompt>"` runs ONE agentic session. So the whole pipeline runs in a single `codex exec` turn (dispatched by `wrap.sh`); the coordinator plays each specialist role inline in sequence, reading `.codex/agents/<x>.md` as guidance rather than spawning sub-processes. One consequence: per-specialist model routing collapses to one model for the run (see `.codex/agents/figma-coordinator.md` § Complexity routing under Codex).
 - **No native lifecycle hooks.** `wrap.sh` simulates them via `pre-command.sh` (config sanity + figma URL nudge + `.env` block), `post-command.sh` (manifest + config + token-file validators), and `on-exit.sh` (session summary).
 - **MCP integration via `.mcp.json`** at the repo root (same file Claude Code reads).
 - **`AskUserQuestion` → stdin prompts.** See `.codex/agents/wizard.md` § stdin prompt format.

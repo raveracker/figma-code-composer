@@ -5,7 +5,7 @@ Verbatim mirror of `.claude/agents/wizard.md` with three substitutions:
 | Claude Code                              | Codex CLI equivalent                                                              |
 | ---------------------------------------- | --------------------------------------------------------------------------------- |
 | `AskUserQuestion`                        | stdin prompt — print question, read line, validate                                |
-| `Agent(subagent_type=project-detector)`  | `codex run-agent project-detector --output /tmp/figma-wizard-<runId>/detect.json` |
+| `Agent(subagent_type=project-detector)`  | No sub-agent spawner in Codex — run the project-detector logic inline within the single `codex exec` session, reading `.codex/agents/project-detector.md` as guidance, and write the detection JSON to `/tmp/figma-wizard-<runId>/detect.json` |
 | `mcp__figma__authenticate` (auto)        | print instructions, ask user to authenticate Figma MCP server, then continue      |
 
 Everything else (steps, write scope, schema validation, summary report) is identical. See `.claude/agents/wizard.md` for the full protocol.
