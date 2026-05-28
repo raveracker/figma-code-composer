@@ -221,7 +221,7 @@
         },
         "e2e": {
           "type": "object",
-          "description": "E2E tests are always Playwright. The wizard does not ask for a framework choice — only whether E2E is enabled.",
+          "description": "E2E tests are always Playwright. The wizard does not ask for a framework choice — only whether E2E is enabled, and where the specs + config live.",
           "properties": {
             "enabled": { "type": "boolean", "default": false },
             "framework": {
@@ -229,7 +229,15 @@
               "enum": ["playwright"],
               "default": "playwright"
             },
-            "outputDir": { "type": "string", "default": "e2e" }
+            "outputDir": {
+              "type": "string",
+              "default": "co-located",
+              "description": "Where Playwright specs land. 'co-located' = alongside the component (matches unit tests); or a path like 'e2e' / 'tests/e2e'. Set by the wizard's Q-e2e-location. Specs use the component's exact casing + .spec.<ts|tsx> (e.g. ProductCard.spec.tsx)."
+            },
+            "configPath": {
+              "type": "string",
+              "description": "Where playwright.config.ts lives (repo root by default, or a workspace dir in a monorepo). Set by the wizard's Q-playwright-config-location when no playwright.config.* already exists."
+            }
           }
         }
       }
@@ -274,6 +282,11 @@
         "mcpVerifiedAt": {
           "type": "string",
           "description": "ISO-8601 timestamp of the most recent successful Figma MCP read (set by the /init-figma-compose wizard at Step 2). Presence proves MCP was reachable at wizard time; coordinators may treat it as a soft cache."
+        },
+        "mcpToolNamespace": {
+          "type": "string",
+          "enum": ["mcp__figma__", "mcp__plugin_figma_figma__"],
+          "description": "Which Figma MCP tool prefix is exposed in the user's environment. Set by the wizard at Step 2 after probing both variants. Downstream agents prefer this prefix; their tool allowlists list both so they tolerate either."
         }
       }
     },
@@ -309,17 +322,7 @@
       "description": "Which AI tools this scaffold is wired for. Wizard sets at /init-figma-compose.",
       "properties": {
         "claudeCode": { "type": "boolean", "default": true },
-        "cursor": { "type": "boolean", "default": true },
-        "codexCli": { "type": "boolean", "default": true },
-        "codexShortcut": {
-          "type": "object",
-          "description": "Audit of the project-root Codex shortcut. Only set when tools.codexCli==true. The wizard writes an executable wrapper at <projectRoot>/codex-run (chmod 0755) that does `exec .codex/wrap.sh \"$@\"`. User invokes ./codex-run figma-build <url> — no source, no shell-rc edit, no direnv. Wizard never touches shell rc — see .claude/agents/wizard.md § Step 7.7b.",
-          "properties": {
-            "generatedAt": { "type": "string", "description": "ISO-8601 of last write." },
-            "path": { "type": "string", "default": "codex-run", "description": "Project-relative path to the generated executable (always at project root)." },
-            "executable": { "type": "boolean", "default": true, "description": "True when the wrapper has the 0755 permission set." }
-          }
-        }
+        "cursor": { "type": "boolean", "default": true }
       }
     },
     "skillsInstall": {
@@ -329,7 +332,7 @@
         "installed": {
           "type": "array",
           "items": { "type": "string" },
-          "description": "Skill directory names kept under .figma-pipeline/skills/ after the wizard's prune. Per-tool surfaces (.claude/skills/ symlinks, .cursor/rules/use-skills.mdc, .codex/skills.md) are derived from this set + config.tools.*."
+          "description": "Skill directory names kept under .figma-pipeline/skills/ after the wizard's prune. Per-tool surfaces (.claude/skills/ symlinks, .cursor/rules/use-skills.mdc) are derived from this set + config.tools.*."
         },
         "missing": {
           "type": "array",
@@ -442,38 +445,14 @@
         "detectedAt": { "type": "string", "description": "ISO-8601 timestamp of the last detection." }
       }
     },
-    "codex": {
-      "type": "object",
-      "description": "Codex CLI-specific overrides. Read only when tools.codexCli == true. Per-size model mapping for complexity routing — see protocols/complexity.md § Per-tool size → model mapping.",
-      "properties": {
-        "modelMap": {
-          "type": "object",
-          "description": "Maps abstract size (sm/md/lg) to a concrete OpenAI model ID. Defaults are conservative; users can pin to any model their Codex CLI version supports. The coordinator passes the resolved ID via `codex run-agent <name> --model <id>`.",
-          "properties": {
-            "sm": { "type": "string", "default": "gpt-4o-mini" },
-            "md": { "type": "string", "default": "gpt-4o" },
-            "lg": { "type": "string", "default": "o3" }
-          },
-          "additionalProperties": false
-        }
-      }
-    },
     "graphify": {
       "type": "object",
-      "description": "Optional integration with graphify (https://github.com/safishamsi/graphify, PyPI: graphifyy). External Python CLI that builds a queryable knowledge graph at <projectRoot>/graphify-out/ when the user types /graphify . in their AI assistant. The wizard does NOT build the graph — it only detects the CLI and (when present) registers the project-scoped skill via `graphify install --project`. Downstream agents read graph.json for reuse hints and degrade gracefully when absent.",
+      "description": "Optional integration with graphify (https://github.com/safishamsi/graphify, PyPI: graphifyy). External Python CLI that builds a queryable knowledge graph at <projectRoot>/graphify-out/ when the user types /graphify . in their AI assistant. Detect-only: the wizard records whether the CLI is on PATH but never installs it, registers the skill, or builds the graph — those are user-level actions (graphify install --platform <tool>, then /graphify .) documented in README § Prerequisites. Downstream agents read graph.json for reuse hints and degrade gracefully when absent.",
       "properties": {
         "installed": { "type": "boolean", "default": false, "description": "True when the `graphify` CLI is on PATH at wizard time." },
         "version": { "type": "string" },
         "outputDir": { "type": "string", "default": "graphify-out" },
-        "skillScope": {
-          "type": "string",
-          "enum": ["project", "global-or-user-managed"],
-          "description": "How the /graphify skill is wired for this repo. 'project' means the wizard ran `graphify install --project` and committed `.claude/skills/graphify/SKILL.md` (etc.) to the repo. 'global-or-user-managed' means the user's own global install handles /graphify; the wizard left the repo alone."
-        },
-        "registeredAt": { "type": "string", "description": "ISO-8601 of last successful `graphify install --project`." },
-        "installFailed": { "type": "boolean", "default": false },
-        "error": { "type": "string", "description": "Short stderr snippet captured when installFailed=true." },
-        "detectedAt": { "type": "string" }
+        "detectedAt": { "type": "string", "description": "ISO-8601 of the last wizard/doctor detection." }
       }
     },
     "gitignorePatch": {

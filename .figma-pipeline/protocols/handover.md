@@ -51,15 +51,25 @@ sourceFigma: https://www.figma.com/design/abc123?node-id=1315%3A40760
 
 - **Button** (atom) — already in ledger at hash sha256:abc…
 
+## Cost (this run — estimate)
+
+Per-specialist totals aggregated from `/tmp/figma-<runId>/costs.jsonl` (coordinator-written, one line per spawn). Excludes the coordinator's own context + the top-level orchestrator; `total_tokens`-based, not billed.
+
+| agent             | model  | totalTokens | toolUses |
+| ----------------- | ------ | ----------: | -------: |
+| figma-fetcher     | haiku  |      12,300 |       14 |
+| component-builder | opus   |      85,076 |       61 |
+| **total**         | —      |  **97,376** |   **75** |
+
 ## Open issues (2)
 
-- ⚠ Unbound value: `font-family: "Inter Display"` in ProductCtaBar root — Figma had no variable binding. Recorded as `unbound: true` in the manifest; the builder used the raw value as a fallback. **Action**: bind to a Figma variable and re-run `/figma-update` to clean this up.
+- ⚠ Unbound value: `font-family: "Inter Display"` in ProductCtaBar root — Figma had no variable binding. Recorded as `unbound: true` in the manifest; the builder used the raw value as a fallback. **Action**: bind it to a Figma variable when convenient. For a single cosmetic residue like this, the cheapest cleanup is a one-line manual edit by the dev — do **not** recommend a full `/figma-update` re-run for one trivial value (it costs tokens for no real gain). Reserve `/figma-update` for when several values were rebound in Figma and you want them re-pulled together.
 - ⚠ Missing skill: `figma-extract-tokens` was requested by token-builder but not present in this scaffold's catalog. token-builder fell back to the CSS-system adapter's defaults. **Action**: install via the upstream skill repo (see skillsInstall.missing in config.json).
 
 ## Next steps (suggested)
 
 - Run `npx fcc handover --run-id 20260527-1407-product-cta --verify` to double-check the build by re-reading the disk state.
-- (Optional) `/figma-update <url>` once the unbound font is resolved.
+- A handful of cosmetic flags (a stray arbitrary value, a minor padding mismatch) are fine to leave for a manual dev edit — don't spend a `/figma-update` run on them. Only re-run `/figma-update <url>` when multiple values were rebound in Figma and you want them re-pulled in one pass.
 - (Optional) Run a visual regression diff: `npx fcc kg:verify --run-id 20260527-1407-product-cta` (when enabled in config.knowledgeGraph.visualRegression).
 
 > Safe to /clear — the next session will reload from this handover + the KG at `.figma-pipeline/kg/`.
@@ -106,6 +116,6 @@ If a subagent fails:
 
 ## Session-clearing UX
 
-Claude Code, Cursor, and Codex all have their own session model. The handover doesn't try to drive `/clear` — it just makes clearing safe. The coordinator's final user-facing message should always include:
+Claude Code and Cursor both have their own session model. The handover doesn't try to drive `/clear` — it just makes clearing safe. The coordinator's final user-facing message should always include:
 
 > Handover written to `.figma-pipeline/kg/handovers/<runId>.md`. Safe to /clear; the next build will rehydrate from this file + the KG.

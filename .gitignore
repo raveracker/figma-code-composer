@@ -1,6 +1,7 @@
 # Node
 node_modules/
 *.tgz
+package-lock.json
 
 # OS / editor
 .DS_Store

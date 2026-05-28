@@ -1,8 +1,13 @@
 # `figma-code-composer` CLI surface (v1.0)
 
-> Authoritative spec for the `fcc` binary. Stubbed subcommands in this build print "not yet implemented" and exit 0; tracking issues link to where impl will land. Production builds will implement every subcommand here.
+> Authoritative spec for the `fcc` binary. As of v0.1.0 **every subcommand below is implemented** in `bin/figma-code-composer.js` — `init`, `doctor`, `complexity`, `kg:query`, `kg:stage`, `kg:merge`, `kg:rebuild`, `kg:verify`, `kg:repair`, `handover`.
 
-The CLI is shipped exclusively via the npm package — consumer projects never import from it. Agents (Claude Code, Cursor, Codex) drive the CLI via `Bash` tool calls. The binary name is `figma-code-composer`; the short alias is `fcc`.
+> **Implementation notes (stdlib-only, zero npm dependencies):**
+> - **Embeddings** — the spec describes `embeddings.sqlite` (sqlite-vec). The shipped build uses `embeddings.json` with a **local bag-of-words term-frequency vector + cosine similarity** computed in pure Node. This keeps the package dependency-free and makes `kg:query` work offline with no API keys. The exact-match instance-reuse path (`kg:query --figma-node-id`) — the load-bearing reuse mechanism — is an exact ledger lookup and does not depend on embeddings at all. Semantic RAG (`--slice`) uses the local vectors; quality is lower than a neural embedding but sufficient for "is there a similar prior component?" hints. Swapping in `openai`/`voyage` providers (opt-in, network) is a future additive change.
+> - **Lock** — the spec says `flock(2)`. Node has no built-in flock, so `kg:merge` / `kg:repair` use an **atomic `open(…, "wx")` lockfile** at `<storeDir>/ledger.lock` with a 30s timeout. Same single-writer guarantee; portable across platforms.
+> - **Merge is upsert-by-id** — re-staging an entry with an existing `id` (tokenSets, rebuilt components) replaces it and preserves the original `createdAt`.
+
+The CLI is shipped exclusively via the npm package — consumer projects never import from it. Agents (Claude Code, Cursor) drive the CLI via `Bash` tool calls. The binary name is `figma-code-composer`; the short alias is `fcc`.
 
 ## Global flags
 
@@ -20,7 +25,27 @@ Every subcommand also accepts `--help` for subcommand-specific usage.
 
 > Quick reference of every subcommand:
 >
-> `init` · `doctor` · `complexity` · `kg:query` · `kg:stage` · `kg:merge` · `kg:rebuild` · `kg:verify` · `kg:repair` · `handover`
+> `init` · `migrate` · `doctor` · `complexity` · `kg:query` · `kg:stage` · `kg:merge` · `kg:rebuild` · `kg:verify` · `kg:repair` · `handover`
+
+### `fcc migrate`
+
+One-time migration for projects scaffolded **before the ownership split** (when `CLAUDE.md` carried the binding rules / repo map / coverage / quick-start inline). Those now live in `.figma-pipeline/PIPELINE.md`, imported via a managed marker block — so the inline copy is redundant.
+
+**Effect:**
+- Detects an old-style `CLAUDE.md` (fingerprint: a `## Binding rules` heading + the rule-1 text, no managed block).
+- Backs it up to `CLAUDE.md.bak`, removes the superseded sections (`## Quick start`, `## Repo map`, `## Binding rules`, `## Coverage`), and ensures the `@.figma-pipeline/PIPELINE.md` managed block is present. Your own sections (anything not in that set) are preserved.
+- `AGENTS.md`: lighter — just ensures the managed pointer block exists.
+- Idempotent: a file that already has the managed block reports "already migrated".
+
+**Flags:**
+
+| Flag             | Effect                                            |
+| ---------------- | ------------------------------------------------- |
+| `--target <dir>` | Project dir (default: cwd)                        |
+| `--dry-run`      | Print the plan (sections to remove); write nothing |
+| `--yes, -y`      | Skip the confirmation prompt                      |
+
+**Exit codes:** `0` migrated (or already-migrated / dry-run) · `1` user declined the prompt.
 
 ### `fcc init [target]`
 
@@ -31,7 +56,7 @@ Scaffold the pipeline into a project. (Default when no subcommand given, for bac
 | Flag                | Effect                                                   |
 | ------------------- | -------------------------------------------------------- |
 | `--target <dir>`    | Target directory (default: positional arg or cwd)        |
-| `--tools <list>`    | Comma-separated: `claude`, `cursor`, `codex` (default: all) |
+| `--tools <list>`    | Comma-separated: `claude`, `cursor` (default: all)       |
 | `--skip <list>`     | Skip extras: `claude-md`, `agents-md`                    |
 | `--force`           | Overwrite existing files                                 |
 | `--dry-run`         | Print plan, write nothing                                |
@@ -260,13 +285,43 @@ Emit a `handovers/<runId>.md` summarizing a run. Called by the coordinator after
 | `--run-id <id>`       | REQUIRED                                          |
 | `--manifest <path>`   | REQUIRED — path to the run's manifest             |
 | `--output <path>`     | Default: `<storeDir>/handovers/<runId>.md`        |
+| `--costs <path>`      | Per-specialist cost ledger. Default: `/tmp/figma-<runId>/costs.jsonl` |
 | `--failed`            | Emit a `.failed.md` instead of `.md`              |
 | `--verify`            | Re-read disk state and cross-check ledger; flag drift |
+
+The handover embeds a **Cost (this run)** table aggregated from the cost ledger (`costs.jsonl`) — one JSON line per specialist spawn (`{ agent, model, totalTokens, toolUses, status }`), written by the coordinator (single writer). Front-matter gains `specialistTokensThisRun` + `specialistToolUsesThisRun`. Absent ledger → the section notes it; the rest of the handover is unaffected.
 
 **Exit codes:**
 - `0` — handover written
 - `1` — written with warnings (use `--verify` to surface)
 - `2` — manifest or ledger unreadable
+
+### `fcc skills:prune`
+
+Guarded prune of `.figma-pipeline/skills/` down to a keep-set. The vetted replacement for hand-authored `rm -rf` in the wizard's install phase (a shell word-splitting bug in such a command once wiped the entire catalog). Called by the wizard at `/init-figma-compose` (Step 7.5) with the resolved `installSet`. See [skills.md](./skills.md) § _Resolution algorithm — Wizard (install phase)_.
+
+**Effect:**
+- Lists directories directly under `.figma-pipeline/skills/`.
+- Deletes those NOT in `--keep`. Each target is basename-scoped and confirmed to resolve under the skills dir.
+- Best-effort syncs `skills-lock.json` to the surviving set (if present).
+
+**Flags:**
+
+| Flag                  | Effect                                                            |
+| --------------------- | ---------------------------------------------------------------- |
+| `--keep <list>`       | REQUIRED — comma-separated skill names to keep (the `installSet`) |
+| `--dry-run`           | Print what would be removed; delete nothing                       |
+| `--json`              | Machine-readable output (`{ pruned, kept, total, removed, missing, lockSynced }`) |
+
+**Guards (non-bypassable):**
+- Empty/missing `--keep` → refuse (exit 2). An empty keep-set would delete everything.
+- `--keep` disjoint from the on-disk set → refuse (exit 3). That would delete the whole catalog — the historical failure mode.
+- Keep entries containing `/`, `\`, `.`, or `..` → refuse (exit 2).
+
+**Exit codes:**
+- `0` — pruned (or nothing to prune)
+- `2` — bad input (empty/unsafe `--keep`, no skills dir)
+- `3` — guard tripped (disjoint keep-set) or out-of-scope target
 
 ## Exit-code conventions (summary)
 

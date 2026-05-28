@@ -1,0 +1,36 @@
+---
+owner: figma-pipeline
+description: "Cursor agent model preference for the figma-pipeline — PLAN-AWARE and ADVISORY. Free plan: model is locked to Auto, never force a model. Paid plan: prefer Composer 2.5, fallback Claude. The coordinator never overrides Cursor's live model selection."
+alwaysApply: true
+---
+
+# Cursor model preference — plan-aware, never forced
+
+The figma-pipeline agents **never force a model selection** in Cursor. Cursor applies the active model from its **Settings → Models** UI / chat model picker; no project file can pin it. So this is a *preference*, scoped by plan:
+
+## Free plan — leave it on Auto
+
+On the **Cursor Free plan, model selection is locked to Auto**. Do **not** attempt to set, switch, or recommend a specific model — the user can't change it, and the pipeline runs fine on whatever Auto picks. Treat any Composer-2.5/Claude preference below as a no-op when the picker is locked. The coordinator still surfaces its size hint (`sm`/`md`/`lg`) for information, but adds no "switch model" nudge on Free.
+
+### Never spawn a named-model agent (enforced, not advisory)
+
+The whole pipeline runs **inline in the current chat thread** — Cursor has no `Agent`-style sub-agent spawner (see `pipeline-roles.mdc`). Do **not** try to dispatch a specialist (`figma-fetcher`, `component-builder`, …) or the coordinator itself as a separate agent that requests a *named* model. On Free that fails hard and aborts the run before any work happens:
+
+```
+Named models unavailable — Free plans can only use Auto. Switch to Auto or upgrade plans to continue.
+```
+
+This is the load-bearing difference from Claude Code's `Agent(model=…)` spawns: **that path does not exist in Cursor.** The coordinator plays every role inline on whatever model the picker currently holds (Auto on Free). The size hint is informational only — never a trigger to spawn or switch.
+
+## Paid plan — prefer Composer 2.5, fall back to Claude
+
+When the plan allows model selection (Paid):
+
+- **Default: Composer 2.5.** Select it once in Settings → Models.
+- **Fallback: a Claude model ("claude mode")** when Composer 2.5 is unavailable, or for `lg`-size runs (complex/extreme tier) where Claude's long-context reasoning or the `code-reviewer` pass benefits. The coordinator's `lg` size hint is the signal to switch for that run.
+
+## What the agents/coordinator do (both plans)
+
+- **Never call a model-setting API or change the picker.** They read the live selection and run on it.
+- Surface the complexity size hint as a chat prefix (`[fcc routing] tier=complex, recommended size=lg`). On Paid, the user may act on it (switch to Claude); on Free, it's informational only.
+- Either model reads the same `.figma-pipeline/config.json` and produces the same output contract — the preference is about quality/cost, not behavior. The pipeline is correct on Auto, Composer 2.5, or Claude.

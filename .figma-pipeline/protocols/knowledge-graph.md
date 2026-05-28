@@ -318,6 +318,6 @@ When `config.knowledgeGraph.enabled = false`:
 
 This is the safe-mode default for projects that don't want a persistent KG (e.g., the scaffold's own self-tests).
 
-## Cursor + Codex parity
+## Cursor parity
 
-All KG operations are CLI calls — they work identically in Claude Code, Cursor, and Codex. The instructions for **when** to call them live in each agent's `.md` definition under `.claude/agents/`, `.cursor/prompts/`, `.codex/agents/`. The CLI is the only single-source enforcement layer.
+All KG operations are CLI calls — they work identically in Claude Code and Cursor. The instructions for **when** to call them live in each agent's `.md` definition under `.claude/agents/`, `.cursor/prompts/`. The CLI is the only single-source enforcement layer.

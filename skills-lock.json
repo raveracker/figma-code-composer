@@ -211,6 +211,18 @@
       "skillPath": "plugins/services/figma/skills/figma-analyze-frame/SKILL.md",
       "computedHash": "52513a1bb02a55ec62538cdd2c9696953f1ed29c957dc1e720692c9ae1a0479c"
     },
+    "figma-code-connect": {
+      "source": "figma/mcp-server-guide",
+      "sourceType": "github",
+      "skillPath": "skills/figma-code-connect/SKILL.md",
+      "computedHash": "d69cfc0e2080351f0182a8f3c2349349fb6696f63cede8972e12ca3b71bafe10"
+    },
+    "figma-create-new-file": {
+      "source": "figma/mcp-server-guide",
+      "sourceType": "github",
+      "skillPath": "skills/figma-create-new-file/SKILL.md",
+      "computedHash": "82e0a018692d3d009b5d2c83ecce9203a4ce7dfbdb98b7b13a4f7e5b11832bc2"
+    },
     "figma-extract-tokens": {
       "source": "thebushidocollective/han",
       "sourceType": "github",
@@ -222,6 +234,24 @@
       "sourceType": "github",
       "skillPath": "plugins/services/figma/skills/figma-generate-component/SKILL.md",
       "computedHash": "b32078494384736fa4205210bf8ef409a3c78cef63dea350785ec6029ca14c3a"
+    },
+    "figma-generate-design": {
+      "source": "figma/mcp-server-guide",
+      "sourceType": "github",
+      "skillPath": "skills/figma-generate-design/SKILL.md",
+      "computedHash": "04713c467ae5efce7ff916d83a736d98f523ff4bc779d701e97c050aabd93bae"
+    },
+    "figma-generate-diagram": {
+      "source": "figma/mcp-server-guide",
+      "sourceType": "github",
+      "skillPath": "skills/figma-generate-diagram/SKILL.md",
+      "computedHash": "7297638dbf2130d1b37bfd85df65d290a4dd0b11a11b54abafcf7d07565922b5"
+    },
+    "figma-generate-library": {
+      "source": "figma/mcp-server-guide",
+      "sourceType": "github",
+      "skillPath": "skills/figma-generate-library/SKILL.md",
+      "computedHash": "e35e6d2f6624ea6fc062b4960ea74120b4d172edd8be4acab02c76e526e509fb"
     },
     "figma-integration": {
       "source": "mindrally/skills",
@@ -240,6 +270,18 @@
       "sourceType": "github",
       "skillPath": "skills/figma-use/SKILL.md",
       "computedHash": "e2ccd2ea5fe77bcdc2f7149ddc020b98e056c261cfd395a8d40cf0e2aee21a40"
+    },
+    "figma-use-figjam": {
+      "source": "figma/mcp-server-guide",
+      "sourceType": "github",
+      "skillPath": "skills/figma-use-figjam/SKILL.md",
+      "computedHash": "4edee26ddf0856f59308c9f08519ae3bae537af2e677eeb3090e0d47422dee14"
+    },
+    "figma-use-slides": {
+      "source": "figma/mcp-server-guide",
+      "sourceType": "github",
+      "skillPath": "skills/figma-use-slides/SKILL.md",
+      "computedHash": "b29d989acf8426ae718c210dce7c11c758ffe12b72c63e57bb5d30da45dcfba3"
     },
     "frontend-css-patterns": {
       "source": "majesticlabs-dev/majestic-marketplace",

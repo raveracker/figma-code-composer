@@ -19,6 +19,22 @@
     "openFiles": true
   },
 
+  "_comment_about_model": [
+    "Model preference is PLAN-AWARE and ADVISORY — the figma-pipeline agents never",
+    "force a model; they use whatever Cursor's model picker provides.",
+    "  • Free plan: model selection is LOCKED to Auto. Do nothing — Auto is fine;",
+    "    the pipeline runs on whatever Auto selects. Never try to pin a model.",
+    "  • Paid plan: prefer Composer 2.5 as the default (select it in Settings →",
+    "    Models), with a Claude model as the fallback for lg/complex-extreme runs.",
+    "Cursor applies the model from its Settings → Models UI; project settings.json",
+    "cannot force it. See .cursor/rules/model-preference.mdc + complexity.md."
+  ],
+  "fcc.cursor.model": {
+    "free": "auto",
+    "paid": { "default": "composer-2.5", "fallback": "claude" },
+    "force": false
+  },
+
   "files.associations": {
     "*.mdc": "markdown"
   },
