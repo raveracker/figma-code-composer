@@ -30,6 +30,137 @@ That copies `.claude/`, `.cursor/`, `.codex/`, `.figma-pipeline/`, `CLAUDE.md`, 
 
 ---
 
+## Prerequisites
+
+Before running `/init-figma-compose` you need to have **Figma MCP connected** in your AI tool of choice. **Graphify** and **RTK** are optional but recommended — they're both external user-level tools the pipeline benefits from.
+
+### Required — Figma MCP
+
+Connects your AI tool to your Figma files. The wizard's Step 2 hard-gates on this: without a reachable Figma MCP, `config.json` is never written. Pick the tool you use:
+
+#### Claude Code
+
+**Option A — Plugin install (recommended):**
+
+```bash
+claude plugin install figma@claude-plugins-official
+```
+
+**Option B — Manual MCP add:**
+
+```bash
+claude mcp add --transport http figma https://mcp.figma.com/mcp
+```
+
+**Managing MCP servers:**
+
+```bash
+claude mcp list                  # list configured servers
+claude mcp get figma             # details for the figma server
+claude mcp remove figma          # remove it
+```
+
+#### Cursor
+
+**Option A — Plugin install (recommended):**
+
+In Cursor's agent chat, type:
+
+```
+/add-plugin figma
+```
+
+**Option B — Manual MCP add:**
+
+1. Open Cursor → Settings → Cursor Settings
+2. Click **Tools & MCP**
+3. Under **MCP Tools**, click **+** to add a custom MCP server
+4. Paste this into the `mcp.json` and save:
+
+```json
+{
+  "mcpServers": {
+    "Figma": {
+      "url": "https://mcp.figma.com/mcp"
+    }
+  }
+}
+```
+
+#### Codex CLI
+
+```bash
+codex                            # open Codex
+/plugins                         # then run
+```
+
+Search for **Figma** in the plugin list and press Enter to install.
+
+### Optional — Graphify (`/graphify` codebase knowledge graph)
+
+[Graphify](https://github.com/safishamsi/graphify) turns the project tree into a queryable knowledge graph at `graphify-out/`. Once installed, type `/graphify .` (Codex: `$graphify .`) in your assistant and you get three files:
+
+- `graph.html` — open in any browser, click nodes, filter, search
+- `GRAPH_REPORT.md` — key concepts, surprising connections, suggested questions
+- `graph.json` — full graph, queryable any time without re-reading your files
+
+**Why use it.** `component-builder`'s `priorReuseHints[]` and `code-reviewer`'s cross-file impact analysis both prefer `graphify-out/graph.json` when present, so the agents stop grepping raw files for context. Cuts repeated `Read`/`Grep` tool calls on multi-component builds and gives the assistant a holistic view of the codebase that survives `/clear`.
+
+**Install (PyPI package is `graphifyy` — double-y; CLI command is `graphify`):**
+
+```bash
+# Pick one:
+uv tool install graphifyy        # recommended (puts on PATH automatically)
+pipx install graphifyy
+pip install graphifyy
+```
+
+**Register for your AI tool** (the wizard's Step 7.7 will run `--project` for you when graphify is on PATH; or run manually):
+
+```bash
+graphify install --platform claude       # Claude Code (global skill)
+graphify install --platform cursor       # Cursor
+graphify install --platform codex        # Codex CLI (uses $graphify)
+# or:
+graphify install --project --platform <claude|cursor|codex>   # project-scoped instead of global
+```
+
+**Build the graph** (you do this inside your assistant chat, not the wizard):
+
+```
+/graphify .
+```
+
+Skip it if you don't want the codebase indexed — the pipeline runs identically with or without.
+
+### Optional — RTK (shell-output compression)
+
+[RTK](https://github.com/rtk-ai/rtk) is a Rust binary that sits between your shell and your AI tool, filtering and compressing verbose command output (`git status`, `npm test`, `cargo test`, `ls`, …) **60-90% before the model reads it.**
+
+**Why use it.** Realistic savings on a typical pipeline run: ~10-15% of side-channel tokens (Bash tool calls only — does NOT compress Figma MCP payloads, generated code, or built-in `Read`/`Grep`/`Glob`). For multi-build sessions on large repos the savings compound. Free if you already use Homebrew.
+
+**Install (pick one):**
+
+```bash
+brew install rtk
+curl -fsSL https://raw.githubusercontent.com/rtk-ai/rtk/refs/heads/master/install.sh | sh
+cargo install --git https://github.com/rtk-ai/rtk
+```
+
+**Init for your AI tool** (do this once per tool you use — RTK is user-level, modifies your global tool config):
+
+```bash
+rtk init -g                      # Claude Code (default)
+rtk init --agent cursor          # Cursor
+rtk init -g --codex              # Codex CLI
+```
+
+Restart your AI tool after init, then test: `git status` (auto-rewritten to `rtk git status`). Re-running `/init-figma-compose` or `fcc doctor` picks up the new state in `config.rtk`.
+
+**Why the wizard doesn't auto-install RTK or Graphify** — both modify user-level state (`~/.claude/settings.json`, shell rc files). A per-project init shouldn't reconfigure your whole workstation, so the wizard detects and offers — you own the install command.
+
+---
+
 ## Quickstart
 
 All three tools share the same commands. Run them inside the project after `npx figma-code-composer`:
@@ -206,33 +337,15 @@ Full spec: [`protocols/cli.md`](.figma-pipeline/protocols/cli.md).
 
 ---
 
-## Optional: RTK & Graphify (user-level tools)
+## Optional tools deep-dive
 
-Both are **external CLIs** the pipeline benefits from but never requires. The wizard detects them, prints install commands tailored to your enabled tools, and **never auto-installs** — both modify user-level state (home-directory config or shell rc) and shouldn't be reconfigured silently by a per-project init.
+Install instructions for **Figma MCP**, **Graphify**, and **RTK** are in [Prerequisites](#prerequisites). This section covers runtime behavior + scope.
 
-### RTK — shell-output compression
+**RTK** — once installed and `rtk init`-ed for your AI tool, it transparently rewrites Bash commands (`git status` → `rtk git status`, `npm test` → `rtk npm test`, etc.) to compress output 60-90% before the model reads it. **Runtime scope:** Bash tool calls only — does NOT touch Figma MCP payloads, generated code, the Anthropic/OpenAI API itself, or Claude Code's built-in `Read`/`Grep`/`Glob` (those bypass the Bash hook). Use `rtk read`/`rtk grep` explicitly if you want compression there. Savings: ~10-15% of side-channel tokens on a typical pipeline run.
 
-[RTK](https://github.com/rtk-ai/rtk) is a Rust binary that sits between your shell and your AI tool, compressing verbose command output (`git status`, `npm test`, `cargo test`, …) 60–90% before the model reads it.
+**Graphify** — once installed and registered, **you** trigger the graph build by typing `/graphify .` (Codex: `$graphify .`) inside your AI assistant. The wizard never builds the graph itself — that step needs to run inside the assistant where graphify's prompt + Mermaid rendering live. `graphify-out/` is gitignored by the wizard's Step 14 regardless of whether graphify is installed. Skip it if you don't want the codebase indexed; the pipeline runs identically without.
 
-- **Scope:** binary on user PATH; `rtk init -g` writes a Bash hook into your user-level AI-tool config (e.g., `~/.claude/settings.json`).
-- **What it touches at runtime:** only Bash tool calls. Does NOT compress Figma MCP payloads, generated code, the Anthropic/OpenAI API itself, or Claude Code's built-in `Read`/`Grep`/`Glob` (those bypass the Bash hook).
-- **Savings:** ~10–15% of side-channel tokens on a typical pipeline run.
-- **Install (pick one):** `brew install rtk` · `curl -fsSL https://raw.githubusercontent.com/rtk-ai/rtk/refs/heads/master/install.sh | sh` · `cargo install --git https://github.com/rtk-ai/rtk`
-- **Init (wizard prints only the lines matching your `config.tools.*`):** `rtk init -g` (Claude Code) · `rtk init --agent cursor` (Cursor) · `rtk init -g --codex` (Codex CLI)
-
-After running the commands, re-enter the wizard (or `fcc doctor`) — it picks up `installed=true` + `initialized=true`.
-
-### Graphify — `/graphify` knowledge graph
-
-[Graphify](https://github.com/safishamsi/graphify) (PyPI `graphifyy`, command `graphify`) turns the project into a queryable knowledge graph at `graphify-out/` so your assistant can answer codebase questions without grepping raw files.
-
-| Layer | Command | Touches | Wizard behavior |
-|---|---|---|---|
-| Binary | `uv tool install graphifyy` (recommended) / `pipx install graphifyy` / `pip install graphifyy` | User PATH | Detects only; prints command if absent. |
-| Skill registration | `graphify install --project --platform <claude\|cursor\|codex>` | `.claude/skills/graphify/SKILL.md` (and per-tool equivalents) **in this repo** | If CLI is on PATH, asks; runs with confirmation. |
-| Graph build | `/graphify .` (Codex: `$graphify .`) | Populates `graphify-out/` | **You** run this in your assistant after the wizard exits — never the wizard. |
-
-Why the split: the build step runs *inside* your AI assistant; that's where graphify's prompt + Mermaid rendering live. `graphify-out/` is gitignored by the wizard's Step 14 regardless. Skip it if you don't want the codebase indexed — the pipeline runs identically.
+**Why the wizard doesn't auto-install either** — both modify user-level state (`~/.claude/settings.json`, shell rc files). A per-project init shouldn't reconfigure your whole workstation — you own the install command. The wizard's Steps 7.6 (RTK) and 7.7 (Graphify) detect, offer per-tool init commands matched to `config.tools.*`, and record status in `config.rtk` / `config.graphify` — never run `brew install` or `uv tool install` themselves.
 
 ---
 
