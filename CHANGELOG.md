@@ -1,5 +1,11 @@
 # figma-code-composer
 
+## 1.0.1
+
+### Patch Changes
+
+- Update Github workflow to use node 24
+
 ## 1.0.0
 
 ### Major Changes
