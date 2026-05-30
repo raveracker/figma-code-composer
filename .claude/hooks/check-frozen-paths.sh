@@ -30,7 +30,18 @@ if [[ "${HK_ALLOW_RESTRICTED_WRITE:-}" == "1" || "${FP_ALLOW_RESTRICTED_WRITE:-}
   exit 0
 fi
 
-REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
+# Project root resolution.
+#   1. CLAUDE_PROJECT_DIR  — the directory Claude Code is rooted at. This is the
+#      ONLY reliable anchor when the project is nested inside a parent git repo
+#      (e.g. a scaffold installed into `trial/` of a monorepo): `git rev-parse
+#      --show-toplevel` would climb to the PARENT and leave a `trial/` prefix on
+#      REL_PATH, so `.figma-pipeline/**` and every relative allowedDir would miss.
+#   2. git toplevel       — fallback when CLAUDE_PROJECT_DIR is unset.
+#   3. pwd                — last resort.
+REPO_ROOT="${CLAUDE_PROJECT_DIR:-}"
+if [[ -z "$REPO_ROOT" ]]; then
+  REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
+fi
 REL_PATH="${FILE_PATH#$REPO_ROOT/}"
 CONFIG="$REPO_ROOT/.figma-pipeline/config.json"
 
@@ -80,7 +91,10 @@ if [[ -r "$CONFIG" ]] && command -v jq >/dev/null 2>&1; then
       exit 2
     fi
   done
-  ALLOWED_GLOBS=("${CFG_GLOBS[@]}" ".figma-pipeline/**" "/tmp/**" ".mcp.json")
+  # `.figma-pipeline/**` is always writable — it holds pipeline working files
+  # (config.json, manifest, scratch), never user source. The `*/.figma-pipeline/**`
+  # variant is belt-and-suspenders for any residual subdir prefix on REL_PATH.
+  ALLOWED_GLOBS=("${CFG_GLOBS[@]}" ".figma-pipeline/**" "*/.figma-pipeline/**" "/tmp/**" ".mcp.json")
 else
   # Bootstrap allowlist — what the wizard may touch before config.json exists.
   #   .gitignore      — Step 7.8 patch
@@ -90,7 +104,7 @@ else
   # NOTE: graphify is detect-only — the wizard never runs `graphify install`, so
   # no graphify-owned skill paths are in this allowlist.
   ALLOWED_GLOBS=(
-    ".figma-pipeline/**" "/tmp/**" ".mcp.json"
+    ".figma-pipeline/**" "*/.figma-pipeline/**" "/tmp/**" ".mcp.json"
     ".gitignore" "graphify-out/**"
     ".cursor/rules/**"
   )
