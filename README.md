@@ -23,10 +23,12 @@ Works in **Claude Code** and **Cursor** — same agents, two entry points, one c
 
 ```bash
 # In any frontend project (React / Vue / Angular / Svelte):
-npx figma-code-composer        # or the short alias: npx fcc
+npx figma-code-composer@latest   # or the short alias: npx fcc@latest
 ```
 
 That copies `.claude/`, `.cursor/`, and `.figma-pipeline/` into your project, and **injects a managed marker block** into your `CLAUDE.md` / `AGENTS.md` (created if absent) pointing at the scaffold-owned `.figma-pipeline/PIPELINE.md` — so your own instructions in those files are never overwritten. **Nothing is bundled into your application** — your runtime never imports from this package. The CLI runs on demand via `npx`. Optionally pin with `npm i -D figma-code-composer`.
+
+> **Always pin `@latest`.** A bare `npx figma-code-composer` can re-run a *stale cached build* (npx reuses a previously downloaded version for an unversioned spec without re-checking the registry). If you tested an early version you may still see its scaffolding — e.g. a now-removed `.codex/` directory. `@latest` forces the current version; to flush a stale copy run `npx clear-npx-cache` (or `rm -rf ~/.npm/_npx`).
 
 ---
 
